@@ -1,0 +1,3 @@
+(sym_lib_table
+  (lib (name psu_p9530_panel)(type Legacy)(uri ${KIPRJMOD}/psu_p9530_panel.lib)(options "")(descr ""))
+)

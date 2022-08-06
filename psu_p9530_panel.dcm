@@ -1,0 +1,9 @@
+EESchema-DOCLIB  Version 2.0
+#
+$CMP LTC1658
+D 14-Bit Rail-to-Rail Micropower DAC
+K DAC
+F https://www.analog.com/media/en/technical-documentation/data-sheets/1658f.pdf
+$ENDCMP
+#
+#End Doc Library
