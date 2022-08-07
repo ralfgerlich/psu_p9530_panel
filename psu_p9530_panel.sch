@@ -4,9 +4,9 @@ EELAYER END
 $Descr A4 11693 8268
 encoding utf-8
 Sheet 1 1
-Title "ELV PS9530 Control Panel Replacement"
-Date "2022-08-06"
-Rev "3"
+Title "ELV PS9530 Ersatz Bedienteil"
+Date "2022-08-07"
+Rev "4"
 Comp "Ralf Gerlich"
 Comment1 ""
 Comment2 ""
@@ -631,17 +631,6 @@ Text Notes 4050 3750 0    50   ~ 0
 DAC Multiplexer
 Text Notes 6850 3750 0    50   ~ 0
 DAC Sample-and-Hold
-$Comp
-L power:GNDA #PWR0120
-U 1 1 62F92CDD
-P 4100 4350
-F 0 "#PWR0120" H 4100 4100 50  0001 C CNN
-F 1 "GNDA" H 4105 4177 50  0000 C CNN
-F 2 "" H 4100 4350 50  0001 C CNN
-F 3 "" H 4100 4350 50  0001 C CNN
-	1    4100 4350
-	1    0    0    -1  
-$EndComp
 Wire Wire Line
 	4100 4350 4100 4200
 Wire Wire Line
@@ -1738,7 +1727,7 @@ Wire Notes Line
 Wire Notes Line
 	1750 3600 1750 2450
 Text Notes 7000 7000 0    50   ~ 0
-Rev 3: display conn, enc to matrix, blocking caps, renumbering (400+), +5V-filter, CS for keyboard\nRev 2: Added blocking capacitor for shift register (U1)\nRev 1: Initial Drawing
+Rev 4: Umsetzung Deutsch, IC308 A an GND statt GNDA\nRev 3: Display-Connector, Encoder an Matrix, Abblock-Caps, +5V-Filter, CS für U401, Schutzwiderstände\nRev 2: Abblockkondensatoren für Schieberegister\nRev 1: Erste Version
 $Comp
 L Device:R R402
 U 1 1 639D8EFF
@@ -1944,8 +1933,8 @@ Wire Wire Line
 Connection ~ 2750 2950
 Wire Wire Line
 	2450 2850 2800 2850
-Text Notes 1900 3450 0    50   ~ 0
-NOTE:\nConnections\nhave to be\nrerouted.
+Text Notes 1900 3500 0    50   ~ 0
+HINWEIS:\nLeiter an C\nmuss getrennt\nwerden.
 Wire Notes Line
 	1850 2450 3100 2450
 Wire Notes Line
@@ -2090,4 +2079,15 @@ Wire Wire Line
 Wire Wire Line
 	4950 6850 4950 6800
 Connection ~ 5100 6850
+$Comp
+L power:GND #PWR?
+U 1 1 62F0FC79
+P 4100 4350
+F 0 "#PWR?" H 4100 4100 50  0001 C CNN
+F 1 "GND" H 4105 4177 50  0000 C CNN
+F 2 "" H 4100 4350 50  0001 C CNN
+F 3 "" H 4100 4350 50  0001 C CNN
+	1    4100 4350
+	1    0    0    -1  
+$EndComp
 $EndSCHEMATC
