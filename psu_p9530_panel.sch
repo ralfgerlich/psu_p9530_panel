@@ -2090,4 +2090,10 @@ F 3 "" H 4100 4350 50  0001 C CNN
 	1    4100 4350
 	1    0    0    -1  
 $EndComp
+Text Notes 1250 2200 2    50   ~ 0
+brown
+Text Notes 3650 2200 2    50   ~ 0
+yellow
+Text Notes 600  1000 0    50   ~ 0
+brown
 $EndSCHEMATC
