@@ -5,8 +5,8 @@ $Descr A4 11693 8268
 encoding utf-8
 Sheet 1 1
 Title "ELV PS9530 Ersatz Bedienteil"
-Date "2022-08-07"
-Rev "4"
+Date "2022-08-12"
+Rev "5"
 Comp "Ralf Gerlich"
 Comment1 ""
 Comment2 ""
@@ -1727,7 +1727,7 @@ Wire Notes Line
 Wire Notes Line
 	1750 3600 1750 2450
 Text Notes 7000 7000 0    50   ~ 0
-Rev 4: Umsetzung Deutsch, IC308 A an GND statt GNDA\nRev 3: Display-Connector, Encoder an Matrix, Abblock-Caps, +5V-Filter, CS für U401, Schutzwiderstände\nRev 2: Abblockkondensatoren für Schieberegister\nRev 1: Erste Version
+Rev 5: Zustandsmaschine Inkrementalgeber\nRev 4: Umsetzung Deutsch, IC308 A an GND statt GNDA\nRev 3: Display-Connector, Encoder an Matrix, Abblock-Caps, +5V-Filter, CS für U401, Schutzwiderstände\nRev 2: Abblockkondensatoren für Schieberegister\nRev 1: Erste Version
 $Comp
 L Device:R R402
 U 1 1 639D8EFF
@@ -1935,12 +1935,6 @@ Wire Wire Line
 	2450 2850 2800 2850
 Text Notes 1900 3500 0    50   ~ 0
 HINWEIS:\nLeiter an C\nmuss getrennt\nwerden.
-Wire Notes Line
-	1850 2450 3100 2450
-Wire Notes Line
-	3100 2450 3100 3600
-Wire Notes Line
-	3100 3600 1850 3600
 Wire Wire Line
 	9150 1550 9300 1550
 Wire Wire Line
@@ -2096,4 +2090,86 @@ Text Notes 3650 2200 2    50   ~ 0
 yellow
 Text Notes 600  1000 0    50   ~ 0
 brown
+Text Notes 3200 3150 0    100  ~ 0
+BA\n00
+Text Notes 4100 3150 0    100  ~ 0
+BA\n10
+Wire Notes Line style solid
+	3450 2900 3600 2900
+Wire Notes Line style solid
+	3600 2900 3550 2850
+Wire Notes Line style solid
+	3600 2900 3550 2950
+Text Notes 3450 2850 0    50   ~ 0
+CW
+Wire Notes Line style solid
+	4350 2900 4450 2900
+Wire Notes Line style solid
+	4450 2900 4450 2600
+Wire Notes Line style solid
+	4450 2600 3100 2600
+Wire Notes Line style solid
+	3100 2600 3100 2900
+Wire Notes Line style solid
+	3100 2900 3200 2900
+Wire Notes Line style solid
+	3200 2900 3150 2850
+Wire Notes Line style solid
+	3200 2900 3150 2950
+Wire Notes Line style solid
+	3200 3100 3100 3100
+Wire Notes Line style solid
+	3100 3100 3100 3350
+Wire Notes Line style solid
+	3100 3350 4450 3350
+Wire Notes Line style solid
+	4450 3350 4450 3100
+Wire Notes Line style solid
+	4450 3100 4350 3100
+Wire Notes Line style solid
+	4350 3100 4400 3050
+Wire Notes Line style solid
+	4350 3100 4400 3150
+Text Notes 3250 2700 0    50   ~ 0
+CW
+Text Notes 4200 3350 0    50   ~ 0
+CCW
+Wire Notes Line
+	1850 2450 4600 2450
+Wire Notes Line
+	4600 2450 4600 3600
+Wire Notes Line
+	4600 3600 1850 3600
+Wire Notes Line style solid
+	3900 2900 4050 2900
+Wire Notes Line style solid
+	4050 2900 4000 2850
+Wire Notes Line style solid
+	4050 2900 4000 2950
+Text Notes 3900 2850 0    50   ~ 0
+CW
+Text Notes 3650 3150 0    100  ~ 0
+BA\n11
+Wire Notes Line style solid
+	3600 3100 3450 3100
+Wire Notes Line style solid
+	3450 3100 3500 3150
+Wire Notes Line style solid
+	3450 3100 3500 3050
+Text Notes 3600 3200 2    50   ~ 0
+CW
+Wire Notes Line style solid
+	4050 3100 3900 3100
+Wire Notes Line style solid
+	3900 3100 3950 3150
+Wire Notes Line style solid
+	3900 3100 3950 3050
+Text Notes 4050 3200 2    50   ~ 0
+CW
+Wire Notes Line style solid
+	3750 2700 3750 2850
+Wire Notes Line style solid
+	3750 2850 3800 2800
+Wire Notes Line style solid
+	3750 2850 3700 2800
 $EndSCHEMATC
