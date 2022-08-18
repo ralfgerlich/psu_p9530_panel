@@ -1,8 +1,9 @@
 /* kbd.cpp - Functions for the keyboard interface
  * Copyright (c) 2022, Ralf Gerlich
  */
-#include <Arduino.h>
 #include "kbd.h"
+#include "spi.h"
+
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <util/delay.h>
@@ -29,20 +30,6 @@
 
 /* Bit mask for chip select line */
 #define MASK_CS _BV(PIN_CS)
-
-/* Port for SPI */
-#define PORT_SPI PORTB
-#define DDR_SPI DDRB
-
-/* Pins for SPI */
-#define PIN_MOSI PIN3
-#define PIN_MISO PIN4
-#define PIN_SCK PIN5
-
-/* Masks for SPI */
-#define MASK_MOSI _BV(PIN_MOSI)
-#define MASK_MISO _BV(PIN_MISO)
-#define MASK_SCK _BV(PIN_SCK)
 
 #define MASK_ENC_A _BV(kbd_enc_a)
 #define MASK_ENC_B _BV(kbd_enc_b)
@@ -106,9 +93,7 @@ void kbd_init() {
     DDR_COL &= ~MASK_COL;
     PORT_COL |= MASK_COL;
     DDR_CS |= MASK_CS;
-    DDR_SPI |= MASK_MOSI|MASK_SCK;
     PORT_CS |= MASK_CS;
-    PORT_SPI &= ~MASK_SCK;
 
     kbd_state = ~0;
     kbd_buffer_count = 0;
