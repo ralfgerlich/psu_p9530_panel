@@ -49,8 +49,8 @@ static uint8_t kbd_buffer_count;
 static uint32_t kbd_state;
 
 static inline void kbd_toggle_clk() {
-    PORT_SPI |= MASK_SCK;
     PORT_SPI &= ~MASK_SCK;
+    PORT_SPI |= MASK_SCK;
 }
 
 static inline void kbd_acquire() {
@@ -96,7 +96,7 @@ void kbd_init() {
     DDR_CS |= MASK_CS;
     PORT_CS |= MASK_CS;
 
-    kbd_state = ~0;
+    kbd_state = ~0UL;
     kbd_buffer_count = 0;
     kbd_buffer_read = 0;
 
@@ -110,7 +110,7 @@ static uint32_t kbd_scan_matrix() {
 
     /* Send 8 high levels */
     PORT_SPI |= MASK_MOSI;
-    for (int i = 0; i < 8; i++)
+    for (int i = 0; i < 16; i++)
     {
         /* Shift by one */
         kbd_toggle_clk();
@@ -123,7 +123,7 @@ static uint32_t kbd_scan_matrix() {
         kbd_toggle_clk();
 
         /* Read the COL pins */
-        new_state <<= 3;
+        new_state <<= 3UL;
         new_state |= (PIN_COL&MASK_COL)>>PIN_COL0;
 
         /* Send high from here on */
@@ -149,7 +149,7 @@ void kbd_update() {
         if ((kbd_state & MASK_ENC) == MASK_ENC_A) {
             /* Clockwise */
             kbd_emplace(kbd_enc_cw);
-        } else if ((kbd_state & MASK_ENC) == 0) {
+        } else if ((kbd_state & MASK_ENC) == MASK_ENC_B) {
             /* Counter-clockwise */
             kbd_emplace(kbd_enc_ccw);
         }

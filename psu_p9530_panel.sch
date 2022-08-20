@@ -6,7 +6,7 @@ encoding utf-8
 Sheet 1 1
 Title "ELV PS9530 Ersatz Bedienteil"
 Date "2022-08-20"
-Rev "7"
+Rev "8"
 Comp "Ralf Gerlich"
 Comment1 ""
 Comment2 ""
@@ -1714,7 +1714,7 @@ Wire Notes Line
 Wire Notes Line
 	1750 3600 1750 2450
 Text Notes 7000 7000 0    50   ~ 0
-Rev 7: Hinweis zur Nutzung von 54LS164 statt 74LS164\nRev 6: Korrektur FSM Inkrementalgeber, Fix C402/403, IC310 an -5V, GND an GNDA\nRev 5: Zustandsmaschine Inkrementalgeber\nRev 4: Umsetzung Deutsch, IC308 A an GND statt GNDA\nRev 3: Display-Connector, Encoder an Matrix, Abblock-Caps, +5V-Filter, CS für U401, Schutzwiderstände
+Rev 8: Korrektur FSM Inkrementalgeber\nRev 7: Hinweis zur Nutzung von 54LS164 statt 74LS164\nRev 6: Korrektur FSM Inkrementalgeber, Fix C402/403, IC310 an -5V, GND an GNDA\nRev 5: Zustandsmaschine Inkrementalgeber\nRev 4: Umsetzung Deutsch, IC308 A an GND statt GNDA
 $Comp
 L Device:R R402
 U 1 1 639D8EFF
@@ -2075,9 +2075,9 @@ yellow
 Text Notes 600  1000 0    50   ~ 0
 brown
 Text Notes 4150 3500 0    100  ~ 0
-BA\n00
-Text Notes 3300 3500 0    100  ~ 0
 BA\n10
+Text Notes 3300 3500 0    100  ~ 0
+BA\n01
 Text Notes 3800 3150 0    50   ~ 0
 CCW
 Wire Notes Line
