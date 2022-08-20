@@ -1,6 +1,7 @@
 /* kbd.cpp - Functions for the keyboard interface
  * Copyright (c) 2022, Ralf Gerlich
  */
+#include <Arduino.h>
 #include "kbd.h"
 #include "spi.h"
 
@@ -145,10 +146,10 @@ void kbd_update() {
     /* Check the encoder */
     if ((new_state & MASK_ENC) == MASK_ENC) {
         /* We returned to the idle state of the encoder; check were we came from */
-        if ((kbd_state & MASK_ENC) == 0) {
+        if ((kbd_state & MASK_ENC) == MASK_ENC_A) {
             /* Clockwise */
             kbd_emplace(kbd_enc_cw);
-        } else if ((kbd_state & MASK_ENC) == MASK_ENC_B) {
+        } else if ((kbd_state & MASK_ENC) == 0) {
             /* Counter-clockwise */
             kbd_emplace(kbd_enc_ccw);
         }
