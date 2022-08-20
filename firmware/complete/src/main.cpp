@@ -2,6 +2,7 @@
 #include <util/delay.h>
 #include "dac.h"
 #include "kbd.h"
+#include "mux.h"
 #include "spi.h"
 
 void setup() {
@@ -9,9 +10,11 @@ void setup() {
     spi_init();
     dac_init();
     kbd_init();
+    mux_init();
 }
 
-uint16_t value = 0;
+uint16_t voltage_value = 0;
+uint16_t current_value = 16384;
 
 void loop() {
     kbd_code_t code;
@@ -20,9 +23,18 @@ void loop() {
         Serial.println(code);
     }
     _delay_ms(5);
-    dac_set(value);
-    value += 512;
-    if (value>=16384) {
-        value=0;
+    mux_select_channel(mux_channel_voltage);
+    dac_set(voltage_value);
+    _delay_ms(1); /* Wait for the sample-and-hold element to settle */
+    voltage_value += 128;
+    if (voltage_value>=16384) {
+        voltage_value=0;
     }
+    mux_select_channel(mux_channel_current);
+    current_value -=128;
+    if (current_value==0) {
+        current_value=16384;
+    }
+    dac_set(current_value);
+    _delay_ms(1); /* Wait for the sample-and-hold element to settle */
 }

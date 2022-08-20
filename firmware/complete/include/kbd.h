@@ -9,7 +9,7 @@
  * These are both the key codes and the indices
  * of the respective bit associated with the key line
  */
-typedef enum {
+enum kbd_code_t {
     kbd_p,
     kbd_lock,
     kbd_enc_a,
@@ -43,7 +43,7 @@ typedef enum {
 
     /* Special code for empty buffer */
     kbd_none
-} kbd_code_t;
+};
 
 /* Length of the keyboard buffer */
 #define KBD_BUFFER_LEN 16
