@@ -6,7 +6,7 @@ encoding utf-8
 Sheet 1 1
 Title "ELV PS9530 Ersatz Bedienteil"
 Date "2022-08-20"
-Rev "6"
+Rev "7"
 Comp "Ralf Gerlich"
 Comment1 ""
 Comment2 ""
@@ -1133,38 +1133,36 @@ NoConn ~ 10650 2750
 $Comp
 L power:+5V #PWR0126
 U 1 1 6362FD60
-P 6600 900
-F 0 "#PWR0126" H 6600 750 50  0001 C CNN
-F 1 "+5V" H 6615 1073 50  0000 C CNN
-F 2 "" H 6600 900 50  0001 C CNN
-F 3 "" H 6600 900 50  0001 C CNN
-	1    6600 900 
+P 6600 800
+F 0 "#PWR0126" H 6600 650 50  0001 C CNN
+F 1 "+5V" H 6700 850 50  0000 C CNN
+F 2 "" H 6600 800 50  0001 C CNN
+F 3 "" H 6600 800 50  0001 C CNN
+	1    6600 800 
 	1    0    0    -1  
 $EndComp
-Text GLabel 6100 1750 0    50   Input ~ 0
+Text GLabel 6100 1650 0    50   Input ~ 0
 SCK
-Text GLabel 6100 1450 0    50   Input ~ 0
+Text GLabel 6100 1350 0    50   Input ~ 0
 MOSI
-Text GLabel 7050 1150 2    50   Output ~ 0
+Text GLabel 7050 1050 2    50   Output ~ 0
 Row0
 Wire Wire Line
-	7050 1150 7000 1150
-Text GLabel 7050 1250 2    50   Output ~ 0
+	7050 1050 7000 1050
+Text GLabel 7050 1150 2    50   Output ~ 0
 Row1
-Text GLabel 7050 1350 2    50   Output ~ 0
+Text GLabel 7050 1250 2    50   Output ~ 0
 Row2
-Text GLabel 7050 1450 2    50   Output ~ 0
+Text GLabel 7050 1350 2    50   Output ~ 0
 Row3
-Text GLabel 7050 1550 2    50   Output ~ 0
+Text GLabel 7050 1450 2    50   Output ~ 0
 Row4
-Text GLabel 7050 1650 2    50   Output ~ 0
+Text GLabel 7050 1550 2    50   Output ~ 0
 Row5
-Text GLabel 7050 1750 2    50   Output ~ 0
+Text GLabel 7050 1650 2    50   Output ~ 0
 Row6
-Text GLabel 7050 1850 2    50   Output ~ 0
+Text GLabel 7050 1750 2    50   Output ~ 0
 Row7
-Wire Wire Line
-	7050 1850 7000 1850
 Wire Wire Line
 	7050 1750 7000 1750
 Wire Wire Line
@@ -1177,6 +1175,8 @@ Wire Wire Line
 	7050 1350 7000 1350
 Wire Wire Line
 	7050 1250 7000 1250
+Wire Wire Line
+	7050 1150 7000 1150
 Text GLabel 10750 2350 2    50   Output ~ 0
 MUXSEL
 Text Notes 5800 650  0    50   ~ 0
@@ -1184,40 +1184,40 @@ Schieberegister (neu)
 $Comp
 L 74xx:74HCT164 U401
 U 1 1 637BAC19
-P 6600 1450
-F 0 "U401" H 6700 1900 50  0000 C CNN
-F 1 "74HCT164" H 6800 900 50  0000 C CNN
-F 2 "" H 7500 1150 50  0001 C CNN
-F 3 "https://assets.nexperia.com/documents/data-sheet/74HC_HCT164.pdf" H 7500 1150 50  0001 C CNN
-	1    6600 1450
+P 6600 1350
+F 0 "U401" H 6700 1800 50  0000 C CNN
+F 1 "54LS164" H 6800 800 50  0000 C CNN
+F 2 "" H 7500 1050 50  0001 C CNN
+F 3 "https://www.ti.com/lit/gpn/sn54ls164" H 7500 1050 50  0001 C CNN
+	1    6600 1350
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
-	6100 1450 6150 1450
+	6100 1350 6150 1350
 Wire Wire Line
-	6150 1450 6150 1550
-Wire Wire Line
-	6150 1550 6200 1550
-Connection ~ 6150 1450
+	6150 1350 6150 1450
 Wire Wire Line
 	6150 1450 6200 1450
+Connection ~ 6150 1350
 Wire Wire Line
-	6600 900  6600 950 
+	6150 1350 6200 1350
+Wire Wire Line
+	6600 800  6600 850 
 $Comp
 L power:GND #PWR0128
 U 1 1 63836346
-P 6600 2100
-F 0 "#PWR0128" H 6600 1850 50  0001 C CNN
-F 1 "GND" H 6605 1927 50  0000 C CNN
-F 2 "" H 6600 2100 50  0001 C CNN
-F 3 "" H 6600 2100 50  0001 C CNN
-	1    6600 2100
+P 6600 2000
+F 0 "#PWR0128" H 6600 1750 50  0001 C CNN
+F 1 "GND" H 6605 1827 50  0000 C CNN
+F 2 "" H 6600 2000 50  0001 C CNN
+F 3 "" H 6600 2000 50  0001 C CNN
+	1    6600 2000
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
-	6600 2050 6600 2100
+	6600 1950 6600 2000
 Wire Wire Line
-	6100 1750 6200 1750
+	6100 1650 6200 1650
 NoConn ~ 5600 6550
 NoConn ~ 6100 6550
 Text GLabel 9600 1850 0    50   Input ~ 0
@@ -1229,34 +1229,34 @@ Arduino (neu)
 $Comp
 L power:+5V #PWR01
 U 1 1 63903112
-P 7400 850
-F 0 "#PWR01" H 7400 700 50  0001 C CNN
-F 1 "+5V" H 7415 1023 50  0000 C CNN
-F 2 "" H 7400 850 50  0001 C CNN
-F 3 "" H 7400 850 50  0001 C CNN
-	1    7400 850 
+P 7400 900
+F 0 "#PWR01" H 7400 750 50  0001 C CNN
+F 1 "+5V" H 7415 1073 50  0000 C CNN
+F 2 "" H 7400 900 50  0001 C CNN
+F 3 "" H 7400 900 50  0001 C CNN
+	1    7400 900 
 	1    0    0    -1  
 $EndComp
 $Comp
 L power:GND #PWR02
 U 1 1 63903430
-P 7400 1150
-F 0 "#PWR02" H 7400 900 50  0001 C CNN
-F 1 "GND" H 7405 977 50  0000 C CNN
-F 2 "" H 7400 1150 50  0001 C CNN
-F 3 "" H 7400 1150 50  0001 C CNN
-	1    7400 1150
+P 7400 1200
+F 0 "#PWR02" H 7400 950 50  0001 C CNN
+F 1 "GND" H 7405 1027 50  0000 C CNN
+F 2 "" H 7400 1200 50  0001 C CNN
+F 3 "" H 7400 1200 50  0001 C CNN
+	1    7400 1200
 	1    0    0    -1  
 $EndComp
 $Comp
 L Device:C C401
 U 1 1 6390372F
-P 7400 1000
-F 0 "C401" H 7515 1046 50  0000 L CNN
-F 1 "100n" H 7515 955 50  0000 L CNN
-F 2 "" H 7438 850 50  0001 C CNN
-F 3 "~" H 7400 1000 50  0001 C CNN
-	1    7400 1000
+P 7400 1050
+F 0 "C401" H 7515 1096 50  0000 L CNN
+F 1 "100n" H 7515 1005 50  0000 L CNN
+F 2 "" H 7438 900 50  0001 C CNN
+F 3 "~" H 7400 1050 50  0001 C CNN
+	1    7400 1050
 	1    0    0    -1  
 $EndComp
 Wire Notes Line
@@ -1714,7 +1714,7 @@ Wire Notes Line
 Wire Notes Line
 	1750 3600 1750 2450
 Text Notes 7000 7000 0    50   ~ 0
-Rev 6: Korrektur FSM Inkrementalgeber, Fix C402/403, IC310 an -5V, GND an GNDA\nRev 5: Zustandsmaschine Inkrementalgeber\nRev 4: Umsetzung Deutsch, IC308 A an GND statt GNDA\nRev 3: Display-Connector, Encoder an Matrix, Abblock-Caps, +5V-Filter, CS für U401, Schutzwiderstände\nRev 2: Abblockkondensatoren für Schieberegister
+Rev 7: Hinweis zur Nutzung von 54LS164 statt 74LS164\nRev 6: Korrektur FSM Inkrementalgeber, Fix C402/403, IC310 an -5V, GND an GNDA\nRev 5: Zustandsmaschine Inkrementalgeber\nRev 4: Umsetzung Deutsch, IC308 A an GND statt GNDA\nRev 3: Display-Connector, Encoder an Matrix, Abblock-Caps, +5V-Filter, CS für U401, Schutzwiderstände
 $Comp
 L Device:R R402
 U 1 1 639D8EFF
@@ -2017,10 +2017,10 @@ Wire Notes Line
 	7850 2400 8800 2400
 Wire Notes Line
 	8800 2400 8800 550 
-Text GLabel 6100 1250 0    50   Input ~ 0
+Text GLabel 6100 1150 0    50   Input ~ 0
 KBD_CS
 Wire Wire Line
-	6100 1250 6200 1250
+	6100 1150 6200 1150
 Text GLabel 9600 1950 0    50   Output ~ 0
 KBD_CS
 NoConn ~ 9650 2550
@@ -2177,4 +2177,6 @@ Text Notes 700  4850 2    50   ~ 0
 gn
 Text Notes 700  5100 2    50   ~ 0
 vi
+Text Notes 6700 2300 0    50   ~ 0
+UNBEDINGT(!!!) 54LS164\nverwenden. Mit 74LS164\nkönnen Geistertastendrücke\nbeim Key-Scan auftreten!
 $EndSCHEMATC
