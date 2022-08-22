@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include <util/delay.h>
+#include "adc.h"
 #include "dac.h"
 #include "kbd.h"
 #include "mux.h"
@@ -11,6 +12,8 @@ void setup() {
     dac_init();
     kbd_init();
     mux_init();
+    adc_init();
+    sei();
 }
 
 uint16_t voltage_value = 0;
@@ -37,4 +40,6 @@ void loop() {
     }
     dac_set(current_value);
     _delay_ms(1); /* Wait for the sample-and-hold element to settle */
+    Serial.println();
+    Serial.println(adc_results[adc_channel_voltage]);
 }
