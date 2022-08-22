@@ -5,6 +5,14 @@
 #include "kbd.h"
 #include "mux.h"
 #include "spi.h"
+#include "ps_display.h"
+
+#define TFT_DC 6
+#define TFT_CS 5
+
+// Use hardware SPI (on Uno, #13, #12, #11) and the above for CS/DC
+Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
+PsDisplay display = PsDisplay(tft);
 
 void setup() {
     Serial.begin(57600);
@@ -14,6 +22,10 @@ void setup() {
     mux_init();
     adc_init();
     sei();
+    display.clear();
+    display.renderLogo();
+    delay(1000);
+    display.clear();
 }
 
 uint16_t voltage_value = 0;
@@ -42,4 +54,5 @@ void loop() {
     _delay_ms(1); /* Wait for the sample-and-hold element to settle */
     Serial.println();
     Serial.println(adc_results[adc_channel_voltage]);
+    display.renderMainscreen();
 }
