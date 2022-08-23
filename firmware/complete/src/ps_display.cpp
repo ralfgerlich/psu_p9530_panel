@@ -37,12 +37,24 @@ void PsDisplay::renderLogo() {
         ILI9341_WHITE);
 }
 
-void PsDisplay::formatMilliNumber(char * buffer, int16_t value, char unit) {
-    sprintf(buffer, "%2d.%02d%c", value/1000, (value%1000)/10, unit);
+void PsDisplay::formatMilliNumber(char * buffer, int16_t value, char unit, bool zero_padding) {
+    char format[12];
+    if (zero_padding) {
+        strcpy(format, "%02d.%02d%c");
+    } else {
+        strcpy(format, "%2d.%02d%c");
+    }
+    sprintf(buffer, format, value/1000, (value%1000)/10, unit);
 }
 
-void PsDisplay::formatCentiNumber(char * buffer, int16_t value, char unit) {
-    sprintf(buffer, "%3d.%1d%c", value/100, (value%100)/10, unit);
+void PsDisplay::formatCentiNumber(char * buffer, int16_t value, char unit, bool zero_padding) {
+    char format[11];
+    if (zero_padding) {
+        strcpy(format, "%03d.%1d%c");
+    } else {
+        strcpy(format, "%3d.%1d%c");
+    }
+    sprintf(buffer, format, value/100, (value%100)/10, unit);
 }
 
 void PsDisplay::fastStringPrint(char * buffer, char * old_buffer, uint8_t font_width) {
@@ -141,13 +153,13 @@ void PsDisplay::renderMainscreen() {
     //     if we render the bg color char and the new char in memory
     //     and only send the resulting pixels without bg color to the display
     tft.setCursor(60+21*6, PT18_IN_PX+5);
-    formatMilliNumber(buffer, milli_volts_setpoint, 'V');
+    formatMilliNumber(buffer, milli_volts_setpoint, 'V', true);
     fastStringPrint(buffer, buffer_volts_setp, 21);
     tft.setCursor(60+21*6, PT18_IN_PX*4+5*2);
-    formatMilliNumber(buffer, milli_amps_limit, 'A');
+    formatMilliNumber(buffer, milli_amps_limit, 'A', true);
     fastStringPrint(buffer, buffer_amps_limit, 21);
     tft.setCursor(60+21*6, PT18_IN_PX*7+5*3);
-    formatCentiNumber(buffer, centi_watts_limit, 'W');
+    formatCentiNumber(buffer, centi_watts_limit, 'W', true);
     fastStringPrint(buffer, buffer_watts_limit, 21);
     tft.setTextSize(2);
     tft.setCursor(60, PT18_IN_PX*3+5);

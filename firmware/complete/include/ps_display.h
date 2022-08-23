@@ -38,8 +38,8 @@ class PsDisplay {
     
     private:
     void fastStringPrint(char * buffer, char * old_buffer, uint8_t font_width);
-    void formatMilliNumber(char * buffer, int16_t value, char unit);
-    void formatCentiNumber(char * buffer, int16_t value, char unit);
+    void formatMilliNumber(char * buffer, int16_t value, char unit, bool zero_padding = false);
+    void formatCentiNumber(char * buffer, int16_t value, char unit, bool zero_padding = false);
     void paintStandby(bool visible);
     void paintOvertemp(bool visible);
 
