@@ -25,6 +25,7 @@ class PsDisplay {
     void setLocked(bool locked);
     void setMemory(bool memory);
     void setRemote(bool remote);
+    void setLimitedV(bool limited_v);
     void setLimitedA(bool limited_a);
     void setLimitedP(bool limited_p);
     void setOvertemp(bool overtemp);
@@ -48,6 +49,7 @@ class PsDisplay {
     bool memory; //ignored
     bool remote; //ignored
     bool standby;
+    bool limited_v; //ignored
     bool limited_a;
     bool limited_p;
     bool overtemp;

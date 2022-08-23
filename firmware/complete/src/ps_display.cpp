@@ -152,6 +152,10 @@ void PsDisplay::setRemote(bool remote) {
     this->remote = remote;
 }
 
+void PsDisplay::setLimitedV(bool limited_v) {
+    this->limited_v = limited_v;
+}
+
 void PsDisplay::setLimitedA(bool limited_a) {
     this->limited_a = limited_a;
 }
