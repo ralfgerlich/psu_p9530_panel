@@ -109,9 +109,6 @@ void PsDisplay::renderMainscreen() {
         tft.setCursor(10, PT18_IN_PX*7+5*3);
         tft.print("Limited");
     }
-    painted_locked = locked;
-    painted_memory = memory;
-    painted_remote = remote;
     yield();
     //optimized hybrid
     tft.setTextColor(ILI9341_WHITE);
