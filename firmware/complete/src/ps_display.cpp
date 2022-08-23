@@ -258,7 +258,7 @@ void PsDisplay::setCentiWatts(int16_t watts) {
 
 void PsDisplay::setCurser(row_t row, uint8_t pos) {
     this->selected_pos = row << 4 | pos;
-    if (pos >= 3 || row != ROW_WATTS && pos >= 2) {
+    if (pos >= 3 || (row != ROW_WATTS && pos >= 2)) {
         //correct position for decimal '.'
         this->selected_pos++;
     }
