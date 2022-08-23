@@ -37,7 +37,6 @@ class PsDisplay {
     void setCWatts(int16_t watts);
     
     private:
-    void fastPrintNumber(char * buffer, int16_t value);
     void fastStringPrint(char * buffer, char * old_buffer, uint8_t font_width);
     void formatMilliNumber(char * buffer, int16_t value, char unit);
     void formatCentiNumber(char * buffer, int16_t value, char unit);
