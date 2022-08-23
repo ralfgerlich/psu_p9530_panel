@@ -62,6 +62,31 @@ void PsDisplay::fastStringPrint(char * buffer, char * old_buffer, uint8_t font_w
     }
 }
 
+void PsDisplay::paintStandby(bool visible) {
+    painted_standby = visible;
+    if (painted_standby) {
+        tft.setTextColor(ILI9341_RED);
+    } else {
+        tft.setTextColor(ILI9341_BLACK);
+    }
+    tft.setCursor(10, PT18_IN_PX+5);
+    tft.print("Standby");
+}
+
+void PsDisplay::paintOvertemp(bool visible) {
+    painted_overtemp = overtemp;
+    if (painted_standby) {
+        paintStandby(false);
+    }
+    if (painted_overtemp) {
+        tft.setTextColor(ILI9341_RED);
+    } else {
+        tft.setTextColor(ILI9341_BLACK);
+    }
+    tft.setCursor(10, PT18_IN_PX+5);
+    tft.print("Overtemp");
+}
+
 void PsDisplay::renderMainscreen() {
     //layout is:
     //---------------------
@@ -79,15 +104,11 @@ void PsDisplay::renderMainscreen() {
     tft.setFont(&FreeMonoBold18pt7b);
     //actual paint
     tft.setTextSize(1);
-    if (painted_standby != standby) {
-        painted_standby = standby;
-        if (painted_standby) {
-            tft.setTextColor(ILI9341_RED);
-        } else {
-            tft.setTextColor(ILI9341_BLACK);
-        }
-        tft.setCursor(10, PT18_IN_PX+5);
-        tft.print("Standby");
+    if (painted_overtemp != overtemp) {
+        paintOvertemp(overtemp);
+    }
+    if (!painted_overtemp && painted_standby != standby) {
+        paintStandby(standby);
     }
     if (painted_limited_a != limited_a) {
         painted_limited_a = limited_a;

@@ -41,6 +41,8 @@ class PsDisplay {
     void fastStringPrint(char * buffer, char * old_buffer, uint8_t font_width);
     void formatMilliNumber(char * buffer, int16_t value, char unit);
     void formatCentiNumber(char * buffer, int16_t value, char unit);
+    void paintStandby(bool visible);
+    void paintOvertemp(bool visible);
 
     Adafruit_ILI9341& tft;
     bool init_done;
@@ -63,6 +65,7 @@ class PsDisplay {
     bool painted_standby;
     bool painted_limited_a;
     bool painted_limited_p;
+    bool painted_overtemp;
     char buffer_volts[8];
     char buffer_amps[8];
     char buffer_watts[8];
