@@ -37,20 +37,20 @@ void PsDisplay::renderLogo() {
         ILI9341_WHITE);
 }
 
-void PsDisplay::formatMilliNumber(char * buffer, int value, char unit) {
+void PsDisplay::formatMilliNumber(char * buffer, int16_t value, char unit) {
     sprintf(buffer, "%2d.%02d%c", value/1000, (value%1000)/10, unit);
 }
 
-void PsDisplay::formatCentiNumber(char * buffer, int value, char unit) {
+void PsDisplay::formatCentiNumber(char * buffer, int16_t value, char unit) {
     sprintf(buffer, "%3d.%1d%c", value/100, (value%100)/10, unit);
 }
 
-void PsDisplay::fastStringPrint(char * buffer, char * old_buffer, int font_width) {
+void PsDisplay::fastStringPrint(char * buffer, char * old_buffer, uint8_t font_width) {
     for (int i=0; i<8; i++) {
         if (old_buffer[i] != buffer[i]) {
             tft.setTextColor(ILI9341_BLACK);
-            int cx = tft.getCursorX();
-            int cy = tft.getCursorY();
+            int16_t cx = tft.getCursorX();
+            int16_t cy = tft.getCursorY();
             tft.print(old_buffer[i]);
             tft.setCursor(cx, cy);
             tft.setTextColor(ILI9341_WHITE);
@@ -167,26 +167,26 @@ void PsDisplay::setOvertemp(bool overtemp) {
     this->overtemp = overtemp;
 }
 
-void PsDisplay::setMVoltsSetpoint(int voltage_setpoint) {
+void PsDisplay::setMVoltsSetpoint(int16_t voltage_setpoint) {
     this->milli_volts_setpoint = voltage_setpoint;
 }
 
-void PsDisplay::setMAmpsLimit(int amps_limit) {
+void PsDisplay::setMAmpsLimit(int16_t amps_limit) {
     this->milli_amps_limit = amps_limit;
 }
 
-void PsDisplay::setCWattsLimit(int watts_limit) {
+void PsDisplay::setCWattsLimit(int16_t watts_limit) {
     this->centi_watts_limit = watts_limit;
 }
 
-void PsDisplay::setMVolts(int voltage) {
+void PsDisplay::setMVolts(int16_t voltage) {
     this->milli_volts = voltage;
 }
 
-void PsDisplay::setMAmps(int amps) {
+void PsDisplay::setMAmps(int16_t amps) {
     this->milli_amps = amps;
 }
 
-void PsDisplay::setCWatts(int watts) {
+void PsDisplay::setCWatts(int16_t watts) {
     this->centi_watts = watts;
 }

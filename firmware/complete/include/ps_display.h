@@ -3,6 +3,7 @@
 
 #include <Adafruit_GFX.h>
 #include <Adafruit_ILI9341.h>
+#include <stdint.h>
 
 //resolution 320x240
 #define PS_DISPLAY_WIDTH 320
@@ -27,18 +28,18 @@ class PsDisplay {
     void setLimitedA(bool limited_a);
     void setLimitedP(bool limited_p);
     void setOvertemp(bool overtemp);
-    void setMVoltsSetpoint(int voltage_setpoint);
-    void setMAmpsLimit(int amps_limit);
-    void setCWattsLimit(int watts_limit);
-    void setMVolts(int voltage);
-    void setMAmps(int amps);
-    void setCWatts(int watts);
+    void setMVoltsSetpoint(int16_t voltage_setpoint);
+    void setMAmpsLimit(int16_t amps_limit);
+    void setCWattsLimit(int16_t watts_limit);
+    void setMVolts(int16_t voltage);
+    void setMAmps(int16_t amps);
+    void setCWatts(int16_t watts);
     
     private:
-    void fastPrintNumber(char * buffer, int value);
-    void fastStringPrint(char * buffer, char * old_buffer, int font_width);
-    void formatMilliNumber(char * buffer, int value, char unit);
-    void formatCentiNumber(char * buffer, int value, char unit);
+    void fastPrintNumber(char * buffer, int16_t value);
+    void fastStringPrint(char * buffer, char * old_buffer, uint8_t font_width);
+    void formatMilliNumber(char * buffer, int16_t value, char unit);
+    void formatCentiNumber(char * buffer, int16_t value, char unit);
 
     Adafruit_ILI9341& tft;
     bool init_done;
@@ -50,12 +51,12 @@ class PsDisplay {
     bool limited_a;
     bool limited_p;
     bool overtemp;
-    int milli_volts_setpoint;
-    int milli_amps_limit;
-    int centi_watts_limit;
-    int milli_volts;
-    int milli_amps;
-    int centi_watts;
+    int16_t milli_volts_setpoint;
+    int16_t milli_amps_limit;
+    int16_t centi_watts_limit;
+    int16_t milli_volts;
+    int16_t milli_amps;
+    int16_t centi_watts;
     //actually painted values
     bool painted_locked;
     bool painted_memory;
