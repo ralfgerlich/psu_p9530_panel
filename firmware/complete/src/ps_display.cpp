@@ -1,7 +1,18 @@
 #include "ps_display.h"
-#include "toolbox_logo.xbm"
+#include "toolbox_logo_only.xbm"
+#include "toolbox_logo_font_toolbox.xbm"
+#include "toolbox_logo_font_bodensee.xbm"
 #include "Fonts/FreeMono18pt7b.h"
 #include "Fonts/FreeMonoBold18pt7b.h"
+
+//manually reduced blue a bit especially in the red ones
+//looks like the display overdoes blue a bit
+//16bit RGB565
+#define TOOLBOX_LOGO_LIGHT_GREY 0x630B
+#define TOOLBOX_LOGO_DARK_GREY 0x3985
+#define TOOLBOX_LOGO_LIGHT_RED 0xE901
+#define TOOLBOX_LOGO_MEDIUM_RED 0xC100
+#define TOOLBOX_LOGO_DARK_RED 0x9080
 
 PsDisplay::PsDisplay( Adafruit_ILI9341 & tft) :
     tft(tft) {
@@ -22,19 +33,45 @@ void PsDisplay::clear() {
 }
 
 void PsDisplay::renderLogo() {
-    tft.drawXBitmap((PS_DISPLAY_WIDTH-toolbox_logo_width)/2, (PS_DISPLAY_HEIGHT-toolbox_logo_height)/2,
+    tft.drawXBitmap(0, (PS_DISPLAY_HEIGHT-toolbox_logo_only_height)/2,
 #if defined(__AVR__) || defined(ESP8266)
-        toolbox_logo_bits,
+        toolbox_logo_only_bits,
 #else
         // Some non-AVR MCU's have a "flat" memory model and don't
         // distinguish between flash and RAM addresses.  In this case,
         // the RAM-resident-optimized drawRGBBitmap in the ILI9341
         // library can be invoked by forcibly type-converting the
         // PROGMEM bitmap pointer to a non-const uint16_t *.
-        (uint16_t *)toolbox_logo_bits,
+        (uint16_t *)toolbox_logo_only_bits,
 #endif
-        toolbox_logo_width, toolbox_logo_height,
-        ILI9341_WHITE);
+        toolbox_logo_only_width, toolbox_logo_only_height,
+        TOOLBOX_LOGO_LIGHT_RED);
+    tft.drawXBitmap(PS_DISPLAY_WIDTH-toolbox_logo_font_toolbox_width-1, (PS_DISPLAY_HEIGHT-toolbox_logo_only_height)/2 + 12,
+#if defined(__AVR__) || defined(ESP8266)
+        toolbox_logo_font_toolbox_bits,
+#else
+        // Some non-AVR MCU's have a "flat" memory model and don't
+        // distinguish between flash and RAM addresses.  In this case,
+        // the RAM-resident-optimized drawRGBBitmap in the ILI9341
+        // library can be invoked by forcibly type-converting the
+        // PROGMEM bitmap pointer to a non-const uint16_t *.
+        (uint16_t *)toolbox_logo_font_toolbox_bits,
+#endif
+        toolbox_logo_font_toolbox_width, toolbox_logo_font_toolbox_height,
+        TOOLBOX_LOGO_LIGHT_GREY);
+    tft.drawXBitmap(PS_DISPLAY_WIDTH-toolbox_logo_font_bodensee_width-1, (PS_DISPLAY_HEIGHT-toolbox_logo_only_height)/2 + 68,
+#if defined(__AVR__) || defined(ESP8266)
+        toolbox_logo_font_bodensee_bits,
+#else
+        // Some non-AVR MCU's have a "flat" memory model and don't
+        // distinguish between flash and RAM addresses.  In this case,
+        // the RAM-resident-optimized drawRGBBitmap in the ILI9341
+        // library can be invoked by forcibly type-converting the
+        // PROGMEM bitmap pointer to a non-const uint16_t *.
+        (uint16_t *)toolbox_logo_font_bodensee_bits,
+#endif
+        toolbox_logo_font_bodensee_width, toolbox_logo_font_bodensee_height,
+        TOOLBOX_LOGO_DARK_GREY);
 }
 
 void PsDisplay::formatNumber(char * buffer, char * format, int16_t value_a, int16_t value_b, row_t row) {
