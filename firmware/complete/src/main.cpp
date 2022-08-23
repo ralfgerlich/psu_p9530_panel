@@ -7,8 +7,8 @@
 #include "spi.h"
 #include "ps_display.h"
 
-#define TFT_DC 6
-#define TFT_CS 5
+#define TFT_DC 9
+#define TFT_CS 10
 
 // Use hardware SPI (on Uno, #13, #12, #11) and the above for CS/DC
 Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
