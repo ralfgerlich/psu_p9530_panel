@@ -37,29 +37,67 @@ void PsDisplay::renderLogo() {
         ILI9341_WHITE);
 }
 
-void PsDisplay::formatMilliNumber(char * buffer, int value, char unit) {
-    sprintf(buffer, "%2d.%02d%c", value/1000, (value%1000)/10, unit);
+void PsDisplay::formatMilliNumber(char * buffer, int16_t value, char unit, bool zero_padding) {
+    char format[12];
+    if (zero_padding) {
+        strcpy(format, "%02d.%02d%c");
+    } else {
+        strcpy(format, "%2d.%02d%c");
+    }
+    sprintf(buffer, format, value/1000, (value%1000)/10, unit);
 }
 
-void PsDisplay::formatCentiNumber(char * buffer, int value, char unit) {
-    sprintf(buffer, "%3d.%1d%c", value/100, (value%100)/10, unit);
+void PsDisplay::formatCentiNumber(char * buffer, int16_t value, char unit, bool zero_padding) {
+    char format[11];
+    if (zero_padding) {
+        strcpy(format, "%03d.%1d%c");
+    } else {
+        strcpy(format, "%3d.%1d%c");
+    }
+    sprintf(buffer, format, value/100, (value%100)/10, unit);
 }
 
-void PsDisplay::fastStringPrint(char * buffer, char * old_buffer, int font_width) {
+void PsDisplay::fastStringPrint(char * buffer, char * old_buffer, uint8_t font_width) {
     for (int i=0; i<8; i++) {
         if (old_buffer[i] != buffer[i]) {
             tft.setTextColor(ILI9341_BLACK);
-            int cx = tft.getCursorX();
-            int cy = tft.getCursorY();
+            int16_t cx = tft.getCursorX();
+            int16_t cy = tft.getCursorY();
             tft.print(old_buffer[i]);
             tft.setCursor(cx, cy);
             tft.setTextColor(ILI9341_WHITE);
             tft.print(buffer[i]);
             old_buffer[i] = buffer[i];
         } else {
+            // manually forward the curser by one character width
             tft.setCursor(tft.getCursorX()+font_width, tft.getCursorY());
         }
     }
+}
+
+void PsDisplay::paintStandby(bool visible) {
+    painted_standby = visible;
+    if (painted_standby) {
+        tft.setTextColor(ILI9341_RED);
+    } else {
+        tft.setTextColor(ILI9341_BLACK);
+    }
+    tft.setCursor(10, PT18_IN_PX+5);
+    tft.print("Standby");
+}
+
+void PsDisplay::paintOvertemp(bool visible) {
+    painted_overtemp = overtemp;
+    if (painted_standby) {
+        paintStandby(false);
+    }
+    if (painted_overtemp) {
+        tft.setTextColor(ILI9341_RED);
+    } else {
+        tft.setTextColor(ILI9341_BLACK);
+    }
+    tft.setCursor(10, PT18_IN_PX+5);
+    tft.print("Overtemp");
 }
 
 void PsDisplay::renderMainscreen() {
@@ -79,15 +117,11 @@ void PsDisplay::renderMainscreen() {
     tft.setFont(&FreeMonoBold18pt7b);
     //actual paint
     tft.setTextSize(1);
-    if (painted_standby != standby) {
-        painted_standby = standby;
-        if (painted_standby) {
-            tft.setTextColor(ILI9341_RED);
-        } else {
-            tft.setTextColor(ILI9341_BLACK);
-        }
-        tft.setCursor(10, PT18_IN_PX+5);
-        tft.print("Standby");
+    if (painted_overtemp != overtemp) {
+        paintOvertemp(overtemp);
+    }
+    if (!painted_overtemp && painted_standby != standby) {
+        paintStandby(standby);
     }
     if (painted_limited_a != limited_a) {
         painted_limited_a = limited_a;
@@ -109,22 +143,23 @@ void PsDisplay::renderMainscreen() {
         tft.setCursor(10, PT18_IN_PX*7+5*3);
         tft.print("Limited");
     }
-    painted_locked = locked;
-    painted_memory = memory;
-    painted_remote = remote;
     yield();
     //optimized hybrid
     tft.setTextColor(ILI9341_WHITE);
     tft.setTextSize(1);
     tft.setFont(&FreeMono18pt7b);
+    //TODO improvement
+    //     speed can be improved by reducing overdraw.
+    //     if we render the bg color char and the new char in memory
+    //     and only send the resulting pixels without bg color to the display
     tft.setCursor(60+21*6, PT18_IN_PX+5);
-    formatMilliNumber(buffer, milli_volts_setpoint, 'V');
+    formatMilliNumber(buffer, milli_volts_setpoint, 'V', true);
     fastStringPrint(buffer, buffer_volts_setp, 21);
     tft.setCursor(60+21*6, PT18_IN_PX*4+5*2);
-    formatMilliNumber(buffer, milli_amps_limit, 'A');
+    formatMilliNumber(buffer, milli_amps_limit, 'A', true);
     fastStringPrint(buffer, buffer_amps_limit, 21);
     tft.setCursor(60+21*6, PT18_IN_PX*7+5*3);
-    formatCentiNumber(buffer, centi_watts_limit, 'W');
+    formatCentiNumber(buffer, centi_watts_limit, 'W', true);
     fastStringPrint(buffer, buffer_watts_limit, 21);
     tft.setTextSize(2);
     tft.setCursor(60, PT18_IN_PX*3+5);
@@ -155,6 +190,10 @@ void PsDisplay::setRemote(bool remote) {
     this->remote = remote;
 }
 
+void PsDisplay::setLimitedV(bool limited_v) {
+    this->limited_v = limited_v;
+}
+
 void PsDisplay::setLimitedA(bool limited_a) {
     this->limited_a = limited_a;
 }
@@ -167,26 +206,26 @@ void PsDisplay::setOvertemp(bool overtemp) {
     this->overtemp = overtemp;
 }
 
-void PsDisplay::setMVoltsSetpoint(int voltage_setpoint) {
+void PsDisplay::setMilliVoltsSetpoint(int16_t voltage_setpoint) {
     this->milli_volts_setpoint = voltage_setpoint;
 }
 
-void PsDisplay::setMAmpsLimit(int amps_limit) {
+void PsDisplay::setMilliAmpsLimit(int16_t amps_limit) {
     this->milli_amps_limit = amps_limit;
 }
 
-void PsDisplay::setCWattsLimit(int watts_limit) {
+void PsDisplay::setCentiWattsLimit(int16_t watts_limit) {
     this->centi_watts_limit = watts_limit;
 }
 
-void PsDisplay::setMVolts(int voltage) {
+void PsDisplay::setMilliVolts(int16_t voltage) {
     this->milli_volts = voltage;
 }
 
-void PsDisplay::setMAmps(int amps) {
+void PsDisplay::setMilliAmps(int16_t amps) {
     this->milli_amps = amps;
 }
 
-void PsDisplay::setCWatts(int watts) {
+void PsDisplay::setCentiWatts(int16_t watts) {
     this->centi_watts = watts;
 }
