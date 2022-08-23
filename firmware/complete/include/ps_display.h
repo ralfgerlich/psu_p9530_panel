@@ -9,11 +9,21 @@
 #define PS_DISPLAY_WIDTH 320
 #define PS_DISPLAY_HEIGHT 240
 
-#define PT18_IN_PX 24
+#define PT18_IN_PXH 24
+#define PT18_IN_PXW 21
+
+#define PS_DISPLAY_BUFFER_LENGTH 7
 
 class PsDisplay {
     public:
     PsDisplay(Adafruit_ILI9341 & tft);
+
+    enum row_t {
+        ROW_NULL,
+        ROW_VOLTS,
+        ROW_AMPS,
+        ROW_WATTS
+    };
 
     void init(void);
 
@@ -35,11 +45,13 @@ class PsDisplay {
     void setMilliVolts(int16_t voltage);
     void setMilliAmps(int16_t amps);
     void setCentiWatts(int16_t watts);
+    void setCurser(row_t row, uint8_t pos);
     
     private:
-    void fastStringPrint(char * buffer, char * old_buffer, uint8_t font_width);
-    void formatMilliNumber(char * buffer, int16_t value, char unit, bool zero_padding = false);
-    void formatCentiNumber(char * buffer, int16_t value, char unit, bool zero_padding = false);
+    void fastStringPrint(char * buffer, char * old_buffer, uint8_t font_width, row_t row, uint16_t fg_color = ILI9341_WHITE, uint16_t se_color = ILI9341_GREEN, uint16_t bg_color = ILI9341_BLACK);
+    void formatNumber(char * buffer, char * format, int16_t value_a, int16_t value_b, row_t row);
+    void formatMilliNumber(char * buffer, int16_t value, row_t row, bool zero_padding = false);
+    void formatCentiNumber(char * buffer, int16_t value, row_t row, bool zero_padding = false);
     void paintStandby(bool visible);
     void paintOvertemp(bool visible);
 
@@ -60,17 +72,19 @@ class PsDisplay {
     int16_t milli_volts;
     int16_t milli_amps;
     int16_t centi_watts;
+    uint8_t selected_pos;
     //actually painted values
     bool painted_standby;
     bool painted_limited_a;
     bool painted_limited_p;
     bool painted_overtemp;
-    char buffer_volts[8];
-    char buffer_amps[8];
-    char buffer_watts[8];
-    char buffer_volts_setp[8];
-    char buffer_amps_limit[8];
-    char buffer_watts_limit[8];
+    uint8_t painted_selected_pos;
+    char buffer_volts[PS_DISPLAY_BUFFER_LENGTH];
+    char buffer_amps[PS_DISPLAY_BUFFER_LENGTH];
+    char buffer_watts[PS_DISPLAY_BUFFER_LENGTH];
+    char buffer_volts_setp[PS_DISPLAY_BUFFER_LENGTH];
+    char buffer_amps_limit[PS_DISPLAY_BUFFER_LENGTH];
+    char buffer_watts_limit[PS_DISPLAY_BUFFER_LENGTH];
 };
 
 #endif
