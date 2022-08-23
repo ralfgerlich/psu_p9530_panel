@@ -57,6 +57,7 @@ void PsDisplay::fastStringPrint(char * buffer, char * old_buffer, uint8_t font_w
             tft.print(buffer[i]);
             old_buffer[i] = buffer[i];
         } else {
+            // manually forward the curser by one character width
             tft.setCursor(tft.getCursorX()+font_width, tft.getCursorY());
         }
     }
@@ -135,6 +136,10 @@ void PsDisplay::renderMainscreen() {
     tft.setTextColor(ILI9341_WHITE);
     tft.setTextSize(1);
     tft.setFont(&FreeMono18pt7b);
+    //TODO improvement
+    //     speed can be improved by reducing overdraw.
+    //     if we render the bg color char and the new char in memory
+    //     and only send the resulting pixels without bg color to the display
     tft.setCursor(60+21*6, PT18_IN_PX+5);
     formatMilliNumber(buffer, milli_volts_setpoint, 'V');
     fastStringPrint(buffer, buffer_volts_setp, 21);
@@ -189,26 +194,26 @@ void PsDisplay::setOvertemp(bool overtemp) {
     this->overtemp = overtemp;
 }
 
-void PsDisplay::setMVoltsSetpoint(int16_t voltage_setpoint) {
+void PsDisplay::setMilliVoltsSetpoint(int16_t voltage_setpoint) {
     this->milli_volts_setpoint = voltage_setpoint;
 }
 
-void PsDisplay::setMAmpsLimit(int16_t amps_limit) {
+void PsDisplay::setMilliAmpsLimit(int16_t amps_limit) {
     this->milli_amps_limit = amps_limit;
 }
 
-void PsDisplay::setCWattsLimit(int16_t watts_limit) {
+void PsDisplay::setCentiWattsLimit(int16_t watts_limit) {
     this->centi_watts_limit = watts_limit;
 }
 
-void PsDisplay::setMVolts(int16_t voltage) {
+void PsDisplay::setMilliVolts(int16_t voltage) {
     this->milli_volts = voltage;
 }
 
-void PsDisplay::setMAmps(int16_t amps) {
+void PsDisplay::setMilliAmps(int16_t amps) {
     this->milli_amps = amps;
 }
 
-void PsDisplay::setCWatts(int16_t watts) {
+void PsDisplay::setCentiWatts(int16_t watts) {
     this->centi_watts = watts;
 }

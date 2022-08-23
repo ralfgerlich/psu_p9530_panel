@@ -29,12 +29,12 @@ class PsDisplay {
     void setLimitedA(bool limited_a);
     void setLimitedP(bool limited_p);
     void setOvertemp(bool overtemp);
-    void setMVoltsSetpoint(int16_t voltage_setpoint);
-    void setMAmpsLimit(int16_t amps_limit);
-    void setCWattsLimit(int16_t watts_limit);
-    void setMVolts(int16_t voltage);
-    void setMAmps(int16_t amps);
-    void setCWatts(int16_t watts);
+    void setMilliVoltsSetpoint(int16_t voltage_setpoint);
+    void setMilliAmpsLimit(int16_t amps_limit);
+    void setCentiWattsLimit(int16_t watts_limit);
+    void setMilliVolts(int16_t voltage);
+    void setMilliAmps(int16_t amps);
+    void setCentiWatts(int16_t watts);
     
     private:
     void fastStringPrint(char * buffer, char * old_buffer, uint8_t font_width);
