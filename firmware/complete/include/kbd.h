@@ -9,7 +9,7 @@
  * These are both the key codes and the indices
  * of the respective bit associated with the key line
  */
-enum kbd_code_t {
+enum KeyCode {
     kbd_p,
     kbd_lock,
     kbd_enc_a,
@@ -55,7 +55,7 @@ void kbd_init();
 void kbd_update();
 
 /** Remove an entry from the keyboard buffer */
-kbd_code_t kbd_remove();
+KeyCode kbd_remove();
 
 
 #endif /* KBD_H */

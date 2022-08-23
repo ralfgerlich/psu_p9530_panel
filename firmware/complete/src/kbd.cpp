@@ -7,7 +7,7 @@
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
-#include <util/delay.h>
+#include <util/atomic.h>
 
 /* Port for column lines */
 #define PORT_COL PORTD
@@ -37,7 +37,7 @@
 #define MASK_ENC (MASK_ENC_A|MASK_ENC_B)
 
 /* Keyboard buffer */
-static kbd_code_t kbd_buffer[KBD_BUFFER_LEN];
+static KeyCode kbd_buffer[KBD_BUFFER_LEN];
 
 /* Read pointer */
 static uint8_t kbd_buffer_read;
@@ -66,13 +66,17 @@ static inline void kbd_reset() {
     kbd_release();
 }
 
-kbd_code_t kbd_remove() {
+/** Remove a keycode from the keyboard buffer.
+ * NOTE: This function does not ensure atomicity, e.g.
+ *       in case of interrupts. Use kbd_remove() for this.
+ */
+static KeyCode kbd_remove_unsafe() {
     if (!kbd_buffer_count) {
         /* Buffer is empty */
         return kbd_none;
     } else {
         /* Remove one item from the buffer */
-        const kbd_code_t code = kbd_buffer[kbd_buffer_read];
+        const KeyCode code = kbd_buffer[kbd_buffer_read];
         kbd_buffer_count--;
         kbd_buffer_read++;
         kbd_buffer_read %= KBD_BUFFER_LEN;
@@ -80,7 +84,16 @@ kbd_code_t kbd_remove() {
     }
 }
 
-static inline void kbd_emplace(kbd_code_t code) {
+/** Remove a key code from the keyboard buffer. */
+KeyCode kbd_remove() {
+    KeyCode code;
+    ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+        code = kbd_remove_unsafe();
+    }
+    return code;
+}
+
+static inline void kbd_emplace_unsafe(KeyCode code) {
     if (kbd_buffer_count==KBD_BUFFER_LEN) {
         /* Buffer is full => drop one key */
         kbd_remove();
@@ -148,19 +161,19 @@ void kbd_update() {
         /* We returned to the idle state of the encoder; check were we came from */
         if ((kbd_state & MASK_ENC) == MASK_ENC_A) {
             /* Clockwise */
-            kbd_emplace(kbd_enc_cw);
+            kbd_emplace_unsafe(kbd_enc_cw);
         } else if ((kbd_state & MASK_ENC) == MASK_ENC_B) {
             /* Counter-clockwise */
-            kbd_emplace(kbd_enc_ccw);
+            kbd_emplace_unsafe(kbd_enc_ccw);
         }
     }
 
     /* Process everything else */
     uint32_t clean_state = new_state & ~MASK_ENC;
     uint32_t mask = 1;
-    for (kbd_code_t code = (kbd_code_t)0; code < kbd__count_physical; code = (kbd_code_t)(code+1), mask<<=1) {
+    for (KeyCode code = (KeyCode)0; code < kbd__count_physical; code = (KeyCode)(code+1), mask<<=1) {
         if (!(kbd_state & mask) && (clean_state & mask)) {
-            kbd_emplace(code);
+            kbd_emplace_unsafe(code);
         }
     }
 

@@ -23,7 +23,11 @@
 #define MASK_SCK _BV(PIN_SCK)
 
 /** Initialize SPI port */
-void spi_init();
+static inline void spi_init() {
+    DDR_SPI |= MASK_MOSI|MASK_SCK;
+    PORT_SPI &= ~MASK_SCK;
+    PORT_SPI |= MASK_SS;
+}
 
 static inline void spi_enable() {
     /* Enable SPI in Mode 3 at fCPU/4, MSB first */
