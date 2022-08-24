@@ -38,7 +38,6 @@ PS9530_Ctrl::PS9530_Ctrl():
     milliVoltSetpoint(0U),
     milliAmpsLimit(0U),
     currentMuxChannel(muxChannel_voltage),
-    counter50Hz(0),
     milliVoltsMeasurement(0),
     milliAmpsMeasurement(0),
     currentADCChannel(adcChannel_voltage)
@@ -88,18 +87,8 @@ KeyCode PS9530_Ctrl::readKeycode() {
     return kbd_remove();
 }
 
-void PS9530_Ctrl::update5kHz() {
+void PS9530_Ctrl::update() {
     kbd_update();
-    if (++counter50Hz>=100) {
-        counter50Hz = 0;
-        update50Hz();
-    }
-}
-
-void PS9530_Ctrl::update50Hz() {
-    /* We have to update the DAC at reduced speed to allow the
-     * sample-and-hold element to follow.
-     */
     updateDAC();
     //startADCConversion();
 }

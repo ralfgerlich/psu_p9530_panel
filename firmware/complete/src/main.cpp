@@ -73,11 +73,11 @@ void loop() {
 
 /** Initialize the timer interrupt */
 static void timer_init() {
-    /* We set the timer interrupt to about 5000Hz.
-     * Clear-Timer-on-Compare (CTC) with fCPU/64 and OCRA = 49
-     * => f = 16MHZ/64/50 = 5000Hz */
+    /* We set the timer interrupt to about 100Hz.
+     * Clear-Timer-on-Compare (CTC) with fCPU/1024 and OCRA = 155
+     * => f = 16MHZ/1024/156 = 100Hz */
     TCCR0A = (1<<WGM01)|(0<<WGM00);
-    TCCR0B = (0<<WGM02)|(0<<CS02)|(1<<CS01)|(1<<CS00);
+    TCCR0B = (0<<WGM02)|(1<<CS02)|(0<<CS01)|(1<<CS00);
     OCR0A = 49;
     TIMSK0 = (1<<OCIE0A);
     TIFR0 = (1<<OCIE0A);
@@ -98,7 +98,7 @@ ISR(TIMER0_COMPA_vect) {
     digitalWrite(TFT_CS, HIGH);
 #endif
     /* Update the controller */
-    PS9530_Ctrl::getInstance().update5kHz();
+    PS9530_Ctrl::getInstance().update();
 #if 0
     /* Restore the SPI configuration and the TFT chip-select */
     SPCR = bu_spcr;

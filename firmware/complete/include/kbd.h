@@ -12,10 +12,10 @@
 enum KeyCode {
     kbd_p,
     kbd_lock,
-    kbd_enc_a,
+    kbd_unused_0,
     kbd_i,
     kbd_memory,
-    kbd_enc_b,
+    kbd_unused_1,
     kbd_u,
     kbd_remote,
     kbd_left,

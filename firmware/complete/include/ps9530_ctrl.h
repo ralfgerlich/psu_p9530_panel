@@ -26,7 +26,7 @@ public:
     /** Update the hardware interface.
      * This method is intended to be called from an interrupt and
      * aims for low execution time. */
-    void update5kHz();
+    void update();
 
     /** Update data from the ADC.
      * This method is intended to be called from an interrupt and
@@ -34,8 +34,6 @@ public:
     void updateADC();
 private:
     PS9530_Ctrl();
-
-    void update50Hz();
 
     void updateDAC();
 
@@ -50,9 +48,6 @@ private:
         muxChannel_voltage = 0,
         muxChannel_current
     } currentMuxChannel;
-
-    /** Counter for 50Hz tasks */
-    uint8_t counter50Hz;
 
     uint16_t milliVoltsMeasurement;
     uint16_t milliAmpsMeasurement;

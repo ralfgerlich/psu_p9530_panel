@@ -15,25 +15,30 @@
 #define DDR_COL DDRD
 
 /* Pin numbers for column lines */
-#define PIN_COL0 PIN2
-#define PIN_COL1 (PIN_COL0+1)
-#define PIN_COL2 (PIN_COL0+2)
-
-/* Bit mask for the column pins */
-#define MASK_COL (_BV(PIN_COL0)|_BV(PIN_COL1)|_BV(PIN_COL2))
+#define PIN_COL0 PIN4
 
 /* Port for chip select line */
-#define PORT_CS PORTD
-#define DDR_CS DDRD
+#define PORT_CS PORTB
+#define DDR_CS DDRB
 
 /* Pin number for chip select line */
-#define PIN_CS PIN6
+#define PIN_CS PIN0
 
 /* Bit mask for chip select line */
 #define MASK_CS _BV(PIN_CS)
 
-#define MASK_ENC_A _BV(kbd_enc_a)
-#define MASK_ENC_B _BV(kbd_enc_b)
+/* Port for encoder lines */
+#define PORT_ENC PORTD
+#define PIN_ENC PIND
+#define DDR_ENC DDRD
+
+/* Pin numbers for encoder lines */
+#define PIN_ENC_A PIN2
+#define PIN_ENC_B PIN3
+
+/* Bit masks for encoder lines */
+#define MASK_ENC_A _BV(PIN_ENC_A)
+#define MASK_ENC_B _BV(PIN_ENC_B)
 #define MASK_ENC (MASK_ENC_A|MASK_ENC_B)
 
 /* Keyboard buffer */
@@ -104,10 +109,21 @@ static inline void kbd_emplace_unsafe(KeyCode code) {
 }
 
 void kbd_init() {
-    DDR_COL &= ~MASK_COL;
-    PORT_COL |= MASK_COL;
+    /* Set up pins for keyboard as input with pull-up */
+    DDR_COL &= ~(7<<PIN_COL0);
+    PORT_COL |= (7<<PIN_COL0);
     DDR_CS |= MASK_CS;
     PORT_CS |= MASK_CS;
+
+    /* Set up encoder pins as input with pull-up */
+    DDR_ENC &= ~MASK_ENC;
+    PORT_ENC |= MASK_ENC;
+    /* Configure pin interrupts for encoder.
+     * The interrupts will be generated on a rising edge of
+     * the respective pin. */
+    EICRA = (1<<ISC11)|(1<<ISC10)|(1<<ISC01)|(1<<ISC00);
+    EIMSK = _BV(INT1)|_BV(INT0);
+    EIFR = _BV(INTF1)|_BV(INTF0);
 
     kbd_state = ~0UL;
     kbd_buffer_count = 0;
@@ -137,7 +153,7 @@ static uint32_t kbd_scan_matrix() {
 
         /* Read the COL pins */
         new_state <<= 3UL;
-        new_state |= (PIN_COL&MASK_COL)>>PIN_COL0;
+        new_state |= (PIN_COL>>PIN_COL0)&7;
 
         /* Send high from here on */
         PORT_SPI |= MASK_MOSI;
@@ -156,27 +172,30 @@ void kbd_update() {
         return;
     }
 
-    /* Check the encoder */
-    if ((new_state & MASK_ENC) == MASK_ENC) {
-        /* We returned to the idle state of the encoder; check were we came from */
-        if ((kbd_state & MASK_ENC) == MASK_ENC_A) {
-            /* Clockwise */
-            kbd_emplace_unsafe(kbd_enc_cw);
-        } else if ((kbd_state & MASK_ENC) == MASK_ENC_B) {
-            /* Counter-clockwise */
-            kbd_emplace_unsafe(kbd_enc_ccw);
-        }
-    }
-
     /* Process everything else */
-    uint32_t clean_state = new_state & ~MASK_ENC;
+    uint32_t clean_state = new_state;
     uint32_t mask = 1;
     for (KeyCode code = (KeyCode)0; code < kbd__count_physical; code = (KeyCode)(code+1), mask<<=1) {
         if (!(kbd_state & mask) && (clean_state & mask)) {
+            /* The key has been released */
             kbd_emplace_unsafe(code);
         }
     }
 
     /* Update the keyboard state */
     kbd_state = new_state;
+}
+
+ISR(INT0_vect) {
+    if ((PIN_ENC & MASK_ENC) == MASK_ENC) {
+        /* Pin A has gone high last => CCW */
+        kbd_emplace_unsafe(kbd_enc_ccw);
+    }
+}
+
+ISR(INT1_vect) {
+    if ((PIN_ENC & MASK_ENC) == MASK_ENC) {
+        /* Pin B has gone high last => CW */
+        kbd_emplace_unsafe(kbd_enc_cw);
+    }
 }
