@@ -48,6 +48,7 @@ class PsDisplay {
     void setCurser(row_t row, uint8_t pos);
     
     private:
+    void drawXBitmapPartial(int16_t x, int16_t y, const uint8_t bitmap[], int16_t sw, int16_t sh, int16_t w, int16_t h, uint16_t color);
     void fastStringPrint(char * buffer, char * old_buffer, uint8_t font_width, row_t row, uint16_t fg_color = ILI9341_WHITE, uint16_t se_color = ILI9341_GREEN, uint16_t bg_color = ILI9341_BLACK);
     void formatNumber(char * buffer, char * format, int16_t value_a, int16_t value_b, row_t row);
     void formatMilliNumber(char * buffer, int16_t value, row_t row, bool zero_padding = false);
