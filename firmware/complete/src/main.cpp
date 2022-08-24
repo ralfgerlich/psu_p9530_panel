@@ -24,7 +24,7 @@ void setup() {
     sei();
     display.clear();
     display.renderLogo();
-    delay(1000);
+    delay(10000);
     display.clear();
 }
 
