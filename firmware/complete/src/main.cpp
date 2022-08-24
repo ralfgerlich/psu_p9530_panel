@@ -20,7 +20,7 @@ void setup() {
     timer_init();
     //display.clear();
     //display.renderLogo();
-    delay(1000);
+    //delay(1000);
     //display.clear();
 }
 
@@ -43,9 +43,9 @@ void loop() {
                 currentSetpoint -= 100;
             }
             PS9530_Ctrl::getInstance().setMilliVoltSetpoint(voltageSetpoint);
-            display.setMVoltsSetpoint(voltageSetpoint);
+            display.setMilliVoltsSetpoint(voltageSetpoint);
             PS9530_Ctrl::getInstance().setMilliAmpsLimit(currentSetpoint);
-            display.setMAmpsLimit(currentSetpoint);
+            display.setMilliAmpsLimit(currentSetpoint);
             break;
         case kbd_enc_ccw:
             if (voltageSetpoint<=100) {
@@ -58,9 +58,9 @@ void loop() {
                 currentSetpoint = 10000;
             }
             PS9530_Ctrl::getInstance().setMilliVoltSetpoint(voltageSetpoint);
-            display.setMVoltsSetpoint(voltageSetpoint);
+            display.setMilliVoltsSetpoint(voltageSetpoint);
             PS9530_Ctrl::getInstance().setMilliAmpsLimit(currentSetpoint);
-            display.setMAmpsLimit(currentSetpoint);
+            display.setMilliAmpsLimit(currentSetpoint);
             break;
         }
         Serial.println(voltageSetpoint);
