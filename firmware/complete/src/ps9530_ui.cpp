@@ -13,7 +13,6 @@ PS9530_UI::PS9530_UI(PS9530_Ctrl& control,
 }
 
 void PS9530_UI::init() {
-    control.init();
     display.init();
     cli();
     display.clear();
@@ -21,6 +20,7 @@ void PS9530_UI::init() {
     delay(1000);
     display.clear();
     sei();
+    control.init();
     setVoltageSetpointsMilliVolts(30000);
     setCurrentLimitMilliAmps(10000);
     setPowerLimitCentiWatt(30000);
@@ -29,7 +29,7 @@ void PS9530_UI::init() {
 
 void PS9530_UI::update() {
     handleKeyboardEvents();
-    updateMeasurements();
+    //updateMeasurements();
 }
 
 void PS9530_UI::handleKeyboardEvents() {
@@ -86,6 +86,7 @@ void PS9530_UI::handleKeyboardEvents() {
                 break;
         }
     }
+    display.renderMainscreen();
     if (hadEvent) {
         Serial.print("standbyMode=");
         Serial.println(standbyMode);
@@ -182,6 +183,7 @@ void PS9530_UI::handleEncoderRotation(KeyCode direction) {
             /* Wrap around after '9' */
             currentInputValue[currentInputDigit]='0';
         }
+        updateEditedValue();
         break;
     case kbd_enc_ccw:
         if (currentInputValue[currentInputDigit]>'0') {
@@ -191,6 +193,7 @@ void PS9530_UI::handleEncoderRotation(KeyCode direction) {
             /* Wrap around after '0' */
             currentInputValue[currentInputDigit]='9';
         }
+        updateEditedValue();
         break;
     default:
         /* Shouldn't happen, is ignored. This is just to placate the compiler */
