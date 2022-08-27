@@ -3,6 +3,7 @@
 #define PS9530_CTRL_H
 
 #include <stdint.h>
+#include "kbd.h"
 
 class PS9530_Ctrl {
 public:
