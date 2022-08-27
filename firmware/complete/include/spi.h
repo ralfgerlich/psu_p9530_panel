@@ -39,10 +39,33 @@ static inline void spi_disable() {
     SPCR = 0;
 }
 
+static inline void spi_wait_until_tx_complete() {
+    loop_until_bit_is_set(SPSR, SPIF);
+}
+
 static inline uint8_t spi_send(uint8_t value) {
     SPDR = value;
-    while ((SPSR & (1<<SPIF))==0);
+    spi_wait_until_tx_complete();
     return SPDR;
+}
+
+/* Save the SPI state and restore it at the end of the block.
+ * Example:
+ * ISOLATE_SPI { // Stores the current SPI state
+ *     // Do something with the SPI
+ * } // Here the SPI state is restored
+ */
+#define ISOLATE_SPI for ( uint16_t __state __attribute__((__cleanup__(__spi_restore_state))) = __spi_save_state(), __Todo = 1; __Todo ; __Todo = 0)
+
+/* Helper function for saving the SPI state */
+static inline uint16_t __spi_save_state() {
+    return SPCR | (SPSR<<8);
+}
+
+/* Helper function for saving the SPI state */
+static inline void __spi_restore_state(uint16_t* state) {
+    SPCR = *state;
+    SPSR = *state>>8;
 }
 
 

@@ -103,7 +103,7 @@ static inline void kbd_emplace_unsafe(KeyCode code) {
         /* Buffer is full => drop one key */
         kbd_remove();
     }
-    const uint8_t write_ptr = (kbd_buffer_read+KBD_BUFFER_LEN-kbd_buffer_count) % KBD_BUFFER_LEN;
+    const uint8_t write_ptr = (kbd_buffer_read+kbd_buffer_count) % KBD_BUFFER_LEN;
     kbd_buffer[write_ptr] = code;
     kbd_buffer_count++;
 }
@@ -165,6 +165,8 @@ static uint32_t kbd_scan_matrix() {
 }
 
 void kbd_update() {
+    /* Disable the SPI as we will be using the pins for bit-banging. */
+    spi_disable();
     uint32_t new_state = kbd_scan_matrix();
 
     /* De-bounce */

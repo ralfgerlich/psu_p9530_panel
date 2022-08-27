@@ -5,6 +5,9 @@
 #include <Adafruit_ILI9341.h>
 #include <stdint.h>
 
+#define TFT_DC 9
+#define TFT_CS 10
+
 //resolution 320x240
 #define PS_DISPLAY_WIDTH 320
 #define PS_DISPLAY_HEIGHT 240

@@ -1,27 +1,28 @@
 #include "dac.h"
 #include "spi.h"
 #include <avr/io.h>
+#include <util/atomic.h>
 
 #define PORT_DAC PORTC
 #define DDR_DAC DDRC
 
-#define PIN_CS 5
-#define MASK_CS _BV(PIN_CS)
+#define PIN_DAC_CS 5
+#define MASK_DAC_CS _BV(PIN_DAC_CS)
 
 void dac_init() {
-    DDR_DAC |= MASK_CS;
-    PORT_DAC |= MASK_CS;
+    DDR_DAC |= MASK_DAC_CS;
+    PORT_DAC |= MASK_DAC_CS;
 }
 
 static inline void dac_acquire() {
-    PORT_DAC &= ~MASK_CS;
+    PORT_DAC &= ~MASK_DAC_CS;
 }
 
 static inline void dac_release() {
-    PORT_DAC |= MASK_CS;
+    PORT_DAC |= MASK_DAC_CS;
 }
 
-void dac_set(uint16_t value) {
+void dac_set_unsafe(uint16_t value) {
     /* Left-align the value */
     value <<= 2;
 
@@ -36,5 +37,11 @@ void dac_set(uint16_t value) {
     dac_release();
 
     /* Disable the SPI controller again */
-    SPCR = 0;
+    spi_disable();
+}
+
+void dac_set(uint16_t value) {
+    ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+        dac_set_unsafe(value);
+    }
 }

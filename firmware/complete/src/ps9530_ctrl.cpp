@@ -1,3 +1,4 @@
+#include <Arduino.h>
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <util/atomic.h>
@@ -5,27 +6,13 @@
 #include "dac.h"
 #include "kbd.h"
 #include "spi.h"
+#include "ps_display.h"
 
 #define PORT_MUX PORTC
 #define DDR_MUX DDRC
 #define PIN_MUX PIN4
 #define MASK_MUX _BV(PIN_MUX)
 
-    // _delay_ms(5);
-    // mux_select_channel(mux_channel_voltage);
-    // dac_set(voltage_value);
-    // _delay_ms(1); /* Wait for the sample-and-hold element to settle */
-    // voltage_value += 128;
-    // if (voltage_value>=16384) {
-    //     voltage_value=0;
-    // }
-    // mux_select_channel(mux_channel_current);
-    // current_value -=128;
-    // if (current_value==0) {
-    //     current_value=16384;
-    // }
-    // dac_set(current_value);
-    // _delay_ms(1); /* Wait for the sample-and-hold element to settle */
 #include "ps9530_ctrl.h"
 
 PS9530_Ctrl PS9530_Ctrl::instance;
@@ -51,6 +38,15 @@ void PS9530_Ctrl::init() {
 
     /* Initialite MUX selector pin */
     DDR_MUX |= MASK_MUX;
+
+    /* We set the timer interrupt to about 100Hz.
+     * Clear-Timer-on-Compare (CTC) with fCPU/1024 and OCRA = 155
+     * => f = 16MHZ/1024/156 = 100Hz */
+    TCCR0A = (1<<WGM01)|(0<<WGM00);
+    TCCR0B = (0<<WGM02)|(1<<CS02)|(0<<CS01)|(1<<CS00);
+    OCR0A = 49;
+    TIMSK0 = (1<<OCIE0A);
+    TIFR0 = (1<<OCIE0A);
 }
 
 void PS9530_Ctrl::setMilliVoltSetpoint(uint16_t milliVolts) {
@@ -90,7 +86,7 @@ KeyCode PS9530_Ctrl::readKeycode() {
 void PS9530_Ctrl::update() {
     kbd_update();
     updateDAC();
-    //startADCConversion();
+    startADCConversion();
 }
 
 void PS9530_Ctrl::updateDAC() {
@@ -103,7 +99,7 @@ void PS9530_Ctrl::updateDAC() {
         uint32_t dac_value = milliVoltSetpoint;
         dac_value <<= 14UL;
         dac_value /= 30000UL;
-        dac_set(dac_value);
+        dac_set_unsafe(dac_value);
         currentMuxChannel = muxChannel_current;
         break;
     }
@@ -113,7 +109,7 @@ void PS9530_Ctrl::updateDAC() {
         uint32_t dac_value = milliAmpsLimit;
         dac_value <<= 14UL;
         dac_value /= 10000UL;
-        dac_set(dac_value);
+        dac_set_unsafe(dac_value);
         currentMuxChannel = muxChannel_voltage;
         break;
     }
@@ -141,4 +137,55 @@ void PS9530_Ctrl::updateADC() {
         break;
     }
     startADCConversion();
+}
+
+struct __arduino_savepin {
+    uint8_t pin;
+    int value;
+    uint8_t todo;
+};
+
+static inline struct __arduino_savepin __arduino_savepin(uint8_t pin) {
+    struct __arduino_savepin savepin = {
+        .pin = pin,
+        .value = digitalRead(pin),
+        .todo = 1
+    };
+    return savepin;
+}
+
+static inline void __arduino_restorepin(struct __arduino_savepin* savepin) {
+    digitalWrite(savepin->pin, savepin->value);
+}
+
+#define ARDUINO_SAVEPIN(pin) for (struct __arduino_savepin __save __attribute__((__cleanup__(__arduino_restorepin))) = __arduino_savepin(pin); __save.todo; __save.todo=0)
+
+ISR(TIMER0_COMPA_vect) {
+    /* Wait until any running SPI transaction is done for sure.
+     * I deplore waiting in an interrupt, but this is the easiest way.
+     * Waiting for the SPI interrupt flag would be better in general,
+     * but would block if no SPI transaction is running and the
+     * interrupt flag had been cleared. */
+    PORTD |= _BV(PIN7);
+    _delay_loop_2(8*8);
+
+    ARDUINO_SAVEPIN(TFT_CS) {
+        /* Pull up the TFT_CS pin to deactivate the display connection */
+        digitalWrite(TFT_CS, HIGH);
+
+        ISOLATE_SPI {
+            /* Update the controller */
+            PS9530_Ctrl::getInstance().update();
+        }
+        /* Initiate sending a dummy over the SPI so that the
+         * interrupt flag is set for anybody who has been sending.
+         * This is pretty hacky, but it might just as well work.
+         */
+        SPDR = 42;
+    }
+    PORTD &= ~_BV(PIN7);
+}
+
+ISR(ADC_vect) {
+    PS9530_Ctrl::getInstance().updateADC();
 }

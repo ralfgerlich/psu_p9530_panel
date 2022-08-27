@@ -9,6 +9,11 @@
 /** Initialize the DAC */
 void dac_init();
 
+/** Set the DAC output
+ * NOTE: This function does not ensure atomicity!
+ */
+void dac_set_unsafe(uint16_t value);
+
 /** Set the DAC output */
 void dac_set(uint16_t value);
 
