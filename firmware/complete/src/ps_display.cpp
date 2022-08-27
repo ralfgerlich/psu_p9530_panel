@@ -1,5 +1,6 @@
 #include "ps_display.h"
 #include "toolbox_logo_only.xbm"
+#include "toolbox_logo_only_small.xbm"
 #include "toolbox_logo_font_toolbox.xbm"
 #include "toolbox_logo_font_bodensee.xbm"
 #include "Fonts/courier-prime-code-regular.h"
@@ -28,6 +29,17 @@ void PsDisplay::init() {
 void PsDisplay::clear() {
     init();
     tft.fillScreen(ILI9341_BLACK);
+    painted_limited_a = 0;
+    painted_limited_p = 0;
+    painted_overtemp = 0;
+    painted_selected_pos = 0;
+    painted_standby = 0;
+    strcpy(buffer_volts, "\0\0\0\0\0\0\0");
+    strcpy(buffer_volts_setp, "\0\0\0\0\0\0\0");
+    strcpy(buffer_amps, "\0\0\0\0\0\0\0");
+    strcpy(buffer_amps_limit, "\0\0\0\0\0\0\0");
+    strcpy(buffer_watts, "\0\0\0\0\0\0\0");
+    strcpy(buffer_watts_limit, "\0\0\0\0\0\0\0");
     yield();
 }
 
@@ -54,57 +66,8 @@ void PsDisplay::drawXBitmapPartial(int16_t x, int16_t y, const uint8_t bitmap[],
 }
 
 void PsDisplay::renderLogo() {
-    tft.drawXBitmap(0, (PS_DISPLAY_HEIGHT-toolbox_logo_only_height)/2,
-#if defined(__AVR__) || defined(ESP8266)
-        toolbox_logo_only_bits,
-#else
-        // Some non-AVR MCU's have a "flat" memory model and don't
-        // distinguish between flash and RAM addresses.  In this case,
-        // the RAM-resident-optimized drawRGBBitmap in the ILI9341
-        // library can be invoked by forcibly type-converting the
-        // PROGMEM bitmap pointer to a non-const uint16_t *.
-        (uint16_t *)toolbox_logo_only_bits,
-#endif
-        toolbox_logo_only_width, toolbox_logo_only_height/3,
-        TOOLBOX_LOGO_LIGHT_RED);
-    uint8_t pixel_per_iteration = toolbox_logo_only_height/3*2/11;
-    for (uint8_t i = 0; i<11; i++) {
-        //red upper part 11101 0x1d << 0xB
-        //red middle part 11000 0x18 << 0xB
-        //red lower part 10010 0x12 << 0xB
-        //green bit 8 stuck on 0x100 or 0x8 << 5
-        //blue bit 0 on light
-        uint16_t color = 0x100 | ((0x1c - i) << 0xB);
-        //looping 10 times to get from the bright red to the dark red + 12th time to render the rest dark
-        drawXBitmapPartial(0, (PS_DISPLAY_HEIGHT-toolbox_logo_only_height)/2+toolbox_logo_only_height/3+pixel_per_iteration*i,
-    #if defined(__AVR__) || defined(ESP8266)
-            toolbox_logo_only_bits,
-    #else
-            // Some non-AVR MCU's have a "flat" memory model and don't
-            // distinguish between flash and RAM addresses.  In this case,
-            // the RAM-resident-optimized drawRGBBitmap in the ILI9341
-            // library can be invoked by forcibly type-converting the
-            // PROGMEM bitmap pointer to a non-const uint16_t *.
-            (uint16_t *)toolbox_logo_only_bits,
-    #endif
-            0, toolbox_logo_only_height/3+pixel_per_iteration*i,
-            toolbox_logo_only_width, toolbox_logo_only_height/3+pixel_per_iteration*(i+1),
-            color);
-    }
-    drawXBitmapPartial(0, (PS_DISPLAY_HEIGHT-toolbox_logo_only_height)/2+toolbox_logo_only_height/3+pixel_per_iteration*11,
-    #if defined(__AVR__) || defined(ESP8266)
-            toolbox_logo_only_bits,
-    #else
-            // Some non-AVR MCU's have a "flat" memory model and don't
-            // distinguish between flash and RAM addresses.  In this case,
-            // the RAM-resident-optimized drawRGBBitmap in the ILI9341
-            // library can be invoked by forcibly type-converting the
-            // PROGMEM bitmap pointer to a non-const uint16_t *.
-            (uint16_t *)toolbox_logo_only_bits,
-    #endif
-            0, toolbox_logo_only_height/3+pixel_per_iteration*11,
-            toolbox_logo_only_width, toolbox_logo_only_height,
-            TOOLBOX_LOGO_DARK_RED);
+    paintLogo(0, (PS_DISPLAY_HEIGHT-toolbox_logo_only_height)/2, toolbox_logo_only_width, toolbox_logo_only_height, toolbox_logo_only_bits);
+    //render toolbox bodensee e.v. logo text
     tft.drawXBitmap(PS_DISPLAY_WIDTH-toolbox_logo_font_toolbox_width-1, (PS_DISPLAY_HEIGHT-toolbox_logo_only_height)/2 + 12,
 #if defined(__AVR__) || defined(ESP8266)
         toolbox_logo_font_toolbox_bits,
@@ -131,6 +94,60 @@ void PsDisplay::renderLogo() {
 #endif
         toolbox_logo_font_bodensee_width, toolbox_logo_font_bodensee_height,
         TOOLBOX_LOGO_DARK_GREY);
+}
+
+void PsDisplay::paintLogo(uint8_t x, uint8_t y, uint16_t size_x, uint16_t size_y, const unsigned char* picture, uint16_t color_override) {
+    tft.drawXBitmap(x, y,
+#if defined(__AVR__) || defined(ESP8266)
+        picture,
+#else
+        // Some non-AVR MCU's have a "flat" memory model and don't
+        // distinguish between flash and RAM addresses.  In this case,
+        // the RAM-resident-optimized drawRGBBitmap in the ILI9341
+        // library can be invoked by forcibly type-converting the
+        // PROGMEM bitmap pointer to a non-const uint16_t *.
+        (uint16_t *)picture,
+#endif
+        size_x, size_y/3,
+        color_override != 0x1337 ? color_override : TOOLBOX_LOGO_LIGHT_RED);
+    uint8_t pixel_per_iteration = size_y*2/3/11;
+    for (uint8_t i = 0; i<11; i++) {
+        //red upper part 11101 0x1d << 0xB
+        //red middle part 11000 0x18 << 0xB
+        //red lower part 10010 0x12 << 0xB
+        //green bit 8 stuck on 0x100 or 0x8 << 5
+        //blue bit 0 on light
+        uint16_t color = 0x100 | ((0x1c - i) << 0xB);
+        //looping 10 times to get from the bright red to the dark red + 12th time to render the rest dark
+        drawXBitmapPartial(x, y+size_y/3+pixel_per_iteration*i,
+    #if defined(__AVR__) || defined(ESP8266)
+            picture,
+    #else
+            // Some non-AVR MCU's have a "flat" memory model and don't
+            // distinguish between flash and RAM addresses.  In this case,
+            // the RAM-resident-optimized drawRGBBitmap in the ILI9341
+            // library can be invoked by forcibly type-converting the
+            // PROGMEM bitmap pointer to a non-const uint16_t *.
+            (uint16_t *)picture,
+    #endif
+            0, size_y/3+pixel_per_iteration*i,
+            size_x, size_y/3+pixel_per_iteration*(i+1),
+            color_override != 0x1337 ? color_override : color);
+    }
+    drawXBitmapPartial(x, y+size_y/3+pixel_per_iteration*11,
+    #if defined(__AVR__) || defined(ESP8266)
+            picture,
+    #else
+            // Some non-AVR MCU's have a "flat" memory model and don't
+            // distinguish between flash and RAM addresses.  In this case,
+            // the RAM-resident-optimized drawRGBBitmap in the ILI9341
+            // library can be invoked by forcibly type-converting the
+            // PROGMEM bitmap pointer to a non-const uint16_t *.
+            (uint16_t *)picture,
+    #endif
+            0, size_y/3+pixel_per_iteration*11,
+            size_x, size_y,
+            color_override != 0x1337 ? color_override : TOOLBOX_LOGO_DARK_RED);
 }
 
 void PsDisplay::formatNumber(char * buffer, char * format, int16_t value_a, int16_t value_b, row_t row) {
@@ -196,6 +213,14 @@ void PsDisplay::fastStringPrint(char * buffer, char * old_buffer, uint8_t font_w
     }
 }
 
+void PsDisplay::paintSmallLogo(bool visible) {
+    if (visible) {
+        paintLogo(0, 5, toolbox_logo_only_small_width, toolbox_logo_only_small_height, toolbox_logo_only_small_bits);
+    } else {
+        paintLogo(0, 5, toolbox_logo_only_small_width, toolbox_logo_only_small_height, toolbox_logo_only_small_bits, ILI9341_BLACK);
+    }
+}
+
 void PsDisplay::paintStandby(bool visible) {
     painted_standby = visible;
     if (painted_standby) {
@@ -209,9 +234,6 @@ void PsDisplay::paintStandby(bool visible) {
 
 void PsDisplay::paintOvertemp(bool visible) {
     painted_overtemp = overtemp;
-    if (painted_standby) {
-        paintStandby(false);
-    }
     if (painted_overtemp) {
         tft.setTextColor(ILI9341_RED);
     } else {
@@ -239,10 +261,25 @@ void PsDisplay::renderMainscreen() {
     //actual paint
     tft.setTextSize(1);
     if (painted_overtemp != overtemp) {
+        if (overtemp) {
+            paintSmallLogo(false);
+        }
+        if (painted_standby) {
+            paintStandby(false);
+        }
         paintOvertemp(overtemp);
+        if (!overtemp) {
+            paintSmallLogo(true);
+        }
     }
     if (!painted_overtemp && painted_standby != standby) {
+        if (standby) {
+            paintSmallLogo(false);
+        }
         paintStandby(standby);
+        if (!standby) {
+            paintSmallLogo(true);
+        }
     }
     if (painted_limited_a != limited_a) {
         painted_limited_a = limited_a;
