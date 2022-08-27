@@ -2,8 +2,7 @@
 #include "toolbox_logo_only.xbm"
 #include "toolbox_logo_font_toolbox.xbm"
 #include "toolbox_logo_font_bodensee.xbm"
-#include "Fonts/FreeMono18pt7b.h"
-#include "Fonts/FreeMonoBold18pt7b.h"
+#include "Fonts/courier-prime-code-regular.h"
 
 //manually reduced blue a bit especially in the red ones
 //looks like the display overdoes blue a bit
@@ -236,7 +235,7 @@ void PsDisplay::renderMainscreen() {
     char buffer[PS_DISPLAY_BUFFER_LENGTH];
     //font init
     tft.setTextWrap(0);
-    tft.setFont(&FreeMonoBold18pt7b);
+    tft.setFont(&courier_prime_code_regular18pt7b);
     //actual paint
     tft.setTextSize(1);
     if (painted_overtemp != overtemp) {
@@ -269,7 +268,7 @@ void PsDisplay::renderMainscreen() {
     //optimized hybrid
     tft.setTextColor(ILI9341_WHITE);
     tft.setTextSize(1);
-    tft.setFont(&FreeMono18pt7b);
+    tft.setFont(&courier_prime_code_regular18pt7b);
     //TODO improvement
     //     speed can be improved by reducing overdraw.
     //     if we render the bg color char and the new char in memory
