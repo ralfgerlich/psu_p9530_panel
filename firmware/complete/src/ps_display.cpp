@@ -28,6 +28,17 @@ void PsDisplay::init() {
 void PsDisplay::clear() {
     init();
     tft.fillScreen(ILI9341_BLACK);
+    painted_limited_a = 0;
+    painted_limited_p = 0;
+    painted_overtemp = 0;
+    painted_selected_pos = 0;
+    painted_standby = 0;
+    strcpy(buffer_volts, "\0\0\0\0\0\0\0");
+    strcpy(buffer_volts_setp, "\0\0\0\0\0\0\0");
+    strcpy(buffer_amps, "\0\0\0\0\0\0\0");
+    strcpy(buffer_amps_limit, "\0\0\0\0\0\0\0");
+    strcpy(buffer_watts, "\0\0\0\0\0\0\0");
+    strcpy(buffer_watts_limit, "\0\0\0\0\0\0\0");
     yield();
 }
 
