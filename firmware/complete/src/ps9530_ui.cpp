@@ -29,6 +29,7 @@ void PS9530_UI::init() {
 
 void PS9530_UI::update() {
     handleKeyboardEvents();
+    updateMeasurements();
 }
 
 void PS9530_UI::handleKeyboardEvents() {
@@ -101,6 +102,14 @@ void PS9530_UI::handleKeyboardEvents() {
         Serial.print("currentInputDigit=");
         Serial.println(currentInputDigit);
     }
+}
+
+void PS9530_UI::updateMeasurements() {
+    // FIXME: This should only happen when we actually have a new measurement!
+    display.setMilliVolts(control.getMilliVoltsMeasurement());
+    display.setMilliAmps(control.getMilliAmpsMeasurement());
+    uint16_t centiWattPowerMeasurement = (uint32_t)control.getMilliVoltsMeasurement()*control.getMilliAmpsMeasurement()/10000UL;
+    display.setCentiWatts(centiWattPowerMeasurement);
 }
 
 void PS9530_UI::changeInputMode(InputMode newMode) {
@@ -327,6 +336,7 @@ void PS9530_UI::handleRemoteKey() {
 }
 
 void PS9530_UI::setVoltageSetpointsMilliVolts(uint16_t milliVolts) {
+    // TODO: Clamp the setpoint according to hardware limits
     voltageSetpointMilliVolts = milliVolts;
     Serial.print("voltageSetpointMilliVolts=");
     Serial.println(voltageSetpointMilliVolts);
@@ -335,6 +345,7 @@ void PS9530_UI::setVoltageSetpointsMilliVolts(uint16_t milliVolts) {
 }
 
 void PS9530_UI::setCurrentLimitMilliAmps(uint16_t milliAmps) {
+    // TODO: Clamp the setpoint according to hardware limits
     currentLimitMilliAmps = milliAmps;
     Serial.print("currentLimitMilliAmps=");
     Serial.println(currentLimitMilliAmps);
@@ -343,6 +354,7 @@ void PS9530_UI::setCurrentLimitMilliAmps(uint16_t milliAmps) {
 }
 
 void PS9530_UI::setPowerLimitCentiWatt(uint16_t centiWatt) {
+    // TODO: Clamp the setpoint according to hardware limits
     powerLimitCentiWatt = centiWatt;
     Serial.print("powerLimitCentiWatt=");
     Serial.println(powerLimitCentiWatt);

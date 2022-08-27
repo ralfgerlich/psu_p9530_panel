@@ -21,6 +21,9 @@ protected:
     /** Handle all pending keyboard events */
     void handleKeyboardEvents();
 
+    /** Update measured values */
+    void updateMeasurements();
+
     enum InputMode {
         InputNone,
         InputVoltage,
