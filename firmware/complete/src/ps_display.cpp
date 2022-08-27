@@ -310,21 +310,22 @@ void PsDisplay::renderMainscreen() {
     //     speed can be improved by reducing overdraw.
     //     if we render the bg color char and the new char in memory
     //     and only send the resulting pixels without bg color to the display
-    tft.setCursor(60+PT18_IN_PXW*6, PT18_IN_PXH+5);
+    tft.setTextSize(1);
+    tft.setCursor(60+PT18_IN_PXW*6, PT18_IN_PXH+5+3);
     formatMilliNumber(buffer, milli_volts_setpoint, ROW_VOLTS, true);
     fastStringPrint(buffer, buffer_volts_setp, PT18_IN_PXW, ROW_VOLTS);
-    tft.setCursor(60+PT18_IN_PXW*6, PT18_IN_PXH*4+5*2);
+    tft.setCursor(60+PT18_IN_PXW*6, PT18_IN_PXH*4+5*2+3*4);
     formatMilliNumber(buffer, milli_amps_limit, ROW_AMPS, true);
     fastStringPrint(buffer, buffer_amps_limit, PT18_IN_PXW, ROW_AMPS);
-    tft.setCursor(60+PT18_IN_PXW*6, PT18_IN_PXH*7+5*3);
+    tft.setCursor(60+PT18_IN_PXW*6, PT18_IN_PXH*7+5*3+3*7);
     formatCentiNumber(buffer, centi_watts_limit, ROW_WATTS, true);
     fastStringPrint(buffer, buffer_watts_limit, PT18_IN_PXW, ROW_WATTS);
     painted_selected_pos = selected_pos;
     tft.setTextSize(2);
-    tft.setCursor(60, PT18_IN_PXH*3+5);
+    tft.setCursor(60, PT18_IN_PXH*3+5+3*3);
     formatMilliNumber(buffer, milli_volts, ROW_VOLTS);
     fastStringPrint(buffer, buffer_volts, PT18_IN_PXW*2, ROW_NULL);
-    tft.setCursor(60, PT18_IN_PXH*6+5*2);
+    tft.setCursor(60, PT18_IN_PXH*6+5*2+3*6);
     formatMilliNumber(buffer, milli_amps, ROW_AMPS);
     fastStringPrint(buffer, buffer_amps, PT18_IN_PXW*2, ROW_NULL);
     tft.setCursor(60, PT18_IN_PXH*9+5*3);
