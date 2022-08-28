@@ -15,13 +15,48 @@
 #define TOOLBOX_LOGO_DARK_RED 0x9080
 
 PsDisplay::PsDisplay( Adafruit_ILI9341 & tft) :
-    tft(tft) {
+    tft(tft),
+    init_done(false),
+    locked(false),
+    memory(false),
+    remote(false),
+    standby(false),
+    limited_v(false),
+    limited_a(false),
+    limited_p(false),
+    overtemp(false),
+    milli_volts_setpoint(0),
+    milli_amps_limit(0),
+    centi_watts_limit(0),
+    milli_volts(0),
+    milli_amps(0),
+    centi_watts(0),
+    selected_pos(0),
+    painted_standby(false),
+    painted_limited_a(false),
+    painted_limited_p(false),
+    painted_overtemp(false),
+    painted_selected_pos(0),
+    buffer_volts{},
+    buffer_amps{},
+    buffer_watts{},
+    buffer_volts_setp{},
+    buffer_amps_limit{},
+    buffer_watts_limit{},
+    history_volts_pos(0),
+    history_apms_pos(0),
+    history_watts_pos(0),
+    history_volts{},
+    history_amps{},
+    history_watts{} {
 }
 
 void PsDisplay::init() {
     if (!init_done) {
         tft.begin();
         tft.setRotation(3);
+        tft.setTextWrap(0);
+        tft.setFont(&courier_prime_code_regular18pt7b);
         init_done = true;
     }
 }
@@ -34,12 +69,12 @@ void PsDisplay::clear() {
     painted_overtemp = 0;
     painted_selected_pos = 0;
     painted_standby = 0;
-    strcpy(buffer_volts, "\0\0\0\0\0\0\0");
-    strcpy(buffer_volts_setp, "\0\0\0\0\0\0\0");
-    strcpy(buffer_amps, "\0\0\0\0\0\0\0");
-    strcpy(buffer_amps_limit, "\0\0\0\0\0\0\0");
-    strcpy(buffer_watts, "\0\0\0\0\0\0\0");
-    strcpy(buffer_watts_limit, "\0\0\0\0\0\0\0");
+    strncpy(buffer_volts, "\0\0\0\0\0\0\0\0", 8);
+    strncpy(buffer_volts_setp, "\0\0\0\0\0\0\0\0", 8);
+    strncpy(buffer_amps, "\0\0\0\0\0\0\0\0", 8);
+    strncpy(buffer_amps_limit, "\0\0\0\0\0\0\0\0", 8);
+    strncpy(buffer_watts, "\0\0\0\0\0\0\0\0", 8);
+    strncpy(buffer_watts_limit, "\0\0\0\0\0\0\0\0", 8);
     yield();
 }
 
@@ -255,9 +290,6 @@ void PsDisplay::renderMainscreen() {
     // additional info 24px
     //---------------------
     char buffer[PS_DISPLAY_BUFFER_LENGTH];
-    //font init
-    tft.setTextWrap(0);
-    tft.setFont(&courier_prime_code_regular18pt7b);
     //actual paint
     tft.setTextSize(1);
     if (painted_overtemp != overtemp) {
@@ -303,9 +335,6 @@ void PsDisplay::renderMainscreen() {
     }
     yield();
     //optimized hybrid
-    tft.setTextColor(ILI9341_WHITE);
-    tft.setTextSize(1);
-    tft.setFont(&courier_prime_code_regular18pt7b);
     //TODO improvement
     //     speed can be improved by reducing overdraw.
     //     if we render the bg color char and the new char in memory
@@ -328,10 +357,58 @@ void PsDisplay::renderMainscreen() {
     tft.setCursor(60, PT18_IN_PXH*6+5*2+3*6);
     formatMilliNumber(buffer, milli_amps, ROW_AMPS);
     fastStringPrint(buffer, buffer_amps, PT18_IN_PXW*2, ROW_NULL);
-    tft.setCursor(60, PT18_IN_PXH*9+5*3);
+    tft.setCursor(60, PT18_IN_PXH*9+5*3+3*9);
     formatCentiNumber(buffer, centi_watts, ROW_WATTS);
     fastStringPrint(buffer, buffer_watts, PT18_IN_PXW*2, ROW_NULL);
     yield();
+}
+
+void PsDisplay::renderHistory(const uint8_t* history_data, uint16_t history_pos) {
+    tft.startWrite();
+    for (int16_t i = 0; i < HISTORY_LENGTH; i++) {
+        int16_t current_pos = (history_pos+i) % HISTORY_LENGTH;
+        int16_t last_pos = ((current_pos-1) % HISTORY_LENGTH) < 0 ? HISTORY_LENGTH-1 : (current_pos-1) % HISTORY_LENGTH;
+        if (history_data[current_pos] == 0) {
+            continue;
+        }
+        if (history_data[current_pos] != history_data[last_pos]) {
+            tft.writePixel(i, PS_DISPLAY_HEIGHT-history_data[last_pos], ILI9341_BLACK);
+            tft.writePixel(i, PS_DISPLAY_HEIGHT-history_data[last_pos]+1, ILI9341_BLACK);
+            if (i > 1) { //not the best workaround for the sticky edge due to wrap and missing old data
+                tft.writePixel(i, PS_DISPLAY_HEIGHT-history_data[current_pos], TOOLBOX_LOGO_LIGHT_RED);
+                tft.writePixel(i, PS_DISPLAY_HEIGHT-history_data[current_pos]+1, TOOLBOX_LOGO_LIGHT_RED);
+            }
+        }
+    }
+    tft.endWrite();
+}
+
+void PsDisplay::renderVolts() {
+    char buffer[PS_DISPLAY_BUFFER_LENGTH];
+    tft.setTextSize(2);
+    tft.setCursor(60, PT18_IN_PXH*2+4);
+    formatMilliNumber(buffer, milli_volts, ROW_VOLTS);
+    //tft.setTextSize(2);
+    fastStringPrint(buffer, buffer_volts, PT18_IN_PXW*2, ROW_NULL);
+    renderHistory(history_volts, history_volts_pos);
+}
+
+void PsDisplay::renderAmps() {
+    char buffer[PS_DISPLAY_BUFFER_LENGTH];
+    tft.setTextSize(2);
+    tft.setCursor(60, PT18_IN_PXH*2+4);
+    formatMilliNumber(buffer, milli_amps, ROW_AMPS);
+    fastStringPrint(buffer, buffer_amps, PT18_IN_PXW*2, ROW_NULL);
+    renderHistory(history_amps, history_apms_pos);
+}
+
+void PsDisplay::renderWatts() {
+    char buffer[PS_DISPLAY_BUFFER_LENGTH];
+    tft.setTextSize(2);
+    tft.setCursor(60, PT18_IN_PXH*2+4);
+    formatCentiNumber(buffer, centi_watts, ROW_WATTS);
+    fastStringPrint(buffer, buffer_watts, PT18_IN_PXW*2, ROW_NULL);
+    renderHistory(history_watts, history_watts_pos);
 }
 
 void PsDisplay::setStandby(bool standby) {
@@ -380,14 +457,20 @@ void PsDisplay::setCentiWattsLimit(int16_t watts_limit) {
 
 void PsDisplay::setMilliVolts(int16_t voltage) {
     this->milli_volts = voltage;
+    history_volts_pos = (history_volts_pos+1) % HISTORY_LENGTH;
+    history_volts[history_volts_pos] = (voltage / 10000.f) *(PS_DISPLAY_HEIGHT-24*2-5-1) +1;
 }
 
 void PsDisplay::setMilliAmps(int16_t amps) {
     this->milli_amps = amps;
+    history_apms_pos = (history_apms_pos+1) % HISTORY_LENGTH;
+    history_amps[history_apms_pos] = (amps / 10000.f) *(PS_DISPLAY_HEIGHT-24*2-5-1) +1;
 }
 
 void PsDisplay::setCentiWatts(int16_t watts) {
     this->centi_watts = watts;
+    history_watts_pos = (history_watts_pos+1) % HISTORY_LENGTH;
+    history_watts[history_watts_pos] = (watts / 30000.f) *(PS_DISPLAY_HEIGHT-24*2-5-1) +1;
 }
 
 void PsDisplay::setCurser(row_t row, uint8_t pos) {

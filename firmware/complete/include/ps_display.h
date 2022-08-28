@@ -17,6 +17,8 @@
 
 #define PS_DISPLAY_BUFFER_LENGTH 7
 
+#define HISTORY_LENGTH PS_DISPLAY_WIDTH
+
 class PsDisplay {
     public:
     PsDisplay(Adafruit_ILI9341 & tft);
@@ -33,6 +35,9 @@ class PsDisplay {
     void clear(void);
     void renderLogo(void);
     void renderMainscreen(void);
+    void renderVolts(void);
+    void renderAmps(void);
+    void renderWatts(void);
 
     void setStandby(bool standby);
     void setLocked(bool locked);
@@ -60,6 +65,7 @@ class PsDisplay {
     void paintStandby(bool visible);
     void paintOvertemp(bool visible);
     void paintSmallLogo(bool visible);
+    void renderHistory(const uint8_t* history_data, uint16_t history_pos);
 
     Adafruit_ILI9341& tft;
     bool init_done;
@@ -91,6 +97,12 @@ class PsDisplay {
     char buffer_volts_setp[PS_DISPLAY_BUFFER_LENGTH];
     char buffer_amps_limit[PS_DISPLAY_BUFFER_LENGTH];
     char buffer_watts_limit[PS_DISPLAY_BUFFER_LENGTH];
+    uint16_t history_volts_pos=0;
+    uint16_t history_apms_pos=0;
+    uint16_t history_watts_pos=0;
+    uint8_t history_volts[HISTORY_LENGTH];
+    uint8_t history_amps[HISTORY_LENGTH];
+    uint8_t history_watts[HISTORY_LENGTH];
 };
 
 #endif
