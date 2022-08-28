@@ -363,7 +363,7 @@ void PsDisplay::renderMainscreen() {
     yield();
 }
 
-void PsDisplay::renderHistory(const uint8_t* history_data, uint16_t history_pos) {
+void PsDisplay::renderHistory(const uint8_t* history_data, uint16_t history_pos, uint8_t thickness) {
     tft.startWrite();
     for (int16_t i = 0; i < HISTORY_LENGTH; i++) {
         int16_t current_pos = (history_pos+i) % HISTORY_LENGTH;
@@ -372,11 +372,13 @@ void PsDisplay::renderHistory(const uint8_t* history_data, uint16_t history_pos)
             continue;
         }
         if (history_data[current_pos] != history_data[last_pos]) {
-            tft.writePixel(i, PS_DISPLAY_HEIGHT-history_data[last_pos], ILI9341_BLACK);
-            tft.writePixel(i, PS_DISPLAY_HEIGHT-history_data[last_pos]+1, ILI9341_BLACK);
+            for (uint8_t j=0; j < thickness; j++) {
+                tft.writePixel(i, PS_DISPLAY_HEIGHT-history_data[last_pos]+j, ILI9341_BLACK);
+            }
             if (i > 1) { //not the best workaround for the sticky edge due to wrap and missing old data
-                tft.writePixel(i, PS_DISPLAY_HEIGHT-history_data[current_pos], TOOLBOX_LOGO_LIGHT_RED);
-                tft.writePixel(i, PS_DISPLAY_HEIGHT-history_data[current_pos]+1, TOOLBOX_LOGO_LIGHT_RED);
+                for (uint8_t j=0; j < thickness; j++) {
+                    tft.writePixel(i, PS_DISPLAY_HEIGHT-history_data[current_pos]+j, TOOLBOX_LOGO_LIGHT_RED);
+                }
             }
         }
     }
