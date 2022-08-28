@@ -263,7 +263,7 @@ void PsDisplay::paintStandby(bool visible) {
     } else {
         tft.setTextColor(ILI9341_BLACK);
     }
-    tft.setCursor(10, PT18_IN_PXH+5);
+    tft.setCursor(10, PT18_IN_PXH+5+3);
     tft.print("Standby");
 }
 
@@ -274,7 +274,7 @@ void PsDisplay::paintOvertemp(bool visible) {
     } else {
         tft.setTextColor(ILI9341_BLACK);
     }
-    tft.setCursor(10, PT18_IN_PXH+5);
+    tft.setCursor(10, PT18_IN_PXH+5+3);
     tft.print("Overtemp");
 }
 
@@ -320,7 +320,7 @@ void PsDisplay::renderMainscreen() {
         } else {
             tft.setTextColor(ILI9341_BLACK);
         }
-        tft.setCursor(10, PT18_IN_PXH*4+5*2);
+        tft.setCursor(10, PT18_IN_PXH*4+5*2+3*4);
         tft.print("Limited");
     }
     if (painted_limited_p != limited_p) {
@@ -330,7 +330,7 @@ void PsDisplay::renderMainscreen() {
         } else {
             tft.setTextColor(ILI9341_BLACK);
         }
-        tft.setCursor(10, PT18_IN_PXH*7+5*3);
+        tft.setCursor(10, PT18_IN_PXH*7+5*3+3*7);
         tft.print("Limited");
     }
     yield();
