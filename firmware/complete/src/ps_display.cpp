@@ -1,18 +1,10 @@
 #include "ps_display.h"
+#include "Toolbox/toolbox_colors.h"
 #include "Toolbox/toolbox_logo_only.xbm"
 #include "Toolbox/toolbox_logo_only_small.xbm"
 #include "Toolbox/toolbox_logo_font_toolbox.xbm"
 #include "Toolbox/toolbox_logo_font_bodensee.xbm"
 #include "Fonts/courier-prime-code-regular.h"
-
-//manually reduced blue a bit especially in the red ones
-//looks like the display overdoes blue a bit
-//16bit RGB565
-#define TOOLBOX_LOGO_LIGHT_GREY 0x630B
-#define TOOLBOX_LOGO_DARK_GREY 0x3985
-#define TOOLBOX_LOGO_LIGHT_RED 0xE901
-#define TOOLBOX_LOGO_MEDIUM_RED 0xC100
-#define TOOLBOX_LOGO_DARK_RED 0x9080
 
 PsDisplay::PsDisplay( Adafruit_ILI9341 & tft) :
     tft(tft),
