@@ -346,13 +346,13 @@ void PsDisplay::renderMainscreen() {
     tft.setTextSize(2);
     tft.setCursor(60, PT18_IN_PXH*3+5+3*3);
     formatMilliNumber(buffer, milli_volts, ROW_VOLTS);
-    fastStringPrint(buffer, buffer_volts, PT18_IN_PXW*2, ROW_NULL);
+    fastStringPrint(buffer, buffer_volts, PT18_IN_PXW*2);
     tft.setCursor(60, PT18_IN_PXH*6+5*2+3*6);
     formatMilliNumber(buffer, milli_amps, ROW_AMPS);
-    fastStringPrint(buffer, buffer_amps, PT18_IN_PXW*2, ROW_NULL);
+    fastStringPrint(buffer, buffer_amps, PT18_IN_PXW*2);
     tft.setCursor(60, PT18_IN_PXH*9+5*3+3*9);
     formatCentiNumber(buffer, centi_watts, ROW_WATTS);
-    fastStringPrint(buffer, buffer_watts, PT18_IN_PXW*2, ROW_NULL);
+    fastStringPrint(buffer, buffer_watts, PT18_IN_PXW*2);
     yield();
 }
 
