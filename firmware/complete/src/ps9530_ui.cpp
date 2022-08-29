@@ -143,7 +143,7 @@ void PS9530_UI::changeInputMode(InputMode newMode) {
     case InputCurrent:
     case InputPower:
         currentInputDigit = 0;
-        currentInputDigitCount = 5;
+        currentInputDigitCount = 4;
         updateEditedValue();
         break;
     }
