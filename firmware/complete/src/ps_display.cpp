@@ -1,8 +1,8 @@
 #include "ps_display.h"
-#include "toolbox_logo_only.xbm"
-#include "toolbox_logo_only_small.xbm"
-#include "toolbox_logo_font_toolbox.xbm"
-#include "toolbox_logo_font_bodensee.xbm"
+#include "Toolbox/toolbox_logo_only.xbm"
+#include "Toolbox/toolbox_logo_only_small.xbm"
+#include "Toolbox/toolbox_logo_font_toolbox.xbm"
+#include "Toolbox/toolbox_logo_font_bodensee.xbm"
 #include "Fonts/courier-prime-code-regular.h"
 
 //manually reduced blue a bit especially in the red ones
