@@ -69,12 +69,13 @@ void PsDisplay::clear() {
     painted_overtemp = 0;
     painted_selected_pos = 0;
     painted_standby = 0;
-    strncpy(buffer_volts, "\0\0\0\0\0\0\0\0", 8);
-    strncpy(buffer_volts_setp, "\0\0\0\0\0\0\0\0", 8);
-    strncpy(buffer_amps, "\0\0\0\0\0\0\0\0", 8);
-    strncpy(buffer_amps_limit, "\0\0\0\0\0\0\0\0", 8);
-    strncpy(buffer_watts, "\0\0\0\0\0\0\0\0", 8);
-    strncpy(buffer_watts_limit, "\0\0\0\0\0\0\0\0", 8);
+    const char clear_string[PS_DISPLAY_BUFFER_LENGTH] = {0};
+    strncpy(buffer_volts, clear_string, PS_DISPLAY_BUFFER_LENGTH);
+    strncpy(buffer_volts_setp, clear_string, PS_DISPLAY_BUFFER_LENGTH);
+    strncpy(buffer_amps, clear_string, PS_DISPLAY_BUFFER_LENGTH);
+    strncpy(buffer_amps_limit, clear_string, PS_DISPLAY_BUFFER_LENGTH);
+    strncpy(buffer_watts, clear_string, PS_DISPLAY_BUFFER_LENGTH);
+    strncpy(buffer_watts_limit, clear_string, PS_DISPLAY_BUFFER_LENGTH);
     yield();
 }
 
