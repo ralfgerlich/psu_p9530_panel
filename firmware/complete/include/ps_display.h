@@ -4,6 +4,7 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_ILI9341.h>
 #include <stdint.h>
+#include "Toolbox/toolbox_colors.h"
 
 #define TFT_DC 9
 #define TFT_CS 10
@@ -18,6 +19,12 @@
 #define PS_DISPLAY_BUFFER_LENGTH 7
 
 #define HISTORY_LENGTH PS_DISPLAY_WIDTH
+
+// colors
+#define DEFAULT_BACKGROUND_COLOR ILI9341_BLACK
+#define DEFAULT_TEXT_COLOR ILI9341_WHITE
+#define DEFAULT_HIGHLIGHT_COLOR ILI9341_GREEN
+#define DEFAULT_ATTENTION_COLOR TOOLBOX_LOGO_MEDIUM_RED
 
 class PsDisplay {
     public:
@@ -58,7 +65,7 @@ class PsDisplay {
     private:
     void paintLogo(uint8_t x, uint8_t y, uint16_t size_x, uint16_t size_y, const unsigned char* picture, uint16_t color_override = 0x1337);
     void drawXBitmapPartial(int16_t x, int16_t y, const uint8_t bitmap[], int16_t sw, int16_t sh, int16_t w, int16_t h, uint16_t color);
-    void fastStringPrint(char * buffer, char * old_buffer, uint8_t font_width, row_t row = ROW_NULL, uint16_t fg_color = ILI9341_WHITE, uint16_t se_color = ILI9341_GREEN, uint16_t bg_color = ILI9341_BLACK);
+    void fastStringPrint(char * buffer, char * old_buffer, uint8_t font_width, row_t row = ROW_NULL, uint16_t fg_color = DEFAULT_TEXT_COLOR, uint16_t se_color = DEFAULT_HIGHLIGHT_COLOR, uint16_t bg_color = DEFAULT_BACKGROUND_COLOR);
     void formatNumber(char * buffer, char * format, int16_t value_a, int16_t value_b, row_t row);
     void formatMilliNumber(char * buffer, int16_t value, row_t row, bool zero_padding = false);
     void formatCentiNumber(char * buffer, int16_t value, row_t row, bool zero_padding = false);

@@ -1,5 +1,4 @@
 #include "ps_display.h"
-#include "Toolbox/toolbox_colors.h"
 #include "Toolbox/toolbox_logo_only.xbm"
 #include "Toolbox/toolbox_logo_only_small.xbm"
 #include "Toolbox/toolbox_logo_font_toolbox.xbm"
@@ -55,7 +54,7 @@ void PsDisplay::init() {
 
 void PsDisplay::clear() {
     init();
-    tft.fillScreen(ILI9341_BLACK);
+    tft.fillScreen(DEFAULT_BACKGROUND_COLOR);
     painted_limited_a = 0;
     painted_limited_p = 0;
     painted_overtemp = 0;
@@ -245,16 +244,16 @@ void PsDisplay::paintSmallLogo(bool visible) {
     if (visible) {
         paintLogo(0, 5, toolbox_logo_only_small_width, toolbox_logo_only_small_height, toolbox_logo_only_small_bits);
     } else {
-        paintLogo(0, 5, toolbox_logo_only_small_width, toolbox_logo_only_small_height, toolbox_logo_only_small_bits, ILI9341_BLACK);
+        paintLogo(0, 5, toolbox_logo_only_small_width, toolbox_logo_only_small_height, toolbox_logo_only_small_bits, DEFAULT_BACKGROUND_COLOR);
     }
 }
 
 void PsDisplay::paintStandby(bool visible) {
     painted_standby = visible;
     if (painted_standby) {
-        tft.setTextColor(ILI9341_RED);
+        tft.setTextColor(DEFAULT_ATTENTION_COLOR);
     } else {
-        tft.setTextColor(ILI9341_BLACK);
+        tft.setTextColor(DEFAULT_BACKGROUND_COLOR);
     }
     tft.setCursor(10, PT18_IN_PXH+5+3);
     tft.print("Standby");
@@ -263,9 +262,9 @@ void PsDisplay::paintStandby(bool visible) {
 void PsDisplay::paintOvertemp(bool visible) {
     painted_overtemp = overtemp;
     if (painted_overtemp) {
-        tft.setTextColor(ILI9341_RED);
+        tft.setTextColor(DEFAULT_ATTENTION_COLOR);
     } else {
-        tft.setTextColor(ILI9341_BLACK);
+        tft.setTextColor(DEFAULT_BACKGROUND_COLOR);
     }
     tft.setCursor(10, PT18_IN_PXH+5+3);
     tft.print("Overtemp");
@@ -309,9 +308,9 @@ void PsDisplay::renderMainscreen() {
     if (painted_limited_a != limited_a) {
         painted_limited_a = limited_a;
         if (painted_limited_a) {
-            tft.setTextColor(ILI9341_RED);
+            tft.setTextColor(DEFAULT_ATTENTION_COLOR);
         } else {
-            tft.setTextColor(ILI9341_BLACK);
+            tft.setTextColor(DEFAULT_BACKGROUND_COLOR);
         }
         tft.setCursor(10, PT18_IN_PXH*4+5*2+3*4);
         tft.print("Limited");
@@ -319,9 +318,9 @@ void PsDisplay::renderMainscreen() {
     if (painted_limited_p != limited_p) {
         painted_limited_p = limited_p;
         if (painted_limited_p) {
-            tft.setTextColor(ILI9341_RED);
+            tft.setTextColor(DEFAULT_ATTENTION_COLOR);
         } else {
-            tft.setTextColor(ILI9341_BLACK);
+            tft.setTextColor(DEFAULT_BACKGROUND_COLOR);
         }
         tft.setCursor(10, PT18_IN_PXH*7+5*3+3*7);
         tft.print("Limited");
@@ -366,7 +365,7 @@ void PsDisplay::renderHistory(const uint8_t* history_data, uint16_t history_pos,
         }
         if (history_data[current_pos] != history_data[last_pos]) {
             for (uint8_t j=0; j < thickness; j++) {
-                tft.writePixel(i, PS_DISPLAY_HEIGHT-history_data[last_pos]+j, ILI9341_BLACK);
+                tft.writePixel(i, PS_DISPLAY_HEIGHT-history_data[last_pos]+j, DEFAULT_BACKGROUND_COLOR);
             }
             if (i > 1) { //not the best workaround for the sticky edge due to wrap and missing old data
                 for (uint8_t j=0; j < thickness; j++) {
