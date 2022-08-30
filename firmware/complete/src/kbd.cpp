@@ -139,14 +139,14 @@ static uint32_t kbd_scan_matrix() {
 
     /* Send 8 high levels */
     PORT_SPI |= MASK_MOSI;
-    for (int i = 0; i < 16; i++)
+    for (uint8_t i = 0; i < 16; i++)
     {
         /* Shift by one */
         kbd_toggle_clk();
     }
     /* Next is a single low level */
     PORT_SPI &= ~MASK_MOSI;
-    for (int i = 0; i < 8; i++)
+    for (uint8_t i = 0; i < 8; i++)
     {
         /* Shift by one */
         kbd_toggle_clk();
