@@ -5,17 +5,26 @@
 #include "Toolbox/toolbox_logo_font_bodensee.xbm"
 #include "Fonts/courier-prime-code-regular.h"
 
+//display state flags
+#define PS_DISPLAY_STATE_LOCKED 0b00000001
+#define PS_DISPLAY_STATE_MEMORY 0b00000010
+#define PS_DISPLAY_STATE_REMOTE 0b00000100
+#define PS_DISPLAY_STATE_STANDBY 0b00001000
+#define PS_DISPLAY_STATE_LIMITED_V 0b00010000
+#define PS_DISPLAY_STATE_LIMITED_A 0b00100000
+#define PS_DISPLAY_STATE_LIMITED_P 0b01000000
+#define PS_DISPLAY_STATE_OVERTEMP 0b10000000
+
+//i hate to write it like this but functions as macros get better optimized
+#define setState(value, mask) this->state = value ? this->state | mask : this->state & mask;
+#define setPaintedState(value, mask) this->painted_state = value ? this->painted_state | mask : this->painted_state & mask;
+#define isState(mask) (this->state & mask)
+#define isPaintedState(mask) (this->painted_state & mask)
+
 PsDisplay::PsDisplay( Adafruit_ILI9341 & tft) :
     tft(tft),
     init_done(false),
-    locked(false),
-    memory(false),
-    remote(false),
-    standby(false),
-    limited_v(false),
-    limited_a(false),
-    limited_p(false),
-    overtemp(false),
+    state(0),
     milli_volts_setpoint(0),
     milli_amps_limit(0),
     centi_watts_limit(0),
@@ -23,10 +32,7 @@ PsDisplay::PsDisplay( Adafruit_ILI9341 & tft) :
     milli_amps(0),
     centi_watts(0),
     selected_pos(0),
-    painted_standby(false),
-    painted_limited_a(false),
-    painted_limited_p(false),
-    painted_overtemp(false),
+    painted_state(0),
     painted_selected_pos(0),
     buffer_volts{0},
     buffer_amps{0},
@@ -55,11 +61,8 @@ void PsDisplay::init() {
 void PsDisplay::clear() {
     init();
     tft.fillScreen(DEFAULT_BACKGROUND_COLOR);
-    painted_limited_a = 0;
-    painted_limited_p = 0;
-    painted_overtemp = 0;
+    painted_state = 0;
     painted_selected_pos = 0;
-    painted_standby = 0;
     const char clear_string[PS_DISPLAY_BUFFER_LENGTH] = {0};
     strncpy(buffer_volts, clear_string, PS_DISPLAY_BUFFER_LENGTH);
     strncpy(buffer_volts_setp, clear_string, PS_DISPLAY_BUFFER_LENGTH);
@@ -249,8 +252,8 @@ void PsDisplay::paintSmallLogo(bool visible) {
 }
 
 void PsDisplay::paintStandby(bool visible) {
-    painted_standby = visible;
-    if (painted_standby) {
+    setPaintedState(visible, PS_DISPLAY_STATE_STANDBY);
+    if (visible) {
         tft.setTextColor(DEFAULT_ATTENTION_COLOR);
     } else {
         tft.setTextColor(DEFAULT_BACKGROUND_COLOR);
@@ -260,8 +263,8 @@ void PsDisplay::paintStandby(bool visible) {
 }
 
 void PsDisplay::paintOvertemp(bool visible) {
-    painted_overtemp = overtemp;
-    if (painted_overtemp) {
+    setPaintedState(visible, PS_DISPLAY_STATE_OVERTEMP);
+    if (visible) {
         tft.setTextColor(DEFAULT_ATTENTION_COLOR);
     } else {
         tft.setTextColor(DEFAULT_BACKGROUND_COLOR);
@@ -284,30 +287,30 @@ void PsDisplay::renderMainscreen() {
     char buffer[PS_DISPLAY_BUFFER_LENGTH];
     //actual paint
     tft.setTextSize(1);
-    if (painted_overtemp != overtemp) {
-        if (overtemp) {
+    if (isPaintedState(PS_DISPLAY_STATE_OVERTEMP) != isState(PS_DISPLAY_STATE_OVERTEMP)) {
+        if (isState(PS_DISPLAY_STATE_OVERTEMP)) {
             paintSmallLogo(false);
         }
-        if (painted_standby) {
+        if (isPaintedState(PS_DISPLAY_STATE_STANDBY)) {
             paintStandby(false);
         }
-        paintOvertemp(overtemp);
-        if (!overtemp) {
+        paintOvertemp(isState(PS_DISPLAY_STATE_OVERTEMP));
+        if (!isState(PS_DISPLAY_STATE_OVERTEMP)) {
             paintSmallLogo(true);
         }
     }
-    if (!painted_overtemp && painted_standby != standby) {
-        if (standby) {
+    if (!isPaintedState(PS_DISPLAY_STATE_OVERTEMP) && isPaintedState(PS_DISPLAY_STATE_STANDBY) != isState(PS_DISPLAY_STATE_STANDBY)) {
+        if (isState(PS_DISPLAY_STATE_STANDBY)) {
             paintSmallLogo(false);
         }
-        paintStandby(standby);
-        if (!standby) {
+        paintStandby(isState(PS_DISPLAY_STATE_STANDBY));
+        if (!isState(PS_DISPLAY_STATE_STANDBY)) {
             paintSmallLogo(true);
         }
     }
-    if (painted_limited_a != limited_a) {
-        painted_limited_a = limited_a;
-        if (painted_limited_a) {
+    if (isPaintedState(PS_DISPLAY_STATE_LIMITED_A) != isState(PS_DISPLAY_STATE_LIMITED_A)) {
+        setPaintedState(isState(PS_DISPLAY_STATE_LIMITED_A), PS_DISPLAY_STATE_LIMITED_A);
+        if (isPaintedState(PS_DISPLAY_STATE_LIMITED_A)) {
             tft.setTextColor(DEFAULT_ATTENTION_COLOR);
         } else {
             tft.setTextColor(DEFAULT_BACKGROUND_COLOR);
@@ -315,9 +318,9 @@ void PsDisplay::renderMainscreen() {
         tft.setCursor(10, PT18_IN_PXH*4+5*2+3*4);
         tft.print("Limited");
     }
-    if (painted_limited_p != limited_p) {
-        painted_limited_p = limited_p;
-        if (painted_limited_p) {
+    if (isPaintedState(PS_DISPLAY_STATE_LIMITED_P) != isState(PS_DISPLAY_STATE_LIMITED_P)) {
+        setPaintedState(isState(PS_DISPLAY_STATE_LIMITED_P), PS_DISPLAY_STATE_LIMITED_P);
+        if (isPaintedState(PS_DISPLAY_STATE_LIMITED_P)) {
             tft.setTextColor(DEFAULT_ATTENTION_COLOR);
         } else {
             tft.setTextColor(DEFAULT_BACKGROUND_COLOR);
@@ -406,35 +409,35 @@ void PsDisplay::renderWatts() {
 }
 
 void PsDisplay::setStandby(bool standby) {
-    this->standby = standby;
+    setState(state, PS_DISPLAY_STATE_STANDBY);
 }
 
 void PsDisplay::setLocked(bool locked) {
-    this->locked = locked;
+    setState(state, PS_DISPLAY_STATE_LOCKED);
 }
 
 void PsDisplay::setMemory(bool memory) {
-    this->memory = memory;
+    setState(state, PS_DISPLAY_STATE_MEMORY);
 }
 
 void PsDisplay::setRemote(bool remote) {
-    this->remote = remote;
+    setState(state, PS_DISPLAY_STATE_REMOTE);
 }
 
 void PsDisplay::setLimitedV(bool limited_v) {
-    this->limited_v = limited_v;
+    setState(state, PS_DISPLAY_STATE_LIMITED_V);
 }
 
 void PsDisplay::setLimitedA(bool limited_a) {
-    this->limited_a = limited_a;
+    setState(state, PS_DISPLAY_STATE_LIMITED_A);
 }
 
 void PsDisplay::setLimitedP(bool limited_p) {
-    this->limited_p = limited_p;
+    setState(state, PS_DISPLAY_STATE_LIMITED_P);
 }
 
 void PsDisplay::setOvertemp(bool overtemp) {
-    this->overtemp = overtemp;
+    setState(state, PS_DISPLAY_STATE_OVERTEMP);
 }
 
 void PsDisplay::setMilliVoltsSetpoint(int16_t voltage_setpoint) {

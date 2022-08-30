@@ -77,14 +77,7 @@ class PsDisplay {
     Adafruit_ILI9341& tft;
     bool init_done;
     //temp values from outside world
-    bool locked; //ignored
-    bool memory; //ignored
-    bool remote; //ignored
-    bool standby;
-    bool limited_v; //ignored
-    bool limited_a;
-    bool limited_p;
-    bool overtemp;
+    uint8_t state;
     int16_t milli_volts_setpoint;
     int16_t milli_amps_limit;
     int16_t centi_watts_limit;
@@ -93,10 +86,7 @@ class PsDisplay {
     int16_t centi_watts;
     uint8_t selected_pos;
     //actually painted values
-    bool painted_standby;
-    bool painted_limited_a;
-    bool painted_limited_p;
-    bool painted_overtemp;
+    uint8_t painted_state;
     uint8_t painted_selected_pos;
     char buffer_volts[PS_DISPLAY_BUFFER_LENGTH];
     char buffer_amps[PS_DISPLAY_BUFFER_LENGTH];
