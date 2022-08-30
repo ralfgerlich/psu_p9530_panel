@@ -22,30 +22,7 @@
 #define isPaintedState(mask) (this->painted_state & mask)
 
 PsDisplay::PsDisplay( Adafruit_ILI9341 & tft) :
-    tft(tft),
-    init_done(false),
-    state(0),
-    milli_volts_setpoint(0),
-    milli_amps_limit(0),
-    centi_watts_limit(0),
-    milli_volts(0),
-    milli_amps(0),
-    centi_watts(0),
-    selected_pos(0),
-    painted_state(0),
-    painted_selected_pos(0),
-    buffer_volts{0},
-    buffer_amps{0},
-    buffer_watts{0},
-    buffer_volts_setp{0},
-    buffer_amps_limit{0},
-    buffer_watts_limit{0},
-    history_volts_pos(0),
-    history_apms_pos(0),
-    history_watts_pos(0),
-    history_volts{0},
-    history_amps{0},
-    history_watts{0} {
+    tft(tft) {
 }
 
 void PsDisplay::init() {

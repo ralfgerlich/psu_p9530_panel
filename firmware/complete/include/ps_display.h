@@ -75,31 +75,31 @@ class PsDisplay {
     void renderHistory(const uint8_t* history_data, uint16_t history_pos, uint8_t thickness = 2);
 
     Adafruit_ILI9341& tft;
-    bool init_done;
+    bool init_done = 0;
     //temp values from outside world
-    uint8_t state;
-    int16_t milli_volts_setpoint;
-    int16_t milli_amps_limit;
-    int16_t centi_watts_limit;
-    int16_t milli_volts;
-    int16_t milli_amps;
-    int16_t centi_watts;
-    uint8_t selected_pos;
+    uint8_t state = 0;
+    int16_t milli_volts_setpoint = 0;
+    int16_t milli_amps_limit = 0;
+    int16_t centi_watts_limit = 0;
+    int16_t milli_volts = 0;
+    int16_t milli_amps = 0;
+    int16_t centi_watts = 0;
+    uint8_t selected_pos = 0;
     //actually painted values
-    uint8_t painted_state;
-    uint8_t painted_selected_pos;
-    char buffer_volts[PS_DISPLAY_BUFFER_LENGTH];
-    char buffer_amps[PS_DISPLAY_BUFFER_LENGTH];
-    char buffer_watts[PS_DISPLAY_BUFFER_LENGTH];
-    char buffer_volts_setp[PS_DISPLAY_BUFFER_LENGTH];
-    char buffer_amps_limit[PS_DISPLAY_BUFFER_LENGTH];
-    char buffer_watts_limit[PS_DISPLAY_BUFFER_LENGTH];
-    uint16_t history_volts_pos=0;
-    uint16_t history_apms_pos=0;
-    uint16_t history_watts_pos=0;
-    uint8_t history_volts[HISTORY_LENGTH];
-    uint8_t history_amps[HISTORY_LENGTH];
-    uint8_t history_watts[HISTORY_LENGTH];
+    uint8_t painted_state = 0;
+    uint8_t painted_selected_pos = 0;
+    char buffer_volts[PS_DISPLAY_BUFFER_LENGTH] = {0};
+    char buffer_amps[PS_DISPLAY_BUFFER_LENGTH] = {0};
+    char buffer_watts[PS_DISPLAY_BUFFER_LENGTH] = {0};
+    char buffer_volts_setp[PS_DISPLAY_BUFFER_LENGTH] = {0};
+    char buffer_amps_limit[PS_DISPLAY_BUFFER_LENGTH] = {0};
+    char buffer_watts_limit[PS_DISPLAY_BUFFER_LENGTH] = {0};
+    uint16_t history_volts_pos = 0;
+    uint16_t history_apms_pos = 0;
+    uint16_t history_watts_pos = 0;
+    uint8_t history_volts[HISTORY_LENGTH] = {0};
+    uint8_t history_amps[HISTORY_LENGTH] = {0};
+    uint8_t history_watts[HISTORY_LENGTH] = {0};
 };
 
 #endif
