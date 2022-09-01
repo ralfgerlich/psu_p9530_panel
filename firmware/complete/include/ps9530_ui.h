@@ -78,12 +78,15 @@ protected:
     InputMode currentInputMode;
     /** The number of the digit currently being modified */
     uint8_t currentInputDigit;
-    /** The number of digits in the current input value */
+    /** The number of editable digits in the currently edited value */
     uint8_t currentInputDigitCount;
     /** The index of the one place in the current input mode */
     uint8_t currentInputOnesIndex;
     /** The value currently being edited (including terminating
      * zero, not including the comma).
+     * The worst case is the power, which could have 3 digits before the
+     * decimal point and up to 3 (Milliwatts) digits after the decimal
+     * point. That is 6 digits, plus terminating zero.
      */
     char currentInputValue[7];
 

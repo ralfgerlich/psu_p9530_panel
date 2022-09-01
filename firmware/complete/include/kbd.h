@@ -54,6 +54,9 @@ void kbd_init();
 /** Scan for keypresses and update the buffer */
 void kbd_update();
 
+/** Place a key in the keyboard buffer */
+void kbd_emplace(KeyCode code);
+
 /** Remove an entry from the keyboard buffer */
 KeyCode kbd_remove();
 

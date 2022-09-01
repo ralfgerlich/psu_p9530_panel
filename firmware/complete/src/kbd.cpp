@@ -108,6 +108,12 @@ static inline void kbd_emplace_unsafe(KeyCode code) {
     kbd_buffer_count++;
 }
 
+void kbd_emplace(KeyCode code) {
+    ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+        kbd_emplace_unsafe(code);
+    }
+}
+
 void kbd_init() {
     /* Set up pins for keyboard as input with pull-up */
     DDR_COL &= ~(7<<PIN_COL0);

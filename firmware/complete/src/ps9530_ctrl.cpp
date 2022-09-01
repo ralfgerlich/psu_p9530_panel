@@ -52,16 +52,12 @@ void PS9530_Ctrl::init() {
 void PS9530_Ctrl::setMilliVoltSetpoint(uint16_t milliVolts) {
     ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
         milliVoltSetpoint = milliVolts;
-        Serial.print(F("milliVoltSetpoint="));
-        Serial.println(milliVoltSetpoint);
     }
 }
 
 void PS9530_Ctrl::setMilliAmpsLimit(uint16_t milliAmpere) {
     ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
         milliAmpsLimit = milliAmpere;
-        Serial.print(F("milliAmpsLimit="));
-        Serial.println(milliAmpsLimit);
     }
 }
 
