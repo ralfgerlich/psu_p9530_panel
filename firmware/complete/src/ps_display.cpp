@@ -236,7 +236,7 @@ void PsDisplay::paintStandby(bool visible) {
         tft.setTextColor(DEFAULT_BACKGROUND_COLOR);
     }
     tft.setCursor(10, PT18_IN_PXH+5+3);
-    tft.print("Standby");
+    tft.print(F("Standby"));
 }
 
 void PsDisplay::paintOvertemp(bool visible) {
@@ -247,7 +247,7 @@ void PsDisplay::paintOvertemp(bool visible) {
         tft.setTextColor(DEFAULT_BACKGROUND_COLOR);
     }
     tft.setCursor(10, PT18_IN_PXH+5+3);
-    tft.print("Overtemp");
+    tft.print(F("Overtemp"));
 }
 
 void PsDisplay::renderMainscreen() {
@@ -293,7 +293,7 @@ void PsDisplay::renderMainscreen() {
             tft.setTextColor(DEFAULT_BACKGROUND_COLOR);
         }
         tft.setCursor(10, PT18_IN_PXH*4+5*2+3*4);
-        tft.print("Limited");
+        tft.print(F("Limited"));
     }
     if (isPaintedState(PS_DISPLAY_STATE_LIMITED_P) != isState(PS_DISPLAY_STATE_LIMITED_P)) {
         setPaintedState(isState(PS_DISPLAY_STATE_LIMITED_P), PS_DISPLAY_STATE_LIMITED_P);
@@ -303,7 +303,7 @@ void PsDisplay::renderMainscreen() {
             tft.setTextColor(DEFAULT_BACKGROUND_COLOR);
         }
         tft.setCursor(10, PT18_IN_PXH*7+5*3+3*7);
-        tft.print("Limited");
+        tft.print(F("Limited"));
     }
     yield();
     //optimized hybrid
