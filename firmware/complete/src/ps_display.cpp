@@ -335,6 +335,16 @@ void PsDisplay::renderMainscreen() {
     yield();
 }
 
+void PsDisplay::renderTest() {
+    tft.startWrite();
+    for (int16_t i = 0; i < PS_DISPLAY_HEIGHT; i++) {
+        for (int16_t j = 0; j < PS_DISPLAY_WIDTH; j++) {
+            tft.writePixel(j, i, TOOLBOX_LOGO_LIGHT_RED);
+        }
+    }
+    tft.endWrite();
+}
+
 void PsDisplay::renderHistory(const uint8_t* history_data, uint16_t history_pos, uint8_t thickness) {
     tft.startWrite();
     for (int16_t i = 0; i < HISTORY_LENGTH; i++) {

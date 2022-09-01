@@ -45,6 +45,7 @@ class PsDisplay {
     void renderVolts(void);
     void renderAmps(void);
     void renderWatts(void);
+    void renderTest(void);
 
     void setStandby(bool standby);
     void setLocked(bool locked);
