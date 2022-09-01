@@ -88,19 +88,19 @@ void PS9530_UI::handleKeyboardEvents() {
     }
     display.renderMainscreen();
     if (hadEvent) {
-        Serial.print("standbyMode=");
+        Serial.print(F("standbyMode="));
         Serial.println(standbyMode);
-        Serial.print("voltageSetpointMilliVolts=");
+        Serial.print(F("voltageSetpointMilliVolts="));
         Serial.println(voltageSetpointMilliVolts);
-        Serial.print("currentLimitMilliAmps=");
+        Serial.print(F("currentLimitMilliAmps="));
         Serial.println(currentLimitMilliAmps);
-        Serial.print("powerLimitCentiWatt=");
+        Serial.print(F("powerLimitCentiWatt="));
         Serial.println(powerLimitCentiWatt);
-        Serial.print("currentInputMode=");
+        Serial.print(F("currentInputMode="));
         Serial.println(currentInputMode);
-        Serial.print("currentInputValue=");
+        Serial.print(F("currentInputValue="));
         Serial.println(currentInputValue);
-        Serial.print("currentInputDigit=");
+        Serial.print(F("currentInputDigit="));
         Serial.println(currentInputDigit);
     }
 }
@@ -341,7 +341,7 @@ void PS9530_UI::handleRemoteKey() {
 void PS9530_UI::setVoltageSetpointsMilliVolts(uint16_t milliVolts) {
     // TODO: Clamp the setpoint according to hardware limits
     voltageSetpointMilliVolts = milliVolts;
-    Serial.print("voltageSetpointMilliVolts=");
+    Serial.print(F("voltageSetpointMilliVolts="));
     Serial.println(voltageSetpointMilliVolts);
     display.setMilliVoltsSetpoint(milliVolts);
     updateControlLimits();
@@ -350,7 +350,7 @@ void PS9530_UI::setVoltageSetpointsMilliVolts(uint16_t milliVolts) {
 void PS9530_UI::setCurrentLimitMilliAmps(uint16_t milliAmps) {
     // TODO: Clamp the setpoint according to hardware limits
     currentLimitMilliAmps = milliAmps;
-    Serial.print("currentLimitMilliAmps=");
+    Serial.print(F("currentLimitMilliAmps="));
     Serial.println(currentLimitMilliAmps);
     display.setMilliAmpsLimit(milliAmps);
     updateControlLimits();
@@ -359,7 +359,7 @@ void PS9530_UI::setCurrentLimitMilliAmps(uint16_t milliAmps) {
 void PS9530_UI::setPowerLimitCentiWatt(uint16_t centiWatt) {
     // TODO: Clamp the setpoint according to hardware limits
     powerLimitCentiWatt = centiWatt;
-    Serial.print("powerLimitCentiWatt=");
+    Serial.print(F("powerLimitCentiWatt="));
     Serial.println(powerLimitCentiWatt);
     display.setCentiWattsLimit(centiWatt);
     updateControlLimits();
@@ -379,12 +379,12 @@ void PS9530_UI::updateControlLimits() {
         */
         if (powerLimitCentiWatt*10UL>(uint32_t)voltageSetpointMilliVolts*currentLimitMilliAmps/1000UL) {
             /* The current limit is more limiting */
-            Serial.println("currentLimit is lower");
+            Serial.println(F("currentLimit is lower"));
             control.setMilliAmpsLimit(currentLimitMilliAmps);
         } else {
             /* The power limit is more limiting */
             uint16_t actualCurrentLimitMilliAmps = powerLimitCentiWatt*10000UL/voltageSetpointMilliVolts;
-            Serial.println("powerLimit is lower");
+            Serial.println(F("powerLimit is lower"));
             control.setMilliAmpsLimit(actualCurrentLimitMilliAmps);
         }
     }

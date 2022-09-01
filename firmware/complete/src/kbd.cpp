@@ -101,7 +101,7 @@ KeyCode kbd_remove() {
 static inline void kbd_emplace_unsafe(KeyCode code) {
     if (kbd_buffer_count==KBD_BUFFER_LEN) {
         /* Buffer is full => drop one key */
-        kbd_remove();
+        kbd_remove_unsafe();
     }
     const uint8_t write_ptr = (kbd_buffer_read+kbd_buffer_count) % KBD_BUFFER_LEN;
     kbd_buffer[write_ptr] = code;

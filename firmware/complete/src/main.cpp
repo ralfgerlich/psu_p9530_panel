@@ -18,7 +18,7 @@ void setup() {
     DDRD |= _BV(PIN7);
     Serial.begin(57600);
     ui.init();
-    Serial.println("Ready");
+    Serial.println(F("Ready"));
 }
 
 void loop() {
