@@ -89,11 +89,14 @@ protected:
      * point. That is 6 digits, plus terminating zero.
      */
     char currentInputValue[7];
+    /** The maximum value that can be entered for the currently edited quantity.
+     */
+    uint32_t currentMaximumValue;
 
     /** Flag indicating whether we are in standby mode */
     bool standbyMode;
 
-    void setVoltageSetpointsMilliVolts(uint16_t milliVolts);
+    void setVoltageSetpointMilliVolts(uint16_t milliVolts);
     void setCurrentLimitMilliAmps(uint16_t milliAmps);
     void setPowerLimitCentiWatt(uint16_t centiWatt);
 

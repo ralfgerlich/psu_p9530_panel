@@ -3,6 +3,10 @@
 #include "ps9530_ctrl.h"
 #include "ps_display.h"
 
+#define MAX_VOLTAGE_CENTIVOLTS 3000UL
+#define MAX_CURRENT_CENTIAMPS 1000UL
+#define MAX_POWER_DECIWATT 3000UL
+
 PS9530_UI::PS9530_UI(PS9530_Ctrl& control,
                      PsDisplay& display):
     control(control),
@@ -21,7 +25,7 @@ void PS9530_UI::init() {
     display.clear();
     sei();
     control.init();
-    setVoltageSetpointsMilliVolts(30000);
+    setVoltageSetpointMilliVolts(30000);
     setCurrentLimitMilliAmps(10000);
     setPowerLimitCentiWatt(30000);
     setStandbyMode(true);
@@ -106,6 +110,8 @@ void PS9530_UI::handleKeyboardEvents() {
         Serial.println(currentInputDigitCount);
         Serial.print(F("convertCurrentInputValue="));
         Serial.println(convertCurrentInputValue());
+        Serial.print(F("currentMaximumValue="));
+        Serial.println(currentMaximumValue);
     }
 }
 
@@ -118,6 +124,8 @@ void PS9530_UI::updateMeasurements() {
 }
 
 void PS9530_UI::changeInputMode(InputMode newMode) {
+    // TODO: If the current input mode is not InputNone, reset the
+    //       respective limit to the value it had before
     currentInputMode = newMode;
     memset(currentInputValue, '0', sizeof(currentInputValue)-1);
     /* Set up the value to edit */
@@ -127,14 +135,17 @@ void PS9530_UI::changeInputMode(InputMode newMode) {
         break;
     case InputVoltage:
         sprintf_P(currentInputValue, PSTR("%05u"), voltageSetpointMilliVolts);
+        currentMaximumValue = MAX_VOLTAGE_CENTIVOLTS;
         currentInputOnesIndex = 1;
         break;
     case InputCurrent:
         sprintf_P(currentInputValue, PSTR("%05u"), currentLimitMilliAmps);
+        currentMaximumValue = MAX_CURRENT_CENTIAMPS;
         currentInputOnesIndex = 1;
         break;
     case InputPower:
-        sprintf_P(currentInputValue, PSTR("%06u"), powerLimitCentiWatt*10);
+        sprintf_P(currentInputValue, PSTR("%05u"), powerLimitCentiWatt);
+        currentMaximumValue = MAX_POWER_DECIWATT;
         currentInputOnesIndex = 2;
         break;
     }
@@ -154,21 +165,35 @@ void PS9530_UI::changeInputMode(InputMode newMode) {
 }
 
 void PS9530_UI::updateEditedValue() {
+    uint32_t convertedValue = convertCurrentInputValue();
+    /* Adjust the value to the maximum allowed value */
+    switch (currentInputMode) {
+    case InputNone:
+        /* Nothing to be done here */
+        break;
+    default:
+        /* Limit the value to its maximum */
+        if (convertedValue>currentMaximumValue) {
+            convertedValue = currentMaximumValue;
+            sprintf_P(currentInputValue, PSTR("%05u"), convertedValue*10);
+        }
+        break;
+    }
     switch (currentInputMode) {
     case InputNone:
         display.setCurser(PsDisplay::ROW_NULL, 0);
         break;
     case InputVoltage:
         display.setCurser(PsDisplay::ROW_VOLTS, currentInputDigit);
-        display.setMilliVoltsSetpoint(convertCurrentInputValue());
+        display.setMilliVoltsSetpoint(convertCurrentInputValue()*10);
         break;
     case InputCurrent:
         display.setCurser(PsDisplay::ROW_AMPS, currentInputDigit);
-        display.setMilliAmpsLimit(convertCurrentInputValue());
+        display.setMilliAmpsLimit(convertCurrentInputValue()*10);
         break;
     case InputPower:
         display.setCurser(PsDisplay::ROW_WATTS, currentInputDigit);
-        display.setCentiWattsLimit(convertCurrentInputValue());
+        display.setCentiWattsLimit(convertCurrentInputValue()*10);
         break;
     }
 }
@@ -288,7 +313,7 @@ void PS9530_UI::handleEnterKey() {
         /* If we are in no input move, ignore the key */
         return;
     case InputVoltage:
-        setVoltageSetpointsMilliVolts(convertCurrentInputValue()*10);
+        setVoltageSetpointMilliVolts(convertCurrentInputValue()*10);
         break;
     case InputCurrent:
         setCurrentLimitMilliAmps(convertCurrentInputValue()*10);
@@ -342,22 +367,19 @@ void PS9530_UI::handleRemoteKey() {
     
 }
 
-void PS9530_UI::setVoltageSetpointsMilliVolts(uint16_t milliVolts) {
-    // TODO: Clamp the setpoint according to hardware limits
+void PS9530_UI::setVoltageSetpointMilliVolts(uint16_t milliVolts) {
     voltageSetpointMilliVolts = milliVolts;
     display.setMilliVoltsSetpoint(milliVolts);
     updateControlLimits();
 }
 
 void PS9530_UI::setCurrentLimitMilliAmps(uint16_t milliAmps) {
-    // TODO: Clamp the setpoint according to hardware limits
     currentLimitMilliAmps = milliAmps;
     display.setMilliAmpsLimit(milliAmps);
     updateControlLimits();
 }
 
 void PS9530_UI::setPowerLimitCentiWatt(uint16_t centiWatt) {
-    // TODO: Clamp the setpoint according to hardware limits
     powerLimitCentiWatt = centiWatt;
     display.setCentiWattsLimit(centiWatt);
     updateControlLimits();
