@@ -186,6 +186,7 @@ ISR(TIMER0_COMPA_vect) {
          * This is pretty hacky, but it might just as well work.
          */
         SPDR = 42;
+        spi_wait_until_tx_complete();
     }
     PORTD &= ~_BV(PIN7);
 }
