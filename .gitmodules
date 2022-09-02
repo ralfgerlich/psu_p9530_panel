@@ -1,0 +1,3 @@
+[submodule "firmware/complete/avr-flash-vtbl"]
+	path = firmware/complete/avr-flash-vtbl
+	url = https://github.com/DEvil0000/avr-flash-vtbl.git
