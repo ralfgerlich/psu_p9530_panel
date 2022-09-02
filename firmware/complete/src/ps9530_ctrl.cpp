@@ -27,7 +27,8 @@ PS9530_Ctrl::PS9530_Ctrl():
     currentMuxChannel(muxChannel_voltage),
     milliVoltsMeasurement(0),
     milliAmpsMeasurement(0),
-    currentADCChannel(adcChannel_voltage)
+    currentADCChannel(adcChannel_voltage),
+    measurementsAvailable(0)
 {
 }
 
@@ -61,20 +62,26 @@ void PS9530_Ctrl::setMilliAmpsLimit(uint16_t milliAmpere) {
     }
 }
 
-uint16_t PS9530_Ctrl::getMilliVoltsMeasurement() const {
+uint16_t PS9530_Ctrl::getMilliVoltsMeasurement(bool clearFlag) {
     uint16_t result;
     ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
         // TODO: Use proper calibration table
         result = (milliVoltsMeasurement * 30000UL)>>10UL;
+        if (clearFlag) {
+            measurementsAvailable &= ~measurementVoltage;
+        }
     }
     return result;
 }
 
-uint16_t PS9530_Ctrl::getMilliAmpsMeasurement() const {
+uint16_t PS9530_Ctrl::getMilliAmpsMeasurement(bool clearFlag) {
     uint16_t result;
     ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
         // TODO: Use proper calibration table
-        result = (milliVoltsMeasurement * 10000UL)>>10UL;
+        result = (milliAmpsMeasurement * 10000UL)>>10UL;
+        if (clearFlag) {
+            measurementsAvailable &= ~measurementVoltage;
+        }
     }
     return result;
 }
@@ -90,6 +97,7 @@ void PS9530_Ctrl::update() {
 }
 
 void PS9530_Ctrl::updateDAC() {
+    // TODO: include temperature measurements
     /* Alternate between both channels */
     switch (currentMuxChannel) {
     case muxChannel_voltage: {
@@ -127,12 +135,14 @@ void PS9530_Ctrl::updateADC() {
     case adcChannel_voltage:
         // TODO: Use proper calibration table
         milliVoltsMeasurement = ADC * 30000UL / 1024UL;
+        measurementsAvailable |= measurementVoltage;
     default:
         currentADCChannel = adcChannel_current;
         break;
     case adcChannel_current:
         // TODO: Use proper calibration table
         milliAmpsMeasurement = ADC * 10000UL / 1024UL;
+        measurementsAvailable |= measurementCurrent;
         currentADCChannel = adcChannel_voltage;
         break;
     }

@@ -33,7 +33,9 @@ void PS9530_UI::init() {
 
 void PS9530_UI::update() {
     handleKeyboardEvents();
-    //updateMeasurements();
+    updateMeasurements();
+    // TODO: consider temperature measurements
+    // TODO: display active limit (voltage or current)
 }
 
 void PS9530_UI::handleKeyboardEvents() {
@@ -116,11 +118,19 @@ void PS9530_UI::handleKeyboardEvents() {
 }
 
 void PS9530_UI::updateMeasurements() {
-    // FIXME: This should only happen when we actually have a new measurement!
-    display.setMilliVolts(control.getMilliVoltsMeasurement());
-    display.setMilliAmps(control.getMilliAmpsMeasurement());
-    uint16_t centiWattPowerMeasurement = (uint32_t)control.getMilliVoltsMeasurement()*control.getMilliAmpsMeasurement()/10000UL;
-    display.setCentiWatts(centiWattPowerMeasurement);
+    bool hadNewMeasurement = false;
+    if (control.haveNewVoltageMeasurement()) {
+        hadNewMeasurement = true;
+        display.setMilliVolts(control.getMilliVoltsMeasurement());
+    }
+    if (control.haveNewCurrentMeasurement()) {
+        hadNewMeasurement = true;
+        display.setMilliAmps(control.getMilliAmpsMeasurement());
+    }
+    if (hadNewMeasurement) {
+        uint16_t centiWattPowerMeasurement = (uint32_t)control.getMilliVoltsMeasurement()*control.getMilliAmpsMeasurement()/10000UL;
+        display.setCentiWatts(centiWattPowerMeasurement);
+    }
 }
 
 void PS9530_UI::changeInputMode(InputMode newMode) {
