@@ -40,13 +40,12 @@ void PsDisplay::clear() {
     tft.fillScreen(DEFAULT_BACKGROUND_COLOR);
     painted_state = 0;
     painted_selected_pos = 0;
-    const char clear_string[PS_DISPLAY_BUFFER_LENGTH] = {0};
-    strncpy(buffer_volts, clear_string, PS_DISPLAY_BUFFER_LENGTH);
-    strncpy(buffer_volts_setp, clear_string, PS_DISPLAY_BUFFER_LENGTH);
-    strncpy(buffer_amps, clear_string, PS_DISPLAY_BUFFER_LENGTH);
-    strncpy(buffer_amps_limit, clear_string, PS_DISPLAY_BUFFER_LENGTH);
-    strncpy(buffer_watts, clear_string, PS_DISPLAY_BUFFER_LENGTH);
-    strncpy(buffer_watts_limit, clear_string, PS_DISPLAY_BUFFER_LENGTH);
+    memset(buffer_volts, '\0', PS_DISPLAY_BUFFER_LENGTH);
+    memset(buffer_volts_setp, '\0', PS_DISPLAY_BUFFER_LENGTH);
+    memset(buffer_amps, '\0', PS_DISPLAY_BUFFER_LENGTH);
+    memset(buffer_amps_limit, '\0', PS_DISPLAY_BUFFER_LENGTH);
+    memset(buffer_watts, '\0', PS_DISPLAY_BUFFER_LENGTH);
+    memset(buffer_watts_limit, '\0', PS_DISPLAY_BUFFER_LENGTH);
     yield();
 }
 
