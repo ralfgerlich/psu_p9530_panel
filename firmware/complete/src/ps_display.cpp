@@ -172,9 +172,9 @@ void PsDisplay::formatNumber(char * buffer, char * format, int16_t value_a, int1
 void PsDisplay::formatMilliNumber(char * buffer, int16_t value, row_t row, bool zero_padding) {
     char format[12];
     if (zero_padding) {
-        strcpy(format, "%02d.%02d%c");
+        strcpy(format, PSTR("%02d.%02d%c"));
     } else {
-        strcpy(format, "%2d.%02d%c");
+        strcpy(format, PSTR("%2d.%02d%c"));
     }
     formatNumber(buffer, format, value/1000, (value%1000)/10, row);
 }
@@ -182,9 +182,9 @@ void PsDisplay::formatMilliNumber(char * buffer, int16_t value, row_t row, bool 
 void PsDisplay::formatCentiNumber(char * buffer, int16_t value, row_t row, bool zero_padding) {
     char format[11];
     if (zero_padding) {
-        strcpy(format, "%03d.%1d%c");
+        strcpy(format, PSTR("%03d.%1d%c"));
     } else {
-        strcpy(format, "%3d.%1d%c");
+        strcpy(format, PSTR("%3d.%1d%c"));
     }
     formatNumber(buffer, format, value/100, (value%100)/10, row);
 }
