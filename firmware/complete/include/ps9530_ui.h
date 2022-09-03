@@ -86,9 +86,10 @@ protected:
      * point. That is 6 digits, plus terminating zero.
      */
     char currentInputValue[7];
-    /** The maximum value that can be entered for the currently edited quantity.
-     */
+    /** The maximum value that can be entered for the currently edited quantity. */
     uint32_t currentMaximumValue;
+    /** The original value of the currently edited value. */
+    uint16_t originalLimitValue;
 
     /** Flag indicating whether we are in standby mode */
     bool standbyMode;

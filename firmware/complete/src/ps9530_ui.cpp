@@ -146,8 +146,22 @@ void PS9530_UI::updateMeasurements() {
 }
 
 void PS9530_UI::changeInputMode(InputMode newMode) {
-    // TODO: If the current input mode is not InputNone, reset the
-    //       respective limit to the value it had before
+    /* If the current input mode is not InputNone, reset the
+     * respective limit to the original value. */
+    switch (currentInputMode) {
+    case InputNone:
+        /* Nothing to do */
+        break;
+    case InputVoltage:
+        setVoltageSetpointMilliVolts(originalLimitValue);
+        break;
+    case InputCurrent:
+        setCurrentLimitMilliAmps(originalLimitValue);
+        break;
+    case InputPower:
+        setPowerLimitCentiWatt(originalLimitValue);
+        break;
+    }
     currentInputMode = newMode;
     memset(currentInputValue, '0', sizeof(currentInputValue)-1);
     /* Set up the value to edit */
@@ -159,16 +173,19 @@ void PS9530_UI::changeInputMode(InputMode newMode) {
         sprintf_P(currentInputValue, PSTR("%05u"), voltageSetpointMilliVolts);
         currentMaximumValue = MAX_VOLTAGE_CENTIVOLTS;
         currentInputOnesIndex = 1;
+        originalLimitValue = voltageSetpointMilliVolts;
         break;
     case InputCurrent:
         sprintf_P(currentInputValue, PSTR("%05u"), currentLimitMilliAmps);
         currentMaximumValue = MAX_CURRENT_CENTIAMPS;
         currentInputOnesIndex = 1;
+        originalLimitValue = currentLimitMilliAmps;
         break;
     case InputPower:
         sprintf_P(currentInputValue, PSTR("%05u"), powerLimitCentiWatt);
         currentMaximumValue = MAX_POWER_DECIWATT;
         currentInputOnesIndex = 2;
+        originalLimitValue = powerLimitCentiWatt;
         break;
     }
     /* Reset the cursor position */
