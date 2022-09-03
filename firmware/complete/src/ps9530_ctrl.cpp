@@ -27,7 +27,7 @@ PS9530_Ctrl::PS9530_Ctrl():
     currentMuxChannel(muxChannel_voltage),
     milliVoltsMeasurement(0),
     milliAmpsMeasurement(0),
-    currentADCChannel(adcChannel_voltage),
+    currentADCChannel(adcChannel__idle),
     measurementsAvailable(0)
 {
 }
@@ -93,11 +93,10 @@ KeyCode PS9530_Ctrl::readKeycode() {
 void PS9530_Ctrl::update() {
     kbd_update();
     updateDAC();
-    startADCConversion();
+    startADCCycle();
 }
 
 void PS9530_Ctrl::updateDAC() {
-    // TODO: include temperature measurements
     /* Alternate between both channels */
     switch (currentMuxChannel) {
     case muxChannel_voltage: {
@@ -123,12 +122,52 @@ void PS9530_Ctrl::updateDAC() {
     }
 }
 
-void PS9530_Ctrl::startADCConversion() {
-    /* Set reference voltage to AREF and select channel */
-    ADMUX = (0<<REFS1)|(0<<REFS0)|(currentADCChannel<<MUX0);
-    /* Start the conversion with a clock of fCPU/64 (ca. 125kHz) */
-    ADCSRA = _BV(ADEN)|_BV(ADSC)|_BV(ADIF)|_BV(ADIE)|(1<<ADPS2)|(1<<ADPS1)|(0<<ADPS0);
+void PS9530_Ctrl::startADCCycle() {
+    currentADCChannel = adcChannel_voltage;
+    startADCConversion();
 }
+
+void PS9530_Ctrl::startADCConversion() {
+    if (currentADCChannel!=adcChannel__idle) {
+        /* Set reference voltage to AREF and select channel */
+        ADMUX = (0<<REFS1)|(0<<REFS0)|(currentADCChannel<<MUX0);
+        /* Start the conversion with a clock of fCPU/64 (ca. 125kHz) */
+        ADCSRA = _BV(ADEN)|_BV(ADSC)|_BV(ADIF)|_BV(ADIE)|(1<<ADPS2)|(1<<ADPS1)|(0<<ADPS0);
+    } else {
+        /* Deactivate ADC */
+        ADCSRA = 0;
+    }
+}
+
+int16_t PS9530_Ctrl::interpolate_temp(uint8_t index, uint16_t adcValue) {
+    const uint16_t minADC = pgm_read_word(&minTempADC[index]);
+    const uint16_t maxADC = pgm_read_word(&maxTempADC[index]);
+    const uint8_t shift = pgm_read_byte(&shiftTempADC[index]);
+    if (adcValue<minADC) {
+        adcValue = minADC;
+    } else if (adcValue>maxADC) {
+        adcValue = maxADC;
+    }
+    const uint16_t adcOffset = adcValue - minTempADC[index];
+    const uint8_t tableIndex = adcOffset >> shift;
+    const uint16_t adcRest = adcOffset - (tableIndex << shift);
+    const int16_t base = pgm_read_word(&tempOffset[index][tableIndex]);
+    const int16_t gradient = pgm_read_word(&tempGradient[index][tableIndex]);
+    return base + ((adcRest * gradient)>>shift);
+}
+
+const uint16_t PS9530_Ctrl::minTempADC[2] PROGMEM = { 488, 375 };
+const uint16_t PS9530_Ctrl::maxTempADC[2] PROGMEM = { 821, 1030};
+const uint8_t PS9530_Ctrl::shiftTempADC[2] PROGMEM = { 5, 6 };
+
+const int16_t PS9530_Ctrl::tempOffset[2][11] PROGMEM = {
+    {150, 124, 102,  82,  64,  45,  27,   9,  -9, -28, -47},
+    {150, 112,  84,  60,  39,  21,   4, -11, -26, -39, -52}
+};
+const int16_t PS9530_Ctrl::tempGradient[2][11] PROGMEM = {
+    {-26, -22, -20, -18, -19, -18, -18, -18, -19, -19},
+    {-38, -28, -24, -21, -18, -17, -15, -15, -13, -13}
+};
 
 void PS9530_Ctrl::updateADC() {
     switch (currentADCChannel) {
@@ -136,14 +175,22 @@ void PS9530_Ctrl::updateADC() {
         // TODO: Use proper calibration table
         milliVoltsMeasurement = ADC * 30000UL / 1024UL;
         measurementsAvailable |= measurementVoltage;
-    default:
-        currentADCChannel = adcChannel_current;
-        break;
     case adcChannel_current:
         // TODO: Use proper calibration table
         milliAmpsMeasurement = ADC * 10000UL / 1024UL;
         measurementsAvailable |= measurementCurrent;
-        currentADCChannel = adcChannel_voltage;
+        currentADCChannel = adcChannel_temp1;
+        break;
+    case adcChannel_temp1:
+        tempDegCMeasurement[0] = interpolate_temp(tempSensor_1, ADC);
+        currentADCChannel = adcChannel_temp2;
+        break;
+    case adcChannel_temp2:
+        tempDegCMeasurement[1] = interpolate_temp(tempSensor_2, ADC);
+        currentADCChannel = adcChannel__idle;
+        break;
+    default:
+        /* Do nothing */
         break;
     }
     startADCConversion();

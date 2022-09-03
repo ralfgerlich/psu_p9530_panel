@@ -1513,7 +1513,7 @@ Wire Notes Line
 Wire Notes Line
 	1750 3600 1750 2450
 Text Notes 7000 7000 0    50   ~ 0
-Rev 10: Integration Seedstudio Display-Shield\nRev 9: Korrektur FSM & Anschluss Inkrementalgeber, Ersatz R337, Power LED\nRev 8: Korrektur FSM Inkrementalgeber\nRev 7: Hinweis zur Nutzung von 54LS164 statt 74LS164\nRev 6: Korrektur FSM Inkrementalgeber, Fix C402/403, IC310 an -5V, GND an GNDA\nRev 5: Zustandsmaschine Inkrementalgeber
+Rev11: Entfernte Anbindung +3.3V\nRev 10: Integration Seedstudio Display-Shield\nRev 9: Korrektur FSM & Anschluss Inkrementalgeber, Ersatz R337, Power LED\nRev 8: Korrektur FSM Inkrementalgeber\nRev 7: Hinweis zur Nutzung von 54LS164 statt 74LS164
 $Comp
 L Device:R R402
 U 1 1 639D8EFF
@@ -1681,19 +1681,6 @@ Wire Wire Line
 	9150 1850 9300 1850
 Wire Wire Line
 	9150 1950 9300 1950
-$Comp
-L power:+3.3V #PWR0415
-U 1 1 63267B2E
-P 10250 800
-F 0 "#PWR0415" H 10250 650 50  0001 C CNN
-F 1 "+3.3V" H 10265 973 50  0000 C CNN
-F 2 "" H 10250 800 50  0001 C CNN
-F 3 "" H 10250 800 50  0001 C CNN
-	1    10250 800 
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	10250 800  10250 950 
 Wire Notes Line
 	8900 550  8900 3400
 Wire Notes Line
@@ -2296,4 +2283,5 @@ Wire Notes Line
 	4900 550  4900 2400
 Wire Notes Line
 	4900 2400 550  2400
+NoConn ~ 10250 950 
 $EndSCHEMATC
