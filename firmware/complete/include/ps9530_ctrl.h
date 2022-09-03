@@ -49,6 +49,13 @@ public:
 
     /** Return true if and only if there is a new current measurement available */
     bool haveNewCurrentMeasurement() const { return (measurementsAvailable & measurementCurrent) != 0; }
+
+    enum LimitingMode {
+        LimitingMode_Voltage=0,
+        LimitingMode_Current
+    };
+    /** Get the current limiter mode */
+    LimitingMode getCurrentLimitingMode();
 private:
     PS9530_Ctrl();
 

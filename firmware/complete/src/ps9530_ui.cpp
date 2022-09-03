@@ -15,7 +15,8 @@ PS9530_UI::PS9530_UI(PS9530_Ctrl& control,
     control(control),
     display(display),
     currentInputMode(InputNone),
-    standbyMode(false)
+    standbyMode(false),
+    limitingMode(LimitingByCurrent)
 {
 }
 
@@ -38,7 +39,15 @@ void PS9530_UI::update() {
     handleKeyboardEvents();
     updateMeasurements();
     display.setOvertemp(control.getTemperature1()>TEMP1_LIMIT || control.getTemperature2()>TEMP2_LIMIT);
-    // TODO: display active limit (voltage or current)
+    if (control.getCurrentLimitingMode()==PS9530_Ctrl::LimitingMode_Voltage) {
+        display.setLimitedV(true);
+        display.setLimitedA(false);
+        display.setLimitedP(false);
+    } else {
+        display.setLimitedV(false);
+        display.setLimitedA(limitingMode==LimitingByCurrent);
+        display.setLimitedP(limitingMode==LimitingByPower);
+    }
 }
 
 void PS9530_UI::handleKeyboardEvents() {
@@ -413,10 +422,12 @@ void PS9530_UI::updateControlLimits() {
         if (powerLimitCentiWatt*10UL>(uint32_t)voltageSetpointMilliVolts*currentLimitMilliAmps/1000UL) {
             /* The current limit is more limiting */
             control.setMilliAmpsLimit(currentLimitMilliAmps);
+            limitingMode = LimitingByCurrent;
         } else {
             /* The power limit is more limiting */
             uint16_t actualCurrentLimitMilliAmps = powerLimitCentiWatt*10000UL/voltageSetpointMilliVolts;
             control.setMilliAmpsLimit(actualCurrentLimitMilliAmps);
+            limitingMode = LimitingByPower;
         }
     }
 }

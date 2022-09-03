@@ -13,6 +13,11 @@
 #define PIN_MUX PIN4
 #define MASK_MUX _BV(PIN_MUX)
 
+#define PORT_CTRL PORTD
+#define PIN_CTRL PIND
+#define DDR_CTRL DDRD
+#define MASK_CTRL _BV(PIN7)
+
 #include "ps9530_ctrl.h"
 
 PS9530_Ctrl PS9530_Ctrl::instance;
@@ -40,6 +45,10 @@ void PS9530_Ctrl::init() {
 
     /* Initialite MUX selector pin */
     DDR_MUX |= MASK_MUX;
+
+    /* Initialize control input pin */
+    DDR_CTRL &= ~MASK_CTRL;
+    PORT_CTRL &= ~MASK_CTRL;
 
     /* We set the timer interrupt to about 100Hz.
      * Clear-Timer-on-Compare (CTC) with fCPU/1024 and OCRA = 155
@@ -195,6 +204,14 @@ void PS9530_Ctrl::updateADC() {
         break;
     }
     startADCConversion();
+}
+
+PS9530_Ctrl::LimitingMode PS9530_Ctrl::getCurrentLimitingMode() {
+    if (PIN_CTRL & MASK_CTRL) {
+        return LimitingMode_Current;
+    } else {
+        return LimitingMode_Voltage;
+    }
 }
 
 struct __arduino_savepin {

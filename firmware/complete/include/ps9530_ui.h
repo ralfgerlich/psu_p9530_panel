@@ -93,6 +93,12 @@ protected:
     /** Flag indicating whether we are in standby mode */
     bool standbyMode;
 
+    /** Current limiter mode */
+    enum {
+        LimitingByCurrent,
+        LimitingByPower
+    } limitingMode;
+
     void setVoltageSetpointMilliVolts(uint16_t milliVolts);
     void setCurrentLimitMilliAmps(uint16_t milliAmps);
     void setPowerLimitCentiWatt(uint16_t centiWatt);
