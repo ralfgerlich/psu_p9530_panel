@@ -7,6 +7,9 @@
 #define MAX_CURRENT_CENTIAMPS 1000UL
 #define MAX_POWER_DECIWATT 3000UL
 
+#define TEMP1_LIMIT 80
+#define TEMP2_LIMIT 80
+
 PS9530_UI::PS9530_UI(PS9530_Ctrl& control,
                      PsDisplay& display):
     control(control),
@@ -34,7 +37,7 @@ void PS9530_UI::init() {
 void PS9530_UI::update() {
     handleKeyboardEvents();
     updateMeasurements();
-    // TODO: consider temperature measurements
+    display.setOvertemp(control.getTemperature1()>TEMP1_LIMIT || control.getTemperature2()>TEMP2_LIMIT);
     // TODO: display active limit (voltage or current)
 }
 

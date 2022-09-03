@@ -27,6 +27,7 @@ PS9530_Ctrl::PS9530_Ctrl():
     currentMuxChannel(muxChannel_voltage),
     milliVoltsMeasurement(0),
     milliAmpsMeasurement(0),
+    tempDegCMeasurement{25, 25},
     currentADCChannel(adcChannel__idle),
     measurementsAvailable(0)
 {

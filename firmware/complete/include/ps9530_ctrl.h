@@ -25,6 +25,15 @@ public:
 
     KeyCode readKeycode();
 
+    /** Get the temperature at sensor 1 in degrees C */
+    int16_t getTemperature1() const {
+        return tempDegCMeasurement[tempSensor_1];
+    }
+    /** Get the temperature at sensor 2 in degrees C */
+    int16_t getTemperature2() const {
+        return tempDegCMeasurement[tempSensor_2];
+    }
+
     /** Update the hardware interface.
      * This method is intended to be called from an interrupt and
      * aims for low execution time. */
