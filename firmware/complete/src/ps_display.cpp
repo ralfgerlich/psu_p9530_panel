@@ -303,10 +303,6 @@ void PsDisplay::renderMainscreen() {
     }
     yield();
     //optimized hybrid
-    //TODO improvement
-    //     speed can be improved by reducing overdraw.
-    //     if we render the bg color char and the new char in memory
-    //     and only send the resulting pixels without bg color to the display
     tft.setTextSize(1);
     tft.setCursor(60+PT18_IN_PXW*6, getRowYPos(1));
     formatMilliNumber(buffer, milli_volts_setpoint, ROW_VOLTS, true);
