@@ -41,6 +41,7 @@ void PsDisplay::init() {
         tft.setRotation(3);
         tft.setTextWrap(0);
         tft.setFont(&courier_prime_code_regular18pt7b);
+        canvas.setFont(&courier_prime_code_regular18pt7b);
         init_done = true;
     }
 }
@@ -82,7 +83,8 @@ void PsDisplay::drawXBitmapPartial(const int16_t x, int16_t y, const uint8_t bit
   tft.endWrite();
 }
 
-void PsDisplay::drawXBitmapScaled(int16_t x, int16_t y, const uint8_t bitmap[],
+//ram not flash version
+void PsDisplay::drawBitmapScaled(int16_t x, int16_t y, const uint8_t* bitmap,
                                int16_t w, int16_t h, uint16_t color, uint8_t scale) {
 
   int16_t byteWidth = (w + 7) / 8; // Bitmap scanline pad = whole byte
@@ -92,18 +94,15 @@ void PsDisplay::drawXBitmapScaled(int16_t x, int16_t y, const uint8_t bitmap[],
   for (int16_t j = 0; j < h; j++) {
     for (int16_t i = 0; i < w; i++) {
       if (i & 7)
-        b >>= 1;
+        b <<= 1;
       else
-        b = pgm_read_byte(&bitmap[j * byteWidth + i / 8]);
-      // Nearly identical to drawBitmap(), only the bit order
-      // is reversed here (left-to-right = LSB to MSB):
-      if (b & 0x01) {
+        b = bitmap[j * byteWidth + i / 8];
+      if (b & 0x80)
         for (uint8_t l = 0; l < scale; l++) {
             for (uint8_t k = 0; k < scale; k++) {
                 tft.writePixel(x + i * scale + k, y + j * scale + l, color);
             }
         }
-      }
     }
   }
   tft.endWrite();
@@ -250,26 +249,22 @@ void PsDisplay::fastStringPrint(const char * buffer, char * old_buffer, const ui
             //pixels to remove
             canvas.fillScreen(ILI9341_BLACK);
             canvas.setTextColor(ILI9341_WHITE);
-            canvas.setCursor(0, canvas.height());
+            canvas.setCursor(0, canvas.height()-1);
             canvas.print(old_buffer[i]);
-            canvas.setCursor(0, canvas.height());
+            canvas.setCursor(0, canvas.height()-1);
             canvas.setTextColor(ILI9341_BLACK);
             canvas.print(buffer[i]);
-            drawXBitmapScaled(tft.getCursorX(), tft.getCursorY()-PT18_IN_PXH, canvas.getBuffer(), canvas.width(), canvas.height(), bg_color, scale);
+            drawBitmapScaled(tft.getCursorX(), tft.getCursorY()-PT18_IN_PXH*scale, canvas.getBuffer(), canvas.width(), canvas.height(), bg_color, scale);
             //pixels to add
             canvas.fillScreen(ILI9341_BLACK);
             canvas.setTextColor(ILI9341_WHITE);
-            canvas.setCursor(0, canvas.height());
+            canvas.setCursor(0, canvas.height()-1);
             canvas.print(buffer[i]);
-            canvas.setCursor(0, canvas.height());
-            canvas.setTextColor(ILI9341_BLACK);
-            canvas.print(old_buffer[i]);
-            drawXBitmapScaled(tft.getCursorX(), tft.getCursorY()-PT18_IN_PXH, canvas.getBuffer(), canvas.width(), canvas.height(), char_color, scale);
+            drawBitmapScaled(tft.getCursorX(), tft.getCursorY()-PT18_IN_PXH*scale, canvas.getBuffer(), canvas.width(), canvas.height(), char_color, scale);
             old_buffer[i] = buffer[i];
-        } else {
-            // manually forward the curser by one character width
-            tft.setCursor(tft.getCursorX()+PT18_IN_PXW*scale, tft.getCursorY());
         }
+        // forward the curser by one character width
+        tft.setCursor(tft.getCursorX()+PT18_IN_PXW*scale, tft.getCursorY());
     }
 }
 

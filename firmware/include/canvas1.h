@@ -16,7 +16,7 @@ class Canvas1 : public Adafruit_GFX {
         bool getPixel(int16_t x, int16_t y) const;
         void fillScreen(uint16_t color);
 
-        const uint8_t *getBuffer(void) const { return buffer; }
+        const uint8_t* getBuffer(void) const;
 
     protected:
         bool getRawPixel(int16_t x, int16_t y) const;
@@ -57,21 +57,23 @@ template <int16_t W, int16_t H>
 bool Canvas1<W, H>::getRawPixel(int16_t x, int16_t y) const {
   if ((x < 0) || (y < 0) || (x >= W) || (y >= H))
     return 0;
-  if (buffer) {
-    uint8_t *ptr = &buffer[(x / 8) + y * ((W + 7) / 8)];
-
+  uint8_t *ptr = &buffer[(x / 8) + y * ((W + 7) / 8)];
 #ifdef __AVR__
     return ((*ptr) & pgm_read_byte(&Canvas1setBit[x & 7])) != 0;
 #else
     return ((*ptr) & (0x80 >> (x & 7))) != 0;
 #endif
-  }
   return 0;
 }
 
 template <int16_t W, int16_t H>
 void Canvas1<W, H>::fillScreen(uint16_t color) {
   memset(buffer, color ? 0xFF : 0x00, size);
+}
+
+template <int16_t W, int16_t H>
+const uint8_t* Canvas1<W, H>::getBuffer(void) const {
+  return &buffer[0];
 }
 
 template <int16_t W, int16_t H>
