@@ -198,15 +198,20 @@ void PsDisplay::fastStringPrint(char * buffer, char * old_buffer, uint8_t font_w
     for (uint8_t i=0; i<PS_DISPLAY_BUFFER_LENGTH-1; i++) {
         uint16_t char_color = fg_color;
         bool force_paint = false;
-        if (row != ROW_NULL && selected_pos != painted_selected_pos) {
-            // valid row, changed since last time
-            if ((selected_pos & 0x0f) == i && (selected_pos >> 4) == row) {
-                //correct highlight position, correct highlight row
+        if (row != ROW_NULL) {
+            // valid row
+            if (selected_pos != painted_selected_pos) {
+                // changed since last time
+                if ((selected_pos & 0x0f) == i && (selected_pos >> 4) == row) {
+                    //correct highlight position, correct highlight row
+                    char_color = se_color;
+                    force_paint = true;
+                } else if ((painted_selected_pos & 0x0f) == i && (painted_selected_pos >> 4) == row) {
+                    //old highlight position, old highlight row
+                    force_paint = true;
+                }
+            } else if (old_buffer[i] != buffer[i] && (selected_pos & 0x0f) == i && (selected_pos >> 4) == row) {
                 char_color = se_color;
-                force_paint = true;
-            } else if ((painted_selected_pos & 0x0f) == i && (painted_selected_pos >> 4) == row) {
-                //old highlight position, old highlight row
-                force_paint = true;
             }
         }
         if (old_buffer[i] != buffer[i] || force_paint) {
