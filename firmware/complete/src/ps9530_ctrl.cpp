@@ -75,8 +75,7 @@ void PS9530_Ctrl::setMilliAmpsLimit(uint16_t milliAmpere) {
 uint16_t PS9530_Ctrl::getMilliVoltsMeasurement(bool clearFlag) {
     uint16_t result;
     ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-        // TODO: Use proper calibration table
-        result = (milliVoltsMeasurement * 30000UL)>>10UL;
+        result = milliVoltsMeasurement;
         if (clearFlag) {
             measurementsAvailable &= ~measurementVoltage;
         }
@@ -87,8 +86,7 @@ uint16_t PS9530_Ctrl::getMilliVoltsMeasurement(bool clearFlag) {
 uint16_t PS9530_Ctrl::getMilliAmpsMeasurement(bool clearFlag) {
     uint16_t result;
     ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-        // TODO: Use proper calibration table
-        result = (milliAmpsMeasurement * 10000UL)>>10UL;
+        result = milliAmpsMeasurement;
         if (clearFlag) {
             measurementsAvailable &= ~measurementVoltage;
         }
@@ -149,7 +147,45 @@ void PS9530_Ctrl::startADCConversion() {
     }
 }
 
-int16_t PS9530_Ctrl::interpolate_temp(uint8_t index, uint16_t adcValue) {
+const uint16_t PS9530_Ctrl::adcVoltageOffset[32] PROGMEM = {
+     0,  1034,  2068,  3102,  4136,  5170,  6204,  7238,  8272,  9306, 10340, 11374,
+ 12408, 13442, 14476, 15510, 16544, 17578, 18612, 19646, 20680, 21714, 22748, 23782,
+ 24816, 25850, 26884, 27918, 28952, 29986, 31020, 32054
+};
+const uint16_t PS9530_Ctrl::adcVoltageGradient[32] PROGMEM = {
+  1034,  1034,  1034,  1034,  1034,  1034,  1034,  1034,  1034,  1034,  1034,  1034, 
+  1034,  1034,  1034,  1034,  1034,  1034,  1034,  1034,  1034,  1034,  1034,  1034, 
+  1034,  1034,  1034,  1034,  1034,  1034,  1034,  1034
+};
+
+uint16_t PS9530_Ctrl::interpolateADCVoltage(uint16_t adcValue) {
+    const uint16_t tableIndex = adcValue >> 5;
+    const uint8_t adcRest = adcValue & 31;
+    const uint16_t base = pgm_read_word(&adcVoltageOffset[tableIndex]);
+    const uint16_t gradient = pgm_read_word(&adcVoltageGradient[tableIndex]);
+    return base + ((adcRest * gradient)>>5);
+}
+
+const uint16_t PS9530_Ctrl::adcCurrentOffset[32] PROGMEM = {
+    0,   53,  106,  159,  212,  264,  317,  370,  423,  476,  529,  582,  635,  688,
+  740,  793,  846,  899,  952, 1005, 1058, 1111, 1164, 1216, 1269, 1322, 1375, 1428,
+ 1481, 1534, 1587, 1640
+};
+const uint16_t PS9530_Ctrl::adcCurrentGradient[32] PROGMEM = {
+   53,   53,   53,   53,   52,   53,   53,   53,   53,   53,   53,   53,   53,   52,
+   53,   53,   53,   53,   53,   53,   53,   53,   52,   53,   53,   53,   53,   53,
+   53,   53,   53,   52
+};
+
+uint16_t PS9530_Ctrl::interpolateADCCurrent(uint16_t adcValue) {
+    const uint16_t tableIndex = adcValue >> 5;
+    const uint8_t adcRest = adcValue & 31;
+    const uint16_t base = pgm_read_word(&adcCurrentOffset[tableIndex]);
+    const uint16_t gradient = pgm_read_word(&adcCurrentGradient[tableIndex]);
+    return base + ((adcRest * gradient)>>5);
+}
+
+int16_t PS9530_Ctrl::interpolateADCTemp(uint8_t index, uint16_t adcValue) {
     const uint16_t minADC = pgm_read_word(&minTempADC[index]);
     const uint16_t maxADC = pgm_read_word(&maxTempADC[index]);
     const uint8_t shift = pgm_read_byte(&shiftTempADC[index]);
@@ -182,21 +218,19 @@ const int16_t PS9530_Ctrl::tempGradient[2][11] PROGMEM = {
 void PS9530_Ctrl::updateADC() {
     switch (currentADCChannel) {
     case adcChannel_voltage:
-        // TODO: Use proper calibration table
-        milliVoltsMeasurement = ADC * 30000UL / 1024UL;
+        milliVoltsMeasurement = interpolateADCVoltage(ADC);
         measurementsAvailable |= measurementVoltage;
     case adcChannel_current:
-        // TODO: Use proper calibration table
-        milliAmpsMeasurement = ADC * 10000UL / 1024UL;
+        milliAmpsMeasurement = interpolateADCCurrent(ADC);
         measurementsAvailable |= measurementCurrent;
         currentADCChannel = adcChannel_temp1;
         break;
     case adcChannel_temp1:
-        tempDegCMeasurement[0] = interpolate_temp(tempSensor_1, ADC);
+        tempDegCMeasurement[0] = interpolateADCTemp(tempSensor_1, ADC);
         currentADCChannel = adcChannel_temp2;
         break;
     case adcChannel_temp2:
-        tempDegCMeasurement[1] = interpolate_temp(tempSensor_2, ADC);
+        tempDegCMeasurement[1] = interpolateADCTemp(tempSensor_2, ADC);
         currentADCChannel = adcChannel__idle;
         break;
     default:

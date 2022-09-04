@@ -78,10 +78,31 @@ private:
         muxChannel_current
     } currentMuxChannel;
 
-    /** Measured voltage in mV */
-    uint16_t milliVoltsMeasurement;
-    /** Measured current in mA */
-    uint16_t milliAmpsMeasurement;
+    /** Voltage offset for ADC conversion */
+    static const uint16_t adcVoltageOffset[32] PROGMEM;
+    /** Voltage gradient for ADC conversion */
+    static const uint16_t adcVoltageGradient[32] PROGMEM;
+
+    /**
+     * @brief Convert an ADC measurement into a voltage
+     * 
+     * @param adcValue The value from the ADC (in the range 0...1023)
+     * @return The voltage in Millivolt.
+     */
+    static uint16_t interpolateADCVoltage(uint16_t adcValue);
+
+    /** Current offset for ADC conversion */
+    static const uint16_t adcCurrentOffset[32] PROGMEM;
+    /** Current gradient for ADC conversion */
+    static const uint16_t adcCurrentGradient[32] PROGMEM;
+
+    /**
+     * @brief Convert an ADC measurement into a current
+     * 
+     * @param adcValue The value from the ADC (in the range 0...1023)
+     * @return The voltage in Milliampere.
+     */
+    static uint16_t interpolateADCCurrent(uint16_t adcValue);
 
     enum {
         /** Index for temperature Sensor 1 */
@@ -101,7 +122,19 @@ private:
     /** Temperature gradient for ADC conversion */
     static const int16_t tempGradient[2][11] PROGMEM;
 
-    static int16_t interpolate_temp(uint8_t index, uint16_t adcValue);
+    /**
+     * @brief Convert an ADC measurement into a temperature
+     * 
+     * @param index  The sensor index
+     * @param adcValue The value from the ADC (in the range 0...1023)
+     * @return The temperature in Degree Celsius
+     */
+    static int16_t interpolateADCTemp(uint8_t index, uint16_t adcValue);
+
+    /** Measured voltage in mV */
+    uint16_t milliVoltsMeasurement;
+    /** Measured current in mA */
+    uint16_t milliAmpsMeasurement;
     /** Measured temperatures in °C  */
     uint8_t tempDegCMeasurement[2];
 
