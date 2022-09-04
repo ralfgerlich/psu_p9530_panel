@@ -15,6 +15,12 @@
 #define PS_DISPLAY_STATE_LIMITED_P 0b01000000
 #define PS_DISPLAY_STATE_OVERTEMP 0b10000000
 
+//rows
+#define PS_DISPLAY_VIRTUAL_ROW_COUNT 9
+#define PS_DISPLAY_ROW_COUNT 6
+//just a helper - starting with 1
+#define getVirtualRow(row) (row + row/2)
+
 //i hate to write it like this but functions as macros get better optimized
 #define setState(value, mask) this->state = value ? this->state | mask : this->state & mask;
 #define setPaintedState(value, mask) this->painted_state = value ? this->painted_state | mask : this->painted_state & mask;
@@ -244,16 +250,20 @@ void PsDisplay::paintFlag(bool visible, uint8_t flag, uint8_t y) {
     }
 }
 
+uint8_t PsDisplay::getRowYPos(uint8_t row) {
+    static const uint8_t rowSpacing = (PS_DISPLAY_HEIGHT-PS_DISPLAY_VIRTUAL_ROW_COUNT*PT18_IN_PXH)/(PS_DISPLAY_ROW_COUNT+1.f);
+    return getVirtualRow(row)*PT18_IN_PXH + rowSpacing*row;
+}
+
 void PsDisplay::renderMainscreen() {
     //layout is:
     //---------------------
-    // voltage setpoint 24px
-    // VOLTAGE 48px
-    // amps limit 24px
-    // AMPS 48px
-    // watts limit 24px
-    // WATTS 48px
-    // additional info 24px
+    // voltage setpoint 21px
+    // VOLTAGE 42px
+    // amps limit 21px
+    // AMPS 42px
+    // watts limit 21px
+    // WATTS 42px
     //---------------------
     char buffer[PS_DISPLAY_BUFFER_LENGTH];
     //actual paint
@@ -292,24 +302,24 @@ void PsDisplay::renderMainscreen() {
     //     if we render the bg color char and the new char in memory
     //     and only send the resulting pixels without bg color to the display
     tft.setTextSize(1);
-    tft.setCursor(60+PT18_IN_PXW*6, PT18_IN_PXH+5+3);
+    tft.setCursor(60+PT18_IN_PXW*6, getRowYPos(1));
     formatMilliNumber(buffer, milli_volts_setpoint, ROW_VOLTS, true);
     fastStringPrint(buffer, buffer_volts_setp, PT18_IN_PXW, ROW_VOLTS);
-    tft.setCursor(60+PT18_IN_PXW*6, PT18_IN_PXH*4+5*2+3*4);
+    tft.setCursor(60+PT18_IN_PXW*6, getRowYPos(3));
     formatMilliNumber(buffer, milli_amps_limit, ROW_AMPS, true);
     fastStringPrint(buffer, buffer_amps_limit, PT18_IN_PXW, ROW_AMPS);
-    tft.setCursor(60+PT18_IN_PXW*6, PT18_IN_PXH*7+5*3+3*7);
+    tft.setCursor(60+PT18_IN_PXW*6, getRowYPos(5));
     formatCentiNumber(buffer, centi_watts_limit, ROW_WATTS, true);
     fastStringPrint(buffer, buffer_watts_limit, PT18_IN_PXW, ROW_WATTS);
     painted_selected_pos = selected_pos;
     tft.setTextSize(2);
-    tft.setCursor(60, PT18_IN_PXH*3+5+3*3);
+    tft.setCursor(60, getRowYPos(2));
     formatMilliNumber(buffer, milli_volts, ROW_VOLTS);
     fastStringPrint(buffer, buffer_volts, PT18_IN_PXW*2);
-    tft.setCursor(60, PT18_IN_PXH*6+5*2+3*6);
+    tft.setCursor(60, getRowYPos(4));
     formatMilliNumber(buffer, milli_amps, ROW_AMPS);
     fastStringPrint(buffer, buffer_amps, PT18_IN_PXW*2);
-    tft.setCursor(60, PT18_IN_PXH*9+5*3+3*9);
+    tft.setCursor(60, getRowYPos(6));
     formatCentiNumber(buffer, centi_watts, ROW_WATTS);
     fastStringPrint(buffer, buffer_watts, PT18_IN_PXW*2);
     yield();

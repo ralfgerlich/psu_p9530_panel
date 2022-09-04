@@ -73,6 +73,7 @@ class PsDisplay {
     void paintFlag(bool visible, uint8_t flag, uint8_t y);
     void paintSmallLogo(bool visible);
     void renderHistory(const uint8_t* history_data, uint16_t history_pos, uint8_t thickness = 2);
+    uint8_t getRowYPos(uint8_t row);
 
     Adafruit_ILI9341& tft;
     bool init_done = 0;
