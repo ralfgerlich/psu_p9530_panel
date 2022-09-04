@@ -5,6 +5,7 @@
 #include <Adafruit_ILI9341.h>
 #include <stdint.h>
 #include "Toolbox/toolbox_colors.h"
+#include "canvas1.h"
 
 #define TFT_DC 9
 #define TFT_CS 10
@@ -95,6 +96,7 @@ class PsDisplay {
     constexpr uint8_t getRowYPos(const uint8_t row);
 
     Adafruit_ILI9341& tft;
+    Canvas1<PT18_IN_PXW, PT18_IN_PXH> canvas;
     bool init_done = 0;
     screen_mode_t screen_mode = SCREEN_MODE_NONE;
     screen_mode_t painted_screen_mode = SCREEN_MODE_NONE;

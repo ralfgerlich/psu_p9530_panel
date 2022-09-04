@@ -32,6 +32,7 @@ static constexpr uint8_t rowSpacing = (PS_DISPLAY_HEIGHT-PS_DISPLAY_VIRTUAL_ROW_
 
 PsDisplay::PsDisplay( Adafruit_ILI9341 & tft) :
     tft(tft) {
+        canvas.setTextSize(1);
 }
 
 void PsDisplay::init() {
@@ -47,6 +48,7 @@ void PsDisplay::init() {
 void PsDisplay::clear() {
     init();
     tft.fillScreen(DEFAULT_BACKGROUND_COLOR);
+    tft.setTextSize(1);
     painted_state = 0;
     painted_selected_pos = 0;
     memset(buffer_volts, '\0', PS_DISPLAY_BUFFER_LENGTH);
@@ -75,6 +77,33 @@ void PsDisplay::drawXBitmapPartial(const int16_t x, int16_t y, const uint8_t bit
       // is reversed here (left-to-right = LSB to MSB):
       if (b & 0x01)
         tft.writePixel(x + i, y, color);
+    }
+  }
+  tft.endWrite();
+}
+
+void PsDisplay::drawXBitmapScaled(int16_t x, int16_t y, const uint8_t bitmap[],
+                               int16_t w, int16_t h, uint16_t color, uint8_t scale) {
+
+  int16_t byteWidth = (w + 7) / 8; // Bitmap scanline pad = whole byte
+  uint8_t b = 0;
+
+  tft.startWrite();
+  for (int16_t j = 0; j < h; j++) {
+    for (int16_t i = 0; i < w; i++) {
+      if (i & 7)
+        b >>= 1;
+      else
+        b = pgm_read_byte(&bitmap[j * byteWidth + i / 8]);
+      // Nearly identical to drawBitmap(), only the bit order
+      // is reversed here (left-to-right = LSB to MSB):
+      if (b & 0x01) {
+        for (uint8_t l = 0; l < scale; l++) {
+            for (uint8_t k = 0; k < scale; k++) {
+                tft.writePixel(x + i * scale + k, y + j * scale + l, color);
+            }
+        }
+      }
     }
   }
   tft.endWrite();
@@ -218,17 +247,28 @@ void PsDisplay::fastStringPrint(const char * buffer, char * old_buffer, const ui
             }
         }
         if (old_buffer[i] != buffer[i] || force_paint) {
-            tft.setTextColor(bg_color);
-            int16_t cx = tft.getCursorX();
-            int16_t cy = tft.getCursorY();
-            tft.print(old_buffer[i]);
-            tft.setCursor(cx, cy);
-            tft.setTextColor(char_color);
-            tft.print(buffer[i]);
+            //pixels to remove
+            canvas.fillScreen(ILI9341_BLACK);
+            canvas.setTextColor(ILI9341_WHITE);
+            canvas.setCursor(0, canvas.height());
+            canvas.print(old_buffer[i]);
+            canvas.setCursor(0, canvas.height());
+            canvas.setTextColor(ILI9341_BLACK);
+            canvas.print(buffer[i]);
+            drawXBitmapScaled(tft.getCursorX(), tft.getCursorY()-PT18_IN_PXH, canvas.getBuffer(), canvas.width(), canvas.height(), bg_color, scale);
+            //pixels to add
+            canvas.fillScreen(ILI9341_BLACK);
+            canvas.setTextColor(ILI9341_WHITE);
+            canvas.setCursor(0, canvas.height());
+            canvas.print(buffer[i]);
+            canvas.setCursor(0, canvas.height());
+            canvas.setTextColor(ILI9341_BLACK);
+            canvas.print(old_buffer[i]);
+            drawXBitmapScaled(tft.getCursorX(), tft.getCursorY()-PT18_IN_PXH, canvas.getBuffer(), canvas.width(), canvas.height(), char_color, scale);
             old_buffer[i] = buffer[i];
         } else {
             // manually forward the curser by one character width
-            tft.setCursor(tft.getCursorX()+font_width, tft.getCursorY());
+            tft.setCursor(tft.getCursorX()+PT18_IN_PXW*scale, tft.getCursorY());
         }
     }
 }
@@ -363,24 +403,23 @@ void PsDisplay::renderMainscreen() {
     tft.setTextSize(1);
     tft.setCursor(60+PT18_IN_PXW*6, getRowYPos(1));
     formatMilliNumber(buffer, milli_volts_setpoint, ROW_VOLTS, true);
-    fastStringPrint(buffer, buffer_volts_setp, PT18_IN_PXW, ROW_VOLTS);
+    fastStringPrint(buffer, buffer_volts_setp, 1, ROW_VOLTS);
     tft.setCursor(60+PT18_IN_PXW*6, getRowYPos(3));
     formatMilliNumber(buffer, milli_amps_limit, ROW_AMPS, true);
-    fastStringPrint(buffer, buffer_amps_limit, PT18_IN_PXW, ROW_AMPS);
+    fastStringPrint(buffer, buffer_amps_limit, 1, ROW_AMPS);
     tft.setCursor(60+PT18_IN_PXW*6, getRowYPos(5));
     formatCentiNumber(buffer, centi_watts_limit, ROW_WATTS, true);
-    fastStringPrint(buffer, buffer_watts_limit, PT18_IN_PXW, ROW_WATTS);
+    fastStringPrint(buffer, buffer_watts_limit, 1, ROW_WATTS);
     painted_selected_pos = selected_pos;
-    tft.setTextSize(2);
     tft.setCursor(60, getRowYPos(2));
     formatMilliNumber(buffer, milli_volts, ROW_VOLTS);
-    fastStringPrint(buffer, buffer_volts, PT18_IN_PXW*2);
+    fastStringPrint(buffer, buffer_volts, 2);
     tft.setCursor(60, getRowYPos(4));
     formatMilliNumber(buffer, milli_amps, ROW_AMPS);
-    fastStringPrint(buffer, buffer_amps, PT18_IN_PXW*2);
+    fastStringPrint(buffer, buffer_amps, 2);
     tft.setCursor(60, getRowYPos(6));
     formatCentiNumber(buffer, centi_watts, ROW_WATTS);
-    fastStringPrint(buffer, buffer_watts, PT18_IN_PXW*2);
+    fastStringPrint(buffer, buffer_watts, 2);
     yield();
 }
 
@@ -429,7 +468,6 @@ void PsDisplay::clearText(char * old_buffer) {
 
 void PsDisplay::renderSingleGraph(const uint16_t value1, char * old_buffer1, const uint16_t value2, char * old_buffer2, const uint8_t * history, const uint16_t history_pos, const row_t row, const bool mode_changed) {
     char buffer[PS_DISPLAY_BUFFER_LENGTH];
-    tft.setTextSize(2);
     tft.setCursor(60, PT18_IN_PXH*2+4);
     if ((selected_pos >> 4) == row) {
         if ((painted_selected_pos >> 4) != row) {
