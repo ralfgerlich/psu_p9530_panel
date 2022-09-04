@@ -391,35 +391,35 @@ void PsDisplay::renderWatts() {
 }
 
 void PsDisplay::setStandby(bool standby) {
-    setState(state, PS_DISPLAY_STATE_STANDBY);
+    setState(standby, PS_DISPLAY_STATE_STANDBY);
 }
 
 void PsDisplay::setLocked(bool locked) {
-    setState(state, PS_DISPLAY_STATE_LOCKED);
+    setState(locked, PS_DISPLAY_STATE_LOCKED);
 }
 
 void PsDisplay::setMemory(bool memory) {
-    setState(state, PS_DISPLAY_STATE_MEMORY);
+    setState(memory, PS_DISPLAY_STATE_MEMORY);
 }
 
 void PsDisplay::setRemote(bool remote) {
-    setState(state, PS_DISPLAY_STATE_REMOTE);
+    setState(remote, PS_DISPLAY_STATE_REMOTE);
 }
 
 void PsDisplay::setLimitedV(bool limited_v) {
-    setState(state, PS_DISPLAY_STATE_LIMITED_V);
+    setState(limited_v, PS_DISPLAY_STATE_LIMITED_V);
 }
 
 void PsDisplay::setLimitedA(bool limited_a) {
-    setState(state, PS_DISPLAY_STATE_LIMITED_A);
+    setState(limited_a, PS_DISPLAY_STATE_LIMITED_A);
 }
 
 void PsDisplay::setLimitedP(bool limited_p) {
-    setState(state, PS_DISPLAY_STATE_LIMITED_P);
+    setState(limited_p, PS_DISPLAY_STATE_LIMITED_P);
 }
 
 void PsDisplay::setOvertemp(bool overtemp) {
-    setState(state, PS_DISPLAY_STATE_OVERTEMP);
+    setState(overtemp, PS_DISPLAY_STATE_OVERTEMP);
 }
 
 void PsDisplay::setMilliVoltsSetpoint(int16_t voltage_setpoint) {
