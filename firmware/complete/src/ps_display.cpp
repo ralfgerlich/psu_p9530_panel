@@ -227,26 +227,21 @@ void PsDisplay::paintSmallLogo(bool visible) {
     }
 }
 
-void PsDisplay::paintStandby(bool visible) {
-    setPaintedState(visible, PS_DISPLAY_STATE_STANDBY);
+void PsDisplay::paintFlag(bool visible, uint8_t flag, uint8_t y) {
+    setPaintedState(visible, flag);
     if (visible) {
         tft.setTextColor(DEFAULT_ATTENTION_COLOR);
     } else {
         tft.setTextColor(DEFAULT_BACKGROUND_COLOR);
     }
-    tft.setCursor(10, PT18_IN_PXH+5+3);
-    tft.print(F("Standby"));
-}
-
-void PsDisplay::paintOvertemp(bool visible) {
-    setPaintedState(visible, PS_DISPLAY_STATE_OVERTEMP);
-    if (visible) {
-        tft.setTextColor(DEFAULT_ATTENTION_COLOR);
+    tft.setCursor(10, y);
+    if (flag == PS_DISPLAY_STATE_STANDBY) {
+        tft.print(F("Standby"));
+    } else if (flag == PS_DISPLAY_STATE_OVERTEMP) {
+        tft.print(F("Overtemp"));
     } else {
-        tft.setTextColor(DEFAULT_BACKGROUND_COLOR);
+        tft.print(F("Limited"));
     }
-    tft.setCursor(10, PT18_IN_PXH+5+3);
-    tft.print(F("Overtemp"));
 }
 
 void PsDisplay::renderMainscreen() {
@@ -268,9 +263,9 @@ void PsDisplay::renderMainscreen() {
             paintSmallLogo(false);
         }
         if (isPaintedState(PS_DISPLAY_STATE_STANDBY)) {
-            paintStandby(false);
+            paintFlag(false, PS_DISPLAY_STATE_STANDBY, PT18_IN_PXH+5+3);
         }
-        paintOvertemp(isState(PS_DISPLAY_STATE_OVERTEMP));
+        paintFlag(isState(PS_DISPLAY_STATE_OVERTEMP), PS_DISPLAY_STATE_OVERTEMP, PT18_IN_PXH+5+3);
         if (!isState(PS_DISPLAY_STATE_OVERTEMP)) {
             paintSmallLogo(true);
         }
@@ -279,30 +274,16 @@ void PsDisplay::renderMainscreen() {
         if (isState(PS_DISPLAY_STATE_STANDBY)) {
             paintSmallLogo(false);
         }
-        paintStandby(isState(PS_DISPLAY_STATE_STANDBY));
+            paintFlag(isState(PS_DISPLAY_STATE_STANDBY), PS_DISPLAY_STATE_STANDBY, PT18_IN_PXH+5+3);
         if (!isState(PS_DISPLAY_STATE_STANDBY)) {
             paintSmallLogo(true);
         }
     }
     if (isPaintedState(PS_DISPLAY_STATE_LIMITED_A) != isState(PS_DISPLAY_STATE_LIMITED_A)) {
-        setPaintedState(isState(PS_DISPLAY_STATE_LIMITED_A), PS_DISPLAY_STATE_LIMITED_A);
-        if (isPaintedState(PS_DISPLAY_STATE_LIMITED_A)) {
-            tft.setTextColor(DEFAULT_ATTENTION_COLOR);
-        } else {
-            tft.setTextColor(DEFAULT_BACKGROUND_COLOR);
-        }
-        tft.setCursor(10, PT18_IN_PXH*4+5*2+3*4);
-        tft.print(F("Limited"));
+        paintFlag(isState(PS_DISPLAY_STATE_LIMITED_A), PS_DISPLAY_STATE_LIMITED_A, PT18_IN_PXH*4+5*2+3*4);
     }
     if (isPaintedState(PS_DISPLAY_STATE_LIMITED_P) != isState(PS_DISPLAY_STATE_LIMITED_P)) {
-        setPaintedState(isState(PS_DISPLAY_STATE_LIMITED_P), PS_DISPLAY_STATE_LIMITED_P);
-        if (isPaintedState(PS_DISPLAY_STATE_LIMITED_P)) {
-            tft.setTextColor(DEFAULT_ATTENTION_COLOR);
-        } else {
-            tft.setTextColor(DEFAULT_BACKGROUND_COLOR);
-        }
-        tft.setCursor(10, PT18_IN_PXH*7+5*3+3*7);
-        tft.print(F("Limited"));
+        paintFlag(isState(PS_DISPLAY_STATE_LIMITED_P), PS_DISPLAY_STATE_LIMITED_P, PT18_IN_PXH*7+5*3+3*7);
     }
     yield();
     //optimized hybrid
