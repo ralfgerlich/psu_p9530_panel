@@ -362,7 +362,6 @@ void PsDisplay::renderVolts() {
     tft.setTextSize(2);
     tft.setCursor(60, PT18_IN_PXH*2+4);
     formatMilliNumber(buffer, milli_volts, ROW_VOLTS);
-    //tft.setTextSize(2);
     fastStringPrint(buffer, buffer_volts, PT18_IN_PXW*2, ROW_NULL);
     renderHistory(history_volts, history_volts_pos);
 }
@@ -432,19 +431,19 @@ void PsDisplay::setCentiWattsLimit(int16_t watts_limit) {
 void PsDisplay::setMilliVolts(int16_t voltage) {
     this->milli_volts = voltage;
     history_volts_pos = (history_volts_pos+1) % HISTORY_LENGTH;
-    history_volts[history_volts_pos] = (voltage / 10000.f) *(PS_DISPLAY_HEIGHT-24*2-5-1) +1;
+    history_volts[history_volts_pos] = (voltage / 10000.f) *(PS_DISPLAY_HEIGHT-(PT18_IN_PXH*2+6*2)) +1;
 }
 
 void PsDisplay::setMilliAmps(int16_t amps) {
     this->milli_amps = amps;
     history_apms_pos = (history_apms_pos+1) % HISTORY_LENGTH;
-    history_amps[history_apms_pos] = (amps / 10000.f) *(PS_DISPLAY_HEIGHT-24*2-5-1) +1;
+    history_amps[history_apms_pos] = (amps / 10000.f) *(PS_DISPLAY_HEIGHT-(PT18_IN_PXH*2+6*2)) +1;
 }
 
 void PsDisplay::setCentiWatts(int16_t watts) {
     this->centi_watts = watts;
     history_watts_pos = (history_watts_pos+1) % HISTORY_LENGTH;
-    history_watts[history_watts_pos] = (watts / 30000.f) *(PS_DISPLAY_HEIGHT-24*2-5-1) +1;
+    history_watts[history_watts_pos] = (watts / 30000.f) *(PS_DISPLAY_HEIGHT-(PT18_IN_PXH*2+6*2)) +1;
 }
 
 void PsDisplay::setCurser(row_t row, uint8_t pos) {
