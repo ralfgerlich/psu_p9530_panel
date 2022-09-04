@@ -22,10 +22,10 @@
 #define getVirtualRow(row) (row + row/2)
 
 //i hate to write it like this but functions as macros get better optimized
-#define setState(value, mask) this->state = value ? this->state | mask : this->state & mask;
-#define setPaintedState(value, mask) this->painted_state = value ? this->painted_state | mask : this->painted_state & mask;
-#define isState(mask) (this->state & mask)
-#define isPaintedState(mask) (this->painted_state & mask)
+#define setState(value, mask) this->state = value ? this->state | mask : this->state & (mask);
+#define setPaintedState(value, mask) this->painted_state = value ? this->painted_state | mask : this->painted_state & (mask);
+#define isState(mask) (this->state & (mask))
+#define isPaintedState(mask) (this->painted_state & (mask))
 
 PsDisplay::PsDisplay( Adafruit_ILI9341 & tft) :
     tft(tft) {
