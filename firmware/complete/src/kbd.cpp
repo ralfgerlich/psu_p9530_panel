@@ -199,17 +199,21 @@ void kbd_update() {
 
 // aka ENC_A
 ISR(INT0_vect) {
+    // we see wrong flanks for some reason
+    // sometimes 00 is missing
+    // sometimes you get fake 01 for the oposite direction (in phy world)
     uint8_t currentEncoderState = PIN_ENC & MASK_ENC;
     if (currentEncoderState & MASK_ENC_A) {
         // A goes high
         if (currentEncoderState & MASK_ENC_B) {
             // B is high
             encoderState--;
-            if (encoderState <= -4) {
+            if (encoderState <= -2) {
                 // Pin A has gone high last => CCW
-                encoderState = 0;
+                // two out of four state counts for this direction are enough
                 kbd_emplace_unsafe(kbd_enc_ccw);
             }
+            encoderState = 0;
         } else {
             // B is low
             encoderState++;
@@ -219,8 +223,9 @@ ISR(INT0_vect) {
         if (currentEncoderState & MASK_ENC_B) {
             // B is high
             encoderState++;
-        } else {
+        } else if (encoderState < 0) {
             // B is low
+            // only counts for predominent rotation direction
             encoderState--;
         }
     }
@@ -228,17 +233,21 @@ ISR(INT0_vect) {
 
 // aka ENC_B
 ISR(INT1_vect) {
+    // we see wrong flanks for some reason
+    // sometimes 00 is missing
+    // sometimes you get fake 01 for the oposite direction (in phy world)
     uint8_t currentEncoderState = PIN_ENC & MASK_ENC;
     if (currentEncoderState & MASK_ENC_B) {
         // B goes high
         if (currentEncoderState & MASK_ENC_A) {
             // A is high
             encoderState++;
-            if (encoderState >= 4) {
+            if (encoderState >= 2) {
                 // Pin B has gone high last => CW
-                encoderState = 0;
+                // two out of four state counts for this direction are enough
                 kbd_emplace_unsafe(kbd_enc_cw);
             }
+            encoderState = 0;
         } else {
             // A is low
             encoderState--;
@@ -248,8 +257,9 @@ ISR(INT1_vect) {
         if (currentEncoderState & MASK_ENC_A) {
             // A is high
             encoderState--;
-        } else {
+        } else if (encoderState > 0) {
             // A is low
+            // only counts for predominent rotation direction
             encoderState++;
         }
     }
