@@ -53,6 +53,9 @@ static uint8_t kbd_buffer_count;
 /* Current keyboard state */
 static uint32_t kbd_state;
 
+// encoder state
+static int8_t encoderState = 0;
+
 static inline void kbd_toggle_clk() {
     PORT_SPI &= ~MASK_SCK;
     PORT_SPI |= MASK_SCK;
@@ -127,7 +130,7 @@ void kbd_init() {
     /* Configure pin interrupts for encoder.
      * The interrupts will be generated on a rising edge of
      * the respective pin. */
-    EICRA = (1<<ISC11)|(1<<ISC10)|(1<<ISC01)|(1<<ISC00);
+    EICRA = (1<<ISC10)|(1<<ISC00);
     EIMSK = _BV(INT1)|_BV(INT0);
     EIFR = _BV(INTF1)|_BV(INTF0);
 
@@ -194,16 +197,60 @@ void kbd_update() {
     kbd_state = new_state;
 }
 
+// aka ENC_A
 ISR(INT0_vect) {
-    if ((PIN_ENC & MASK_ENC) == MASK_ENC) {
-        /* Pin A has gone high last => CCW */
-        kbd_emplace_unsafe(kbd_enc_ccw);
+    uint8_t currentEncoderState = PIN_ENC & MASK_ENC;
+    if (currentEncoderState & MASK_ENC_A) {
+        // A goes high
+        if (currentEncoderState & MASK_ENC_B) {
+            // B is high
+            encoderState--;
+            if (encoderState <= 4) {
+                // Pin A has gone high last => CCW
+                encoderState = 0;
+                kbd_emplace_unsafe(kbd_enc_ccw);
+            }
+        } else {
+            // B is low
+            encoderState++;
+        }
+    } else {
+        // A goes low
+        if (currentEncoderState & MASK_ENC_B) {
+            // B is high
+            encoderState++;
+        } else {
+            // B is low
+            encoderState--;
+        }
     }
 }
 
+// aka ENC_B
 ISR(INT1_vect) {
-    if ((PIN_ENC & MASK_ENC) == MASK_ENC) {
-        /* Pin B has gone high last => CW */
-        kbd_emplace_unsafe(kbd_enc_cw);
+    uint8_t currentEncoderState = PIN_ENC & MASK_ENC;
+    if (currentEncoderState & MASK_ENC_B) {
+        // B goes high
+        if (currentEncoderState & MASK_ENC_A) {
+            // A is high
+            encoderState++;
+            if (encoderState >= 4) {
+                // Pin B has gone high last => CW
+                encoderState = 0;
+                kbd_emplace_unsafe(kbd_enc_cw);
+            }
+        } else {
+            // A is low
+            encoderState--;
+        }
+    } else {
+        // B goes low
+        if (currentEncoderState & MASK_ENC_A) {
+            // A is high
+            encoderState--;
+        } else {
+            // A is low
+            encoderState++;
+        }
     }
 }
