@@ -30,11 +30,8 @@ PS9530_Ctrl::PS9530_Ctrl():
     milliVoltSetpoint(0U),
     milliAmpsLimit(0U),
     currentMuxChannel(muxChannel_voltage),
-    milliVoltsMeasurement(0),
-    milliAmpsMeasurement(0),
-    tempDegCMeasurement{25, 25},
-    currentADCChannel(adcChannel__idle),
-    measurementsAvailable(0)
+    rawADCMeasurements{0,0,0,0},
+    currentADCState(adcChannel__idle<<1)
 {
 }
 
@@ -60,40 +57,6 @@ void PS9530_Ctrl::init() {
     TIFR0 = (1<<OCIE0A);
 }
 
-void PS9530_Ctrl::setMilliVoltSetpoint(uint16_t milliVolts) {
-    ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-        milliVoltSetpoint = milliVolts;
-    }
-}
-
-void PS9530_Ctrl::setMilliAmpsLimit(uint16_t milliAmpere) {
-    ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-        milliAmpsLimit = milliAmpere;
-    }
-}
-
-uint16_t PS9530_Ctrl::getMilliVoltsMeasurement(bool clearFlag) {
-    uint16_t result;
-    ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-        result = milliVoltsMeasurement;
-        if (clearFlag) {
-            measurementsAvailable &= ~measurementVoltage;
-        }
-    }
-    return result;
-}
-
-uint16_t PS9530_Ctrl::getMilliAmpsMeasurement(bool clearFlag) {
-    uint16_t result;
-    ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-        result = milliAmpsMeasurement;
-        if (clearFlag) {
-            measurementsAvailable &= ~measurementVoltage;
-        }
-    }
-    return result;
-}
-
 KeyCode PS9530_Ctrl::readKeycode() {
     return kbd_remove();
 }
@@ -102,6 +65,17 @@ void PS9530_Ctrl::update() {
     kbd_update();
     updateDAC();
     startADCCycle();
+}
+
+void PS9530_Ctrl::updateADC() {
+    if (currentADCState&1) {
+        /* We just did the actual measurement */
+        const uint8_t currentADCChannel = currentADCState>>1;
+        rawADCMeasurements[currentADCChannel] = ADC;
+    }
+    /* Update the state */
+    currentADCState++;
+    startADCConversion();
 }
 
 void PS9530_Ctrl::updateDAC() {
@@ -131,12 +105,13 @@ void PS9530_Ctrl::updateDAC() {
 }
 
 void PS9530_Ctrl::startADCCycle() {
-    currentADCChannel = adcChannel_voltage;
+    currentADCState = adcChannel_voltage<<1;
     startADCConversion();
 }
 
 void PS9530_Ctrl::startADCConversion() {
-    if (currentADCChannel!=adcChannel__idle) {
+    const uint8_t currentADCChannel = currentADCState>>1;
+    if (currentADCChannel<adcChannel__idle) {
         /* Set reference voltage to AREF and select channel */
         ADMUX = (0<<REFS1)|(0<<REFS0)|(currentADCChannel<<MUX0);
         /* Start the conversion with a clock of fCPU/64 (ca. 125kHz) */
@@ -147,15 +122,61 @@ void PS9530_Ctrl::startADCConversion() {
     }
 }
 
+void PS9530_Ctrl::setMilliVoltSetpoint(uint16_t milliVolts) {
+    ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+        milliVoltSetpoint = milliVolts;
+    }
+}
+
+void PS9530_Ctrl::setMilliAmpsLimit(uint16_t milliAmpere) {
+    ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+        milliAmpsLimit = milliAmpere;
+    }
+}
+
+uint16_t PS9530_Ctrl::getMilliVoltsMeasurement() const {
+    uint16_t result;
+    ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+        result = interpolateADCVoltage(rawADCMeasurements[adcChannel_voltage]);
+    }
+    return result;
+}
+
+uint16_t PS9530_Ctrl::getMilliAmpsMeasurement() const {
+    uint16_t result;
+    ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+        result = interpolateADCVoltage(rawADCMeasurements[adcChannel_current]);
+    }
+    return result;
+}
+
+int16_t PS9530_Ctrl::getTemperature1() const {
+    int16_t result;
+    ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+        result = interpolateADCTemp(tempSensor_1, rawADCMeasurements[adcChannel_temp1]);
+    }
+    return result;
+}
+
+int16_t PS9530_Ctrl::getTemperature2() const {
+    int16_t result;
+    ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+        result = interpolateADCTemp(tempSensor_2, rawADCMeasurements[adcChannel_temp2]);
+    }
+    return result;
+}
+
 const uint16_t PS9530_Ctrl::adcVoltageOffset[32] PROGMEM = {
-     0,  1034,  2068,  3102,  4136,  5170,  6204,  7238,  8272,  9306, 10340, 11374,
- 12408, 13442, 14476, 15510, 16544, 17578, 18612, 19646, 20680, 21714, 22748, 23782,
- 24816, 25850, 26884, 27918, 28952, 29986, 31020, 32054
+     0,  1034,  2068,  3102,  4136,  5170,  6204,  7238,  8272,
+  9306, 10340, 11374, 12408, 13442, 14476, 15510, 16544, 17578,
+ 18612, 19646, 20680, 21714, 22748, 23782, 24816, 25850, 26884,
+ 27918, 28952, 29986, 31020, 32054
 };
 const uint16_t PS9530_Ctrl::adcVoltageGradient[32] PROGMEM = {
-  1034,  1034,  1034,  1034,  1034,  1034,  1034,  1034,  1034,  1034,  1034,  1034, 
-  1034,  1034,  1034,  1034,  1034,  1034,  1034,  1034,  1034,  1034,  1034,  1034, 
-  1034,  1034,  1034,  1034,  1034,  1034,  1034,  1034
+  1034,  1034,  1034,  1034,  1034,  1034,  1034,  1034,  1034,
+  1034,  1034,  1034,  1034,  1034,  1034,  1034,  1034,  1034,
+  1034,  1034,  1034,  1034,  1034,  1034,  1034,  1034,  1034,
+  1034,  1034,  1034,  1034,  1034
 };
 
 uint16_t PS9530_Ctrl::interpolateADCVoltage(uint16_t adcValue) {
@@ -214,31 +235,6 @@ const int16_t PS9530_Ctrl::tempGradient[2][11] PROGMEM = {
     {-26, -22, -20, -18, -19, -18, -18, -18, -19, -19},
     {-38, -28, -24, -21, -18, -17, -15, -15, -13, -13}
 };
-
-void PS9530_Ctrl::updateADC() {
-    switch (currentADCChannel) {
-    case adcChannel_voltage:
-        milliVoltsMeasurement = interpolateADCVoltage(ADC);
-        measurementsAvailable |= measurementVoltage;
-    case adcChannel_current:
-        milliAmpsMeasurement = interpolateADCCurrent(ADC);
-        measurementsAvailable |= measurementCurrent;
-        currentADCChannel = adcChannel_temp1;
-        break;
-    case adcChannel_temp1:
-        tempDegCMeasurement[0] = interpolateADCTemp(tempSensor_1, ADC);
-        currentADCChannel = adcChannel_temp2;
-        break;
-    case adcChannel_temp2:
-        tempDegCMeasurement[1] = interpolateADCTemp(tempSensor_2, ADC);
-        currentADCChannel = adcChannel__idle;
-        break;
-    default:
-        /* Do nothing */
-        break;
-    }
-    startADCConversion();
-}
 
 PS9530_Ctrl::LimitingMode PS9530_Ctrl::getCurrentLimitingMode() {
     if (PIN_CTRL & MASK_CTRL) {

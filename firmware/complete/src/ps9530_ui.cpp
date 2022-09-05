@@ -132,19 +132,10 @@ void PS9530_UI::handleKeyboardEvents() {
 }
 
 void PS9530_UI::updateMeasurements() {
-    bool hadNewMeasurement = false;
-    if (control.haveNewVoltageMeasurement()) {
-        hadNewMeasurement = true;
-        display.setMilliVolts(control.getMilliVoltsMeasurement());
-    }
-    if (control.haveNewCurrentMeasurement()) {
-        hadNewMeasurement = true;
-        display.setMilliAmps(control.getMilliAmpsMeasurement());
-    }
-    if (hadNewMeasurement) {
-        uint16_t centiWattPowerMeasurement = (uint32_t)control.getMilliVoltsMeasurement()*control.getMilliAmpsMeasurement()/10000UL;
-        display.setCentiWatts(centiWattPowerMeasurement);
-    }
+    uint16_t centiWattPowerMeasurement = (uint32_t)control.getMilliVoltsMeasurement()*control.getMilliAmpsMeasurement()/10000UL;
+    display.setMilliVolts(control.getMilliVoltsMeasurement());
+    display.setMilliAmps(control.getMilliAmpsMeasurement());
+    display.setCentiWatts(centiWattPowerMeasurement);
 }
 
 void PS9530_UI::changeInputMode(InputMode newMode) {

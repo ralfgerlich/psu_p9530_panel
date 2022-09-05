@@ -13,26 +13,7 @@ public:
     /** Initialize the hardware interface */
     void init();
 
-    /** Set the setpoint for the voltage in millivolts */
-    void setMilliVoltSetpoint(uint16_t milliVolts);
-    /** Set the limit for the current in millivolts */
-    void setMilliAmpsLimit(uint16_t milliAmpere);
-
-    /** Get the voltage measured in millivolts */
-    uint16_t getMilliVoltsMeasurement(bool clearFlag=true);
-    /** Get the current measured in milliampere */
-    uint16_t getMilliAmpsMeasurement(bool clearFlag=true);
-
     KeyCode readKeycode();
-
-    /** Get the temperature at sensor 1 in degrees C */
-    int16_t getTemperature1() const {
-        return tempDegCMeasurement[tempSensor_1];
-    }
-    /** Get the temperature at sensor 2 in degrees C */
-    int16_t getTemperature2() const {
-        return tempDegCMeasurement[tempSensor_2];
-    }
 
     /** Update the hardware interface.
      * This method is intended to be called from an interrupt and
@@ -44,11 +25,20 @@ public:
      * aims for low execution time. */
     void updateADC();
 
-    /** Return true if and only if there is a new voltage measurement available */
-    bool haveNewVoltageMeasurement() const { return (measurementsAvailable & measurementVoltage) != 0; }
+    /** Set the setpoint for the voltage in millivolts */
+    void setMilliVoltSetpoint(uint16_t milliVolts);
+    /** Set the limit for the current in millivolts */
+    void setMilliAmpsLimit(uint16_t milliAmpere);
 
-    /** Return true if and only if there is a new current measurement available */
-    bool haveNewCurrentMeasurement() const { return (measurementsAvailable & measurementCurrent) != 0; }
+    /** Get the voltage measured in millivolts */
+    uint16_t getMilliVoltsMeasurement() const;
+    /** Get the current measured in milliampere */
+    uint16_t getMilliAmpsMeasurement() const;
+
+    /** Get the temperature at sensor 1 in degrees C */
+    int16_t getTemperature1() const;
+    /** Get the temperature at sensor 2 in degrees C */
+    int16_t getTemperature2() const;
 
     enum LimitingMode {
         LimitingMode_Voltage=0,
@@ -130,29 +120,28 @@ private:
      * @return The temperature in Degree Celsius
      */
     static int16_t interpolateADCTemp(uint8_t index, uint16_t adcValue);
-
-    /** Measured voltage in mV */
-    uint16_t milliVoltsMeasurement;
-    /** Measured current in mA */
-    uint16_t milliAmpsMeasurement;
-    /** Measured temperatures in °C  */
-    uint8_t tempDegCMeasurement[2];
+public:
+    /** Raw ADC measurements */
+    uint16_t rawADCMeasurements[4];
 
     enum {
         /** ADC channel for measured voltage */
         adcChannel_voltage = 0,
+        /** ADC channel for measured current */
         adcChannel_current,
+        /** ADC channel for measured coil temperature */
         adcChannel_temp1,
+        /** ADC channel for measured heatsink temperature */
         adcChannel_temp2,
         adcChannel__idle
-    } currentADCChannel;
-
-    enum {
-        measurementVoltage = 1,
-        measurementCurrent = 2
     };
 
-    uint8_t measurementsAvailable;
+    /** Current ADC state
+     * Lowest bit indicates whether this is the dummy measurement (0) or the
+     * actual measurement (1).
+     * Upper bits indicate the channel being measured.
+     */
+    uint8_t currentADCState;
 };
 
 #endif /* PS9530_CTRL_H */
