@@ -75,8 +75,9 @@ protected:
     InputMode currentInputMode;
     /** The number of the digit currently being modified */
     uint8_t currentInputDigit;
+    uint16_t currentInputFactor;
     /** The number of editable digits in the currently edited value */
-    uint8_t currentInputDigitCount;
+    const uint16_t currentInputDigitCount = 4;
     /** The index of the one place in the current input mode */
     uint8_t currentInputOnesIndex;
     /** The value currently being edited (including terminating
@@ -85,9 +86,9 @@ protected:
      * decimal point and up to 3 (Milliwatts) digits after the decimal
      * point. That is 6 digits, plus terminating zero.
      */
-    char currentInputValue[7];
+    int16_t currentInputValue;
     /** The maximum value that can be entered for the currently edited quantity. */
-    uint32_t currentMaximumValue;
+    uint16_t currentMaximumValue;
     /** The original value of the currently edited value. */
     uint16_t originalLimitValue;
 
@@ -108,10 +109,15 @@ protected:
 
     void updateControlLimits();
 
-    uint32_t convertCurrentInputValue();
-
     void updateMeasurements();
 private:
+    enum CurserDirection {
+        CURSER_LEFT,
+        CURSER_RIGHT
+    };
+
+    void moveCurser(CurserDirection direction);
+
     uint16_t voltageSetpointMilliVolts;
     uint16_t currentLimitMilliAmps;
     uint16_t powerLimitCentiWatt;

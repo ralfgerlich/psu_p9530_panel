@@ -111,7 +111,7 @@ void PS9530_Ctrl::updateDAC() {
         /* Select voltage channel on MUX */
         PORT_MUX &= ~MASK_MUX;
         // TODO: Use proper calibration table
-        uint32_t dac_value = milliVoltSetpoint;
+        uint32_t dac_value = milliVoltSetpoint-2;
         dac_value <<= 14UL;
         dac_value /= 30000UL;
         dac_set_unsafe(dac_value);
@@ -121,7 +121,7 @@ void PS9530_Ctrl::updateDAC() {
     case muxChannel_current:
         PORT_MUX |= MASK_MUX;
         // TODO: Use proper calibration table
-        uint32_t dac_value = milliAmpsLimit;
+        uint32_t dac_value = milliAmpsLimit-1;
         dac_value <<= 14UL;
         dac_value /= 10000UL;
         dac_set_unsafe(dac_value);

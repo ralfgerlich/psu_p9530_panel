@@ -15,11 +15,17 @@
 #define PS_DISPLAY_STATE_LIMITED_P 0b01000000
 #define PS_DISPLAY_STATE_OVERTEMP 0b10000000
 
+//rows
+#define PS_DISPLAY_VIRTUAL_ROW_COUNT 9
+#define PS_DISPLAY_ROW_COUNT 6
+//just a helper - starting with 1
+#define getVirtualRow(row) (row + row/2)
+
 //i hate to write it like this but functions as macros get better optimized
-#define setState(value, mask) this->state = value ? this->state | mask : this->state & mask;
-#define setPaintedState(value, mask) this->painted_state = value ? this->painted_state | mask : this->painted_state & mask;
-#define isState(mask) (this->state & mask)
-#define isPaintedState(mask) (this->painted_state & mask)
+#define setState(value, mask) value ? this->state |= mask : this->state &= ~(mask);
+#define setPaintedState(value, mask) value ? this->painted_state |= mask : this->painted_state &= ~(mask);
+#define isState(mask) (this->state & (mask))
+#define isPaintedState(mask) (this->painted_state & (mask))
 
 PsDisplay::PsDisplay( Adafruit_ILI9341 & tft) :
     tft(tft) {
@@ -192,15 +198,20 @@ void PsDisplay::fastStringPrint(char * buffer, char * old_buffer, uint8_t font_w
     for (uint8_t i=0; i<PS_DISPLAY_BUFFER_LENGTH-1; i++) {
         uint16_t char_color = fg_color;
         bool force_paint = false;
-        if (row != ROW_NULL && selected_pos != painted_selected_pos) {
-            // valid row, changed since last time
-            if ((selected_pos & 0x0f) == i && (selected_pos >> 4) == row) {
-                //correct highlight position, correct highlight row
+        if (row != ROW_NULL) {
+            // valid row
+            if (selected_pos != painted_selected_pos) {
+                // changed since last time
+                if ((selected_pos & 0x0f) == i && (selected_pos >> 4) == row) {
+                    //correct highlight position, correct highlight row
+                    char_color = se_color;
+                    force_paint = true;
+                } else if ((painted_selected_pos & 0x0f) == i && (painted_selected_pos >> 4) == row) {
+                    //old highlight position, old highlight row
+                    force_paint = true;
+                }
+            } else if (old_buffer[i] != buffer[i] && (selected_pos & 0x0f) == i && (selected_pos >> 4) == row) {
                 char_color = se_color;
-                force_paint = true;
-            } else if ((painted_selected_pos & 0x0f) == i && (painted_selected_pos >> 4) == row) {
-                //old highlight position, old highlight row
-                force_paint = true;
             }
         }
         if (old_buffer[i] != buffer[i] || force_paint) {
@@ -227,108 +238,87 @@ void PsDisplay::paintSmallLogo(bool visible) {
     }
 }
 
-void PsDisplay::paintStandby(bool visible) {
-    setPaintedState(visible, PS_DISPLAY_STATE_STANDBY);
+void PsDisplay::paintFlag(bool visible, uint8_t flag, uint8_t y) {
+    setPaintedState(visible, flag);
     if (visible) {
         tft.setTextColor(DEFAULT_ATTENTION_COLOR);
     } else {
         tft.setTextColor(DEFAULT_BACKGROUND_COLOR);
     }
-    tft.setCursor(10, PT18_IN_PXH+5+3);
-    tft.print(F("Standby"));
+    tft.setCursor(10, y);
+    if (flag == PS_DISPLAY_STATE_STANDBY) {
+        tft.print(F("Standby"));
+    } else if (flag == PS_DISPLAY_STATE_OVERTEMP) {
+        tft.print(F("Overtemp"));
+    } else {
+        tft.print(F("Limited"));
+    }
 }
 
-void PsDisplay::paintOvertemp(bool visible) {
-    setPaintedState(visible, PS_DISPLAY_STATE_OVERTEMP);
-    if (visible) {
-        tft.setTextColor(DEFAULT_ATTENTION_COLOR);
-    } else {
-        tft.setTextColor(DEFAULT_BACKGROUND_COLOR);
-    }
-    tft.setCursor(10, PT18_IN_PXH+5+3);
-    tft.print(F("Overtemp"));
+uint8_t PsDisplay::getRowYPos(uint8_t row) {
+    static const uint8_t rowSpacing = (PS_DISPLAY_HEIGHT-PS_DISPLAY_VIRTUAL_ROW_COUNT*PT18_IN_PXH)/(PS_DISPLAY_ROW_COUNT+1.f);
+    return getVirtualRow(row)*PT18_IN_PXH + rowSpacing*row;
 }
 
 void PsDisplay::renderMainscreen() {
     //layout is:
     //---------------------
-    // voltage setpoint 24px
-    // VOLTAGE 48px
-    // amps limit 24px
-    // AMPS 48px
-    // watts limit 24px
-    // WATTS 48px
-    // additional info 24px
+    // voltage setpoint 21px
+    // VOLTAGE 42px
+    // amps limit 21px
+    // AMPS 42px
+    // watts limit 21px
+    // WATTS 42px
     //---------------------
     char buffer[PS_DISPLAY_BUFFER_LENGTH];
     //actual paint
     tft.setTextSize(1);
-    if (isPaintedState(PS_DISPLAY_STATE_OVERTEMP) != isState(PS_DISPLAY_STATE_OVERTEMP)) {
-        if (isState(PS_DISPLAY_STATE_OVERTEMP)) {
+    uint8_t changedStates = this->state ^ this->painted_state;
+    if (changedStates & (PS_DISPLAY_STATE_OVERTEMP | PS_DISPLAY_STATE_STANDBY)) {
+        //paint old state in bg color
+        if (!isPaintedState(PS_DISPLAY_STATE_OVERTEMP | PS_DISPLAY_STATE_STANDBY)) {
             paintSmallLogo(false);
-        }
-        if (isPaintedState(PS_DISPLAY_STATE_STANDBY)) {
-            paintStandby(false);
-        }
-        paintOvertemp(isState(PS_DISPLAY_STATE_OVERTEMP));
-        if (!isState(PS_DISPLAY_STATE_OVERTEMP)) {
-            paintSmallLogo(true);
-        }
-    }
-    if (!isPaintedState(PS_DISPLAY_STATE_OVERTEMP) && isPaintedState(PS_DISPLAY_STATE_STANDBY) != isState(PS_DISPLAY_STATE_STANDBY)) {
-        if (isState(PS_DISPLAY_STATE_STANDBY)) {
-            paintSmallLogo(false);
-        }
-        paintStandby(isState(PS_DISPLAY_STATE_STANDBY));
-        if (!isState(PS_DISPLAY_STATE_STANDBY)) {
-            paintSmallLogo(true);
-        }
-    }
-    if (isPaintedState(PS_DISPLAY_STATE_LIMITED_A) != isState(PS_DISPLAY_STATE_LIMITED_A)) {
-        setPaintedState(isState(PS_DISPLAY_STATE_LIMITED_A), PS_DISPLAY_STATE_LIMITED_A);
-        if (isPaintedState(PS_DISPLAY_STATE_LIMITED_A)) {
-            tft.setTextColor(DEFAULT_ATTENTION_COLOR);
+        } else if (isPaintedState(PS_DISPLAY_STATE_OVERTEMP)) {
+            paintFlag(false, PS_DISPLAY_STATE_OVERTEMP, getRowYPos(1));
         } else {
-            tft.setTextColor(DEFAULT_BACKGROUND_COLOR);
+            paintFlag(false, PS_DISPLAY_STATE_STANDBY, getRowYPos(1));
         }
-        tft.setCursor(10, PT18_IN_PXH*4+5*2+3*4);
-        tft.print(F("Limited"));
-    }
-    if (isPaintedState(PS_DISPLAY_STATE_LIMITED_P) != isState(PS_DISPLAY_STATE_LIMITED_P)) {
-        setPaintedState(isState(PS_DISPLAY_STATE_LIMITED_P), PS_DISPLAY_STATE_LIMITED_P);
-        if (isPaintedState(PS_DISPLAY_STATE_LIMITED_P)) {
-            tft.setTextColor(DEFAULT_ATTENTION_COLOR);
+        //paint new state
+        if (!isState(PS_DISPLAY_STATE_OVERTEMP | PS_DISPLAY_STATE_STANDBY)) {
+            paintSmallLogo(true);
+        } else if (isState(PS_DISPLAY_STATE_OVERTEMP)) {
+            paintFlag(true, PS_DISPLAY_STATE_OVERTEMP, getRowYPos(1));
         } else {
-            tft.setTextColor(DEFAULT_BACKGROUND_COLOR);
+            paintFlag(true, PS_DISPLAY_STATE_STANDBY, getRowYPos(1));
         }
-        tft.setCursor(10, PT18_IN_PXH*7+5*3+3*7);
-        tft.print(F("Limited"));
+    }
+    if (changedStates & PS_DISPLAY_STATE_LIMITED_A) {
+        paintFlag(isState(PS_DISPLAY_STATE_LIMITED_A), PS_DISPLAY_STATE_LIMITED_A, getRowYPos(3));
+    }
+    if (changedStates & PS_DISPLAY_STATE_LIMITED_P) {
+        paintFlag(isState(PS_DISPLAY_STATE_LIMITED_P), PS_DISPLAY_STATE_LIMITED_P, getRowYPos(5));
     }
     yield();
     //optimized hybrid
-    //TODO improvement
-    //     speed can be improved by reducing overdraw.
-    //     if we render the bg color char and the new char in memory
-    //     and only send the resulting pixels without bg color to the display
     tft.setTextSize(1);
-    tft.setCursor(60+PT18_IN_PXW*6, PT18_IN_PXH+5+3);
+    tft.setCursor(60+PT18_IN_PXW*6, getRowYPos(1));
     formatMilliNumber(buffer, milli_volts_setpoint, ROW_VOLTS, true);
     fastStringPrint(buffer, buffer_volts_setp, PT18_IN_PXW, ROW_VOLTS);
-    tft.setCursor(60+PT18_IN_PXW*6, PT18_IN_PXH*4+5*2+3*4);
+    tft.setCursor(60+PT18_IN_PXW*6, getRowYPos(3));
     formatMilliNumber(buffer, milli_amps_limit, ROW_AMPS, true);
     fastStringPrint(buffer, buffer_amps_limit, PT18_IN_PXW, ROW_AMPS);
-    tft.setCursor(60+PT18_IN_PXW*6, PT18_IN_PXH*7+5*3+3*7);
+    tft.setCursor(60+PT18_IN_PXW*6, getRowYPos(5));
     formatCentiNumber(buffer, centi_watts_limit, ROW_WATTS, true);
     fastStringPrint(buffer, buffer_watts_limit, PT18_IN_PXW, ROW_WATTS);
     painted_selected_pos = selected_pos;
     tft.setTextSize(2);
-    tft.setCursor(60, PT18_IN_PXH*3+5+3*3);
+    tft.setCursor(60, getRowYPos(2));
     formatMilliNumber(buffer, milli_volts, ROW_VOLTS);
     fastStringPrint(buffer, buffer_volts, PT18_IN_PXW*2);
-    tft.setCursor(60, PT18_IN_PXH*6+5*2+3*6);
+    tft.setCursor(60, getRowYPos(4));
     formatMilliNumber(buffer, milli_amps, ROW_AMPS);
     fastStringPrint(buffer, buffer_amps, PT18_IN_PXW*2);
-    tft.setCursor(60, PT18_IN_PXH*9+5*3+3*9);
+    tft.setCursor(60, getRowYPos(6));
     formatCentiNumber(buffer, centi_watts, ROW_WATTS);
     fastStringPrint(buffer, buffer_watts, PT18_IN_PXW*2);
     yield();
@@ -371,7 +361,6 @@ void PsDisplay::renderVolts() {
     tft.setTextSize(2);
     tft.setCursor(60, PT18_IN_PXH*2+4);
     formatMilliNumber(buffer, milli_volts, ROW_VOLTS);
-    //tft.setTextSize(2);
     fastStringPrint(buffer, buffer_volts, PT18_IN_PXW*2, ROW_NULL);
     renderHistory(history_volts, history_volts_pos);
 }
@@ -395,35 +384,35 @@ void PsDisplay::renderWatts() {
 }
 
 void PsDisplay::setStandby(bool standby) {
-    setState(state, PS_DISPLAY_STATE_STANDBY);
+    setState(standby, PS_DISPLAY_STATE_STANDBY);
 }
 
 void PsDisplay::setLocked(bool locked) {
-    setState(state, PS_DISPLAY_STATE_LOCKED);
+    setState(locked, PS_DISPLAY_STATE_LOCKED);
 }
 
 void PsDisplay::setMemory(bool memory) {
-    setState(state, PS_DISPLAY_STATE_MEMORY);
+    setState(memory, PS_DISPLAY_STATE_MEMORY);
 }
 
 void PsDisplay::setRemote(bool remote) {
-    setState(state, PS_DISPLAY_STATE_REMOTE);
+    setState(remote, PS_DISPLAY_STATE_REMOTE);
 }
 
 void PsDisplay::setLimitedV(bool limited_v) {
-    setState(state, PS_DISPLAY_STATE_LIMITED_V);
+    setState(limited_v, PS_DISPLAY_STATE_LIMITED_V);
 }
 
 void PsDisplay::setLimitedA(bool limited_a) {
-    setState(state, PS_DISPLAY_STATE_LIMITED_A);
+    setState(limited_a, PS_DISPLAY_STATE_LIMITED_A);
 }
 
 void PsDisplay::setLimitedP(bool limited_p) {
-    setState(state, PS_DISPLAY_STATE_LIMITED_P);
+    setState(limited_p, PS_DISPLAY_STATE_LIMITED_P);
 }
 
 void PsDisplay::setOvertemp(bool overtemp) {
-    setState(state, PS_DISPLAY_STATE_OVERTEMP);
+    setState(overtemp, PS_DISPLAY_STATE_OVERTEMP);
 }
 
 void PsDisplay::setMilliVoltsSetpoint(int16_t voltage_setpoint) {
@@ -441,19 +430,19 @@ void PsDisplay::setCentiWattsLimit(int16_t watts_limit) {
 void PsDisplay::setMilliVolts(int16_t voltage) {
     this->milli_volts = voltage;
     history_volts_pos = (history_volts_pos+1) % HISTORY_LENGTH;
-    history_volts[history_volts_pos] = (voltage / 10000.f) *(PS_DISPLAY_HEIGHT-24*2-5-1) +1;
+    history_volts[history_volts_pos] = (voltage / 10000.f) *(PS_DISPLAY_HEIGHT-(PT18_IN_PXH*2+6*2)) +1;
 }
 
 void PsDisplay::setMilliAmps(int16_t amps) {
     this->milli_amps = amps;
     history_apms_pos = (history_apms_pos+1) % HISTORY_LENGTH;
-    history_amps[history_apms_pos] = (amps / 10000.f) *(PS_DISPLAY_HEIGHT-24*2-5-1) +1;
+    history_amps[history_apms_pos] = (amps / 10000.f) *(PS_DISPLAY_HEIGHT-(PT18_IN_PXH*2+6*2)) +1;
 }
 
 void PsDisplay::setCentiWatts(int16_t watts) {
     this->centi_watts = watts;
     history_watts_pos = (history_watts_pos+1) % HISTORY_LENGTH;
-    history_watts[history_watts_pos] = (watts / 30000.f) *(PS_DISPLAY_HEIGHT-24*2-5-1) +1;
+    history_watts[history_watts_pos] = (watts / 30000.f) *(PS_DISPLAY_HEIGHT-(PT18_IN_PXH*2+6*2)) +1;
 }
 
 void PsDisplay::setCurser(row_t row, uint8_t pos) {
