@@ -118,12 +118,14 @@ void PS9530_UI::handleKeyboardEvents() {
         Serial.println(currentInputMode);
         Serial.print(F("currentInputValue="));
         Serial.println(currentInputValue);
+        Serial.print(F("currentInputFactor="));
+        Serial.println(currentInputFactor);
         Serial.print(F("currentInputDigit="));
         Serial.println(currentInputDigit);
         Serial.print(F("currentInputDigitCount="));
         Serial.println(currentInputDigitCount);
         Serial.print(F("convertCurrentInputValue="));
-        Serial.println(convertCurrentInputValue());
+        Serial.println(currentInputValue);
         Serial.print(F("currentMaximumValue="));
         Serial.println(currentMaximumValue);
     }
@@ -163,29 +165,29 @@ void PS9530_UI::changeInputMode(InputMode newMode) {
         break;
     }
     currentInputMode = newMode;
-    memset(currentInputValue, '0', sizeof(currentInputValue)-1);
+    currentInputValue = 0;
     /* Set up the value to edit */
     switch (currentInputMode) {
     case InputNone:
         /* Nothing to be done here */
         break;
     case InputVoltage:
-        sprintf_P(currentInputValue, PSTR("%05u"), voltageSetpointMilliVolts);
-        currentMaximumValue = MAX_VOLTAGE_CENTIVOLTS;
-        currentInputOnesIndex = 1;
+        currentInputValue = voltageSetpointMilliVolts/10;
         originalLimitValue = voltageSetpointMilliVolts;
+        currentMaximumValue = MAX_VOLTAGE_CENTIVOLTS;
+        currentInputOnesIndex = 2;
         break;
     case InputCurrent:
-        sprintf_P(currentInputValue, PSTR("%05u"), currentLimitMilliAmps);
-        currentMaximumValue = MAX_CURRENT_CENTIAMPS;
-        currentInputOnesIndex = 1;
+        currentInputValue = currentLimitMilliAmps/10;
         originalLimitValue = currentLimitMilliAmps;
+        currentMaximumValue = MAX_CURRENT_CENTIAMPS;
+        currentInputOnesIndex = 2;
         break;
     case InputPower:
-        sprintf_P(currentInputValue, PSTR("%05u"), powerLimitCentiWatt);
-        currentMaximumValue = MAX_POWER_DECIWATT;
-        currentInputOnesIndex = 2;
+        currentInputValue = powerLimitCentiWatt/10;
         originalLimitValue = powerLimitCentiWatt;
+        currentMaximumValue = MAX_POWER_DECIWATT;
+        currentInputOnesIndex = 1;
         break;
     }
     /* Reset the cursor position */
@@ -196,15 +198,14 @@ void PS9530_UI::changeInputMode(InputMode newMode) {
     case InputVoltage:
     case InputCurrent:
     case InputPower:
-        currentInputDigit = 0;
-        currentInputDigitCount = 4;
+        currentInputDigit = currentInputDigitCount-1;
+        currentInputFactor = 1000;
         updateEditedValue();
         break;
     }
 }
 
 void PS9530_UI::updateEditedValue() {
-    uint32_t convertedValue = convertCurrentInputValue();
     /* Adjust the value to the maximum allowed value */
     switch (currentInputMode) {
     case InputNone:
@@ -212,9 +213,10 @@ void PS9530_UI::updateEditedValue() {
         break;
     default:
         /* Limit the value to its maximum */
-        if (convertedValue>currentMaximumValue) {
-            convertedValue = currentMaximumValue;
-            sprintf_P(currentInputValue, PSTR("%05u"), convertedValue*10);
+        if (currentInputValue<0) {
+            currentInputValue = 0;
+        } else if (currentInputValue>currentMaximumValue) {
+            currentInputValue = currentMaximumValue;
         }
         break;
     }
@@ -223,16 +225,16 @@ void PS9530_UI::updateEditedValue() {
         display.setCurser(PsDisplay::ROW_NULL, 0);
         break;
     case InputVoltage:
-        display.setCurser(PsDisplay::ROW_VOLTS, currentInputDigit);
-        display.setMilliVoltsSetpoint(convertCurrentInputValue()*10);
+        display.setCurser(PsDisplay::ROW_VOLTS, currentInputDigitCount-1-currentInputDigit);
+        display.setMilliVoltsSetpoint(currentInputValue*10);
         break;
     case InputCurrent:
-        display.setCurser(PsDisplay::ROW_AMPS, currentInputDigit);
-        display.setMilliAmpsLimit(convertCurrentInputValue()*10);
+        display.setCurser(PsDisplay::ROW_AMPS, currentInputDigitCount-1-currentInputDigit);
+        display.setMilliAmpsLimit(currentInputValue*10);
         break;
     case InputPower:
-        display.setCurser(PsDisplay::ROW_WATTS, currentInputDigit);
-        display.setCentiWattsLimit(convertCurrentInputValue()*10);
+        display.setCurser(PsDisplay::ROW_WATTS, currentInputDigitCount-1-currentInputDigit);
+        display.setCentiWattsLimit(currentInputValue*10);
         break;
     }
 }
@@ -244,23 +246,11 @@ void PS9530_UI::handleEncoderRotation(KeyCode direction) {
     }
     switch (direction) {
     case kbd_enc_cw:
-        if (currentInputValue[currentInputDigit]<'9') {
-            /* Increase the value of the current digit */
-            currentInputValue[currentInputDigit]++;
-        } else {
-            /* Wrap around after '9' */
-            currentInputValue[currentInputDigit]='0';
-        }
+        currentInputValue += currentInputFactor;
         updateEditedValue();
         break;
     case kbd_enc_ccw:
-        if (currentInputValue[currentInputDigit]>'0') {
-            /* Decrease the value of the current digit */
-            currentInputValue[currentInputDigit]--;
-        } else {
-            /* Wrap around after '0' */
-            currentInputValue[currentInputDigit]='9';
-        }
+        currentInputValue -= currentInputFactor;
         updateEditedValue();
         break;
     default:
@@ -274,26 +264,26 @@ void PS9530_UI::handleDigitKey(KeyCode keycode) {
         /* Ignore digit keys if not in any input mode */
         return;
     }
-    char digit;
+    uint8_t digit;
     switch (keycode) {
-    case kbd_0: digit='0'; break;
-    case kbd_1: digit='1'; break;
-    case kbd_2: digit='2'; break;
-    case kbd_3: digit='3'; break;
-    case kbd_4: digit='4'; break;
-    case kbd_5: digit='5'; break;
-    case kbd_6: digit='6'; break;
-    case kbd_7: digit='7'; break;
-    case kbd_8: digit='8'; break;
-    case kbd_9: digit='9'; break;
+    case kbd_0: digit=0; break;
+    case kbd_1: digit=1; break;
+    case kbd_2: digit=2; break;
+    case kbd_3: digit=3; break;
+    case kbd_4: digit=4; break;
+    case kbd_5: digit=5; break;
+    case kbd_6: digit=6; break;
+    case kbd_7: digit=7; break;
+    case kbd_8: digit=8; break;
+    case kbd_9: digit=9; break;
     default:
         /* This should not happen, but we exit just to be safe */
         return;
     }
-    currentInputValue[currentInputDigit] = digit;
-    if (currentInputDigit+1<currentInputDigitCount) {
-        currentInputDigit++;
-    }
+    uint8_t digitAtPos = uint16_t(currentInputValue/currentInputFactor) % 10;
+    currentInputValue -= digitAtPos*currentInputFactor;
+    currentInputValue += digit*currentInputFactor;
+    moveCurser(CURSER_RIGHT);
     updateEditedValue();
 }
 
@@ -302,24 +292,20 @@ void PS9530_UI::handleDotKey() {
         /* Ignore this keypress if we are in none of the input modes */
         return;
     }
-    if (currentInputDigit<=currentInputOnesIndex) {
-        /* Move everything to the right as required */
-        const size_t startIndex =  currentInputOnesIndex+1-currentInputDigit;
-        memmove(&currentInputValue[startIndex], currentInputValue, currentInputDigit);
-        /* Clear the digits in front */
-        memset(currentInputValue, '0', startIndex);
-    } else if (currentInputDigit>currentInputOnesIndex+1) {
-        const size_t srcIndex = currentInputDigit-currentInputOnesIndex-1;
-        /* Move everything to the left as required */
-        memmove(currentInputValue, &currentInputValue[srcIndex], currentInputOnesIndex);
-        /* Clear the digits in the back */
-        memset(&currentInputValue[srcIndex], '0', sizeof(currentInputValue)-srcIndex-1);
-    }
-    /* Place the cursor behind the ones index */
-    if (currentInputOnesIndex+1<currentInputDigitCount) {
-        currentInputDigit = currentInputOnesIndex+1;
-    } else {
-        currentInputDigit = currentInputDigitCount-1;
+    if (currentInputDigit<currentInputOnesIndex && currentInputValue <= currentMaximumValue/100) {
+        //move everything to the left
+        while (currentInputDigit<currentInputOnesIndex) {
+            currentInputValue *= 10;
+            moveCurser(CURSER_LEFT);
+        }
+        moveCurser(CURSER_RIGHT);
+    } else if (currentInputDigit>currentInputOnesIndex) {
+        //move everything to the right
+        while (currentInputDigit>currentInputOnesIndex) {
+            currentInputValue /= 10;
+            moveCurser(CURSER_RIGHT);
+        }
+        moveCurser(CURSER_RIGHT);
     }
     updateEditedValue();
 }
@@ -330,20 +316,11 @@ void PS9530_UI::handleCEKey() {
         return;
     }
     /* Clear the whole number */
-    memset(currentInputValue, '0', sizeof(currentInputValue)-1);
+    currentInputValue = 0;
     /* Reset to the first digit */
-    currentInputDigit = 0;
+    currentInputDigit = currentInputDigitCount-1;
+    currentInputFactor = 1000;
     updateEditedValue();
-}
-
-uint32_t PS9530_UI::convertCurrentInputValue() {
-    /* Convert the value in the input buffer to an integer value */
-    uint32_t value = 0;
-    for (uint8_t idx = 0; idx<currentInputDigitCount; idx++) {
-        value *= 10;
-        value += currentInputValue[idx]-'0';
-    }
-    return value;
 }
 
 void PS9530_UI::handleEnterKey() {
@@ -352,13 +329,13 @@ void PS9530_UI::handleEnterKey() {
         /* If we are in no input move, ignore the key */
         return;
     case InputVoltage:
-        setVoltageSetpointMilliVolts(convertCurrentInputValue()*10);
+        setVoltageSetpointMilliVolts(currentInputValue*10);
         break;
     case InputCurrent:
-        setCurrentLimitMilliAmps(convertCurrentInputValue()*10);
+        setCurrentLimitMilliAmps(currentInputValue*10);
         break;
     case InputPower:
-        setPowerLimitCentiWatt(convertCurrentInputValue()*10);
+        setPowerLimitCentiWatt(currentInputValue*10);
         break;
     }
     /* Leave input mode */
@@ -373,20 +350,30 @@ void PS9530_UI::handleDirectionKey(KeyCode keycode) {
     }
     switch (keycode) {
     case kbd_left:
-        if (currentInputDigit>0) {
-            currentInputDigit--;
-            updateEditedValue();
-        }
+        moveCurser(CURSER_LEFT);
+        updateEditedValue();
         break;
     case kbd_right:
-        if (currentInputDigit+1<currentInputDigitCount) {
-            currentInputDigit++;
-            updateEditedValue();
-        }
+        moveCurser(CURSER_RIGHT);
+        updateEditedValue();
         break;
     default:
         /* Shouldn't happen, is ignored. This is just to placate the compiler */
         break;
+    }
+}
+
+void PS9530_UI::moveCurser(CurserDirection direction) {
+    if (direction == CURSER_LEFT) {
+        if (currentInputDigit+1<currentInputDigitCount) {
+            currentInputDigit++;
+            currentInputFactor *= 10;
+        }
+    } else {
+        if (currentInputDigit>0) {
+            currentInputDigit--;
+            currentInputFactor /= 10;
+        }
     }
 }
 
