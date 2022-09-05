@@ -205,7 +205,7 @@ ISR(INT0_vect) {
         if (currentEncoderState & MASK_ENC_B) {
             // B is high
             encoderState--;
-            if (encoderState <= 4) {
+            if (encoderState <= -4) {
                 // Pin A has gone high last => CCW
                 encoderState = 0;
                 kbd_emplace_unsafe(kbd_enc_ccw);
