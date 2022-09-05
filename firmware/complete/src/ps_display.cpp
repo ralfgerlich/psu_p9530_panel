@@ -273,33 +273,30 @@ void PsDisplay::renderMainscreen() {
     char buffer[PS_DISPLAY_BUFFER_LENGTH];
     //actual paint
     tft.setTextSize(1);
-    if (this->state != this->painted_state) {
-        //state changed
-        uint8_t changedStates = this->state ^ this->painted_state;
-        if (changedStates & (PS_DISPLAY_STATE_OVERTEMP | PS_DISPLAY_STATE_STANDBY)) {
-            //paint old state in bg color
-            if (!isPaintedState(PS_DISPLAY_STATE_OVERTEMP | PS_DISPLAY_STATE_STANDBY)) {
-                paintSmallLogo(false);
-            } else if (isPaintedState(PS_DISPLAY_STATE_OVERTEMP)) {
-                paintFlag(false, PS_DISPLAY_STATE_OVERTEMP, getRowYPos(1));
-            } else {
-                paintFlag(false, PS_DISPLAY_STATE_STANDBY, getRowYPos(1));
-            }
-            //paint new state
-            if (!isState(PS_DISPLAY_STATE_OVERTEMP | PS_DISPLAY_STATE_STANDBY)) {
-                paintSmallLogo(true);
-            } else if (isState(PS_DISPLAY_STATE_OVERTEMP)) {
-                paintFlag(true, PS_DISPLAY_STATE_OVERTEMP, getRowYPos(1));
-            } else {
-                paintFlag(true, PS_DISPLAY_STATE_STANDBY, getRowYPos(1));
-            }
+    uint8_t changedStates = this->state ^ this->painted_state;
+    if (changedStates & (PS_DISPLAY_STATE_OVERTEMP | PS_DISPLAY_STATE_STANDBY)) {
+        //paint old state in bg color
+        if (!isPaintedState(PS_DISPLAY_STATE_OVERTEMP | PS_DISPLAY_STATE_STANDBY)) {
+            paintSmallLogo(false);
+        } else if (isPaintedState(PS_DISPLAY_STATE_OVERTEMP)) {
+            paintFlag(false, PS_DISPLAY_STATE_OVERTEMP, getRowYPos(1));
+        } else {
+            paintFlag(false, PS_DISPLAY_STATE_STANDBY, getRowYPos(1));
         }
-        if (changedStates & PS_DISPLAY_STATE_LIMITED_A) {
-            paintFlag(isState(PS_DISPLAY_STATE_LIMITED_A), PS_DISPLAY_STATE_LIMITED_A, getRowYPos(3));
+        //paint new state
+        if (!isState(PS_DISPLAY_STATE_OVERTEMP | PS_DISPLAY_STATE_STANDBY)) {
+            paintSmallLogo(true);
+        } else if (isState(PS_DISPLAY_STATE_OVERTEMP)) {
+            paintFlag(true, PS_DISPLAY_STATE_OVERTEMP, getRowYPos(1));
+        } else {
+            paintFlag(true, PS_DISPLAY_STATE_STANDBY, getRowYPos(1));
         }
-        if (changedStates & PS_DISPLAY_STATE_LIMITED_P) {
-            paintFlag(isState(PS_DISPLAY_STATE_LIMITED_P), PS_DISPLAY_STATE_LIMITED_P, getRowYPos(5));
-        }
+    }
+    if (changedStates & PS_DISPLAY_STATE_LIMITED_A) {
+        paintFlag(isState(PS_DISPLAY_STATE_LIMITED_A), PS_DISPLAY_STATE_LIMITED_A, getRowYPos(3));
+    }
+    if (changedStates & PS_DISPLAY_STATE_LIMITED_P) {
+        paintFlag(isState(PS_DISPLAY_STATE_LIMITED_P), PS_DISPLAY_STATE_LIMITED_P, getRowYPos(5));
     }
     yield();
     //optimized hybrid
