@@ -92,9 +92,6 @@ protected:
     /** The original value of the currently edited value. */
     uint16_t originalLimitValue;
 
-    /** Flag indicating whether we are in standby mode */
-    bool standbyMode;
-
     /** Current limiter mode */
     enum {
         LimitingByCurrent,

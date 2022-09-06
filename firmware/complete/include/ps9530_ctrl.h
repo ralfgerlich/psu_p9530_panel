@@ -25,6 +25,15 @@ public:
      * aims for low execution time. */
     void updateADC();
 
+    /** Set standby mode */
+    void setStandbyMode(bool standbyMode);
+
+    /** Toggle standby mode */
+    void toggleStandbyMode();
+
+    /** Determine whether we are in standby mode */
+    bool isStandbyEnabled() const;
+
     /** Set the setpoint for the voltage in millivolts */
     void setMilliVoltSetpoint(uint16_t milliVolts);
     /** Set the limit for the current in millivolts */
@@ -39,6 +48,9 @@ public:
     int16_t getTemperature1() const;
     /** Get the temperature at sensor 2 in degrees C */
     int16_t getTemperature2() const;
+
+    /** Indicate whether we have overtemperature */
+    bool isOvertemp() const;
 
     enum LimitingMode {
         LimitingMode_Voltage=0,
@@ -59,6 +71,9 @@ private:
     void startADCConversion();
 
     static PS9530_Ctrl instance;
+
+    /** Flag indicating standby mode */
+    bool standbyMode;
 
     /** Raw values for the DAC channels */
     uint16_t rawDACValue[2];
@@ -120,6 +135,16 @@ private:
      * @return The temperature in Degree Celsius
      */
     static int16_t interpolateADCTemp(uint8_t index, uint16_t adcValue);
+
+    /** Flags indicating whether we are in overtemperature mode and why */
+    enum {
+        overTempMode_1=1,
+        overTempMode_2=2
+    };
+    int8_t overTempMode;
+
+    /** Check for overtemperature and put system in standby in that case */
+    void updateOvertemperature();
 public:
     /** Raw ADC measurements */
     uint16_t rawADCMeasurements[4];

@@ -18,6 +18,11 @@
 #define DDR_CTRL DDRD
 #define MASK_CTRL _BV(PIN7)
 
+#define TEMP1_LOWER_LIMIT 40
+#define TEMP1_UPPER_LIMIT 60
+#define TEMP2_LOWER_LIMIT 40
+#define TEMP2_UPPER_LIMIT 60
+
 #include "ps9530_ctrl.h"
 
 PS9530_Ctrl PS9530_Ctrl::instance;
@@ -27,8 +32,10 @@ PS9530_Ctrl& PS9530_Ctrl::getInstance() {
 }
 
 PS9530_Ctrl::PS9530_Ctrl():
+    standbyMode(true),
     rawDACValue{0, 0},
     currentMuxChannel(muxChannel_voltage),
+    overTempMode(0),
     rawADCMeasurements{0,0,0,0},
     currentADCState(adcChannel__idle<<1)
 {
@@ -71,10 +78,24 @@ void PS9530_Ctrl::updateADC() {
         /* We just did the actual measurement */
         const uint8_t currentADCChannel = currentADCState>>1;
         rawADCMeasurements[currentADCChannel] = ADC;
+        updateOvertemperature();
     }
     /* Update the state */
     currentADCState++;
     startADCConversion();
+}
+
+void PS9530_Ctrl::setStandbyMode(bool standbyMode) {
+    standbyMode = standbyMode;
+}
+
+void PS9530_Ctrl::toggleStandbyMode() {
+    standbyMode = !standbyMode;
+}
+
+bool PS9530_Ctrl::isStandbyEnabled() const {
+    // Standby can be enabled externally or due to overtemperature detection
+    return (standbyMode || isOvertemp());
 }
 
 void PS9530_Ctrl::updateDAC() {
@@ -83,14 +104,14 @@ void PS9530_Ctrl::updateDAC() {
     case muxChannel_voltage: {
         /* Select voltage channel on MUX */
         PORT_MUX &= ~MASK_MUX;
-        dac_set_unsafe(rawDACValue[0]);
+        dac_set_unsafe(isStandbyEnabled()?0:rawDACValue[0]);
         currentMuxChannel = muxChannel_current;
         break;
     }
     case muxChannel_current:
         /* Select voltage channel on MUX */
         PORT_MUX |= MASK_MUX;
-        dac_set_unsafe(rawDACValue[1]);
+        dac_set_unsafe(isStandbyEnabled()?0:rawDACValue[1]);
         currentMuxChannel = muxChannel_voltage;
         break;
     }
@@ -165,6 +186,10 @@ int16_t PS9530_Ctrl::getTemperature2() const {
     return result;
 }
 
+bool PS9530_Ctrl::isOvertemp() const {
+    return overTempMode!=0;
+}
+
 const uint16_t PS9530_Ctrl::adcVoltageOffset[32] PROGMEM = {
      0,  1034,  2068,  3102,  4136,  5170,  6204,  7238,  8272,
   9306, 10340, 11374, 12408, 13442, 14476, 15510, 16544, 17578,
@@ -234,6 +259,31 @@ const int16_t PS9530_Ctrl::tempGradient[2][11] PROGMEM = {
     {-26, -22, -20, -18, -19, -18, -18, -18, -19, -19},
     {-38, -28, -24, -21, -18, -17, -15, -15, -13, -13}
 };
+
+void PS9530_Ctrl::updateOvertemperature() {
+    int16_t temp1 = getTemperature1();
+    if (overTempMode & overTempMode_1) {
+        // We are in overtemperature for temperature 1
+        if (temp1 < TEMP1_LOWER_LIMIT) {
+            // Temperature has fallen again
+            overTempMode &= ~overTempMode_1;
+        }
+    } else if (temp1 > TEMP1_UPPER_LIMIT) {
+        // We have exceeded the upper temperature limit 1
+        overTempMode |= overTempMode_1;
+    }
+    int16_t temp2 = getTemperature1();
+    if (overTempMode & overTempMode_2) {
+        // We are in overtemperature for temperature 2
+        if (temp2 < TEMP2_LOWER_LIMIT) {
+            // Temperature has fallen again
+            overTempMode &= ~overTempMode_2;
+        }
+    } else if (temp2 > TEMP2_UPPER_LIMIT) {
+        // We have exceeded the upper temperature limit 2
+        overTempMode |= overTempMode_2;
+    }
+}
 
 PS9530_Ctrl::LimitingMode PS9530_Ctrl::getCurrentLimitingMode() {
     if (PIN_CTRL & MASK_CTRL) {

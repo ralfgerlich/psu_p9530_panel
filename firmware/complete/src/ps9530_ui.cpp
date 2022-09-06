@@ -7,15 +7,11 @@
 #define MAX_CURRENT_CENTIAMPS 1000UL
 #define MAX_POWER_DECIWATT 3000UL
 
-#define TEMP1_LIMIT 80
-#define TEMP2_LIMIT 80
-
 PS9530_UI::PS9530_UI(PS9530_Ctrl& control,
                      PsDisplay& display):
     control(control),
     display(display),
     currentInputMode(InputNone),
-    standbyMode(false),
     limitingMode(LimitingByCurrent)
 {
 }
@@ -32,13 +28,13 @@ void PS9530_UI::init() {
     setVoltageSetpointMilliVolts(30000);
     setCurrentLimitMilliAmps(10000);
     setPowerLimitCentiWatt(30000);
-    setStandbyMode(true);
 }
 
 void PS9530_UI::update() {
     handleKeyboardEvents();
     updateMeasurements();
-    display.setOvertemp(control.getTemperature1()>TEMP1_LIMIT || control.getTemperature2()>TEMP2_LIMIT);
+    display.setOvertemp(control.isOvertemp());
+    display.setStandby(control.isStandbyEnabled());
     if (control.getCurrentLimitingMode()==PS9530_Ctrl::LimitingMode_Voltage) {
         display.setLimitedV(true);
         display.setLimitedA(false);
@@ -107,7 +103,7 @@ void PS9530_UI::handleKeyboardEvents() {
     display.renderMainscreen();
     if (hadEvent) {
         Serial.print(F("standbyMode="));
-        Serial.println(standbyMode);
+        Serial.println(control.isStandbyEnabled());
         Serial.print(F("voltageSetpointMilliVolts="));
         Serial.println(voltageSetpointMilliVolts);
         Serial.print(F("currentLimitMilliAmps="));
@@ -377,7 +373,7 @@ void PS9530_UI::handleMemoryKey() {
 }
 
 void PS9530_UI::handleStandbyKey() {
-    setStandbyMode(!standbyMode);
+    control.toggleStandbyMode();
 }
 
 void PS9530_UI::handleRemoteKey() {
@@ -403,37 +399,19 @@ void PS9530_UI::setPowerLimitCentiWatt(uint16_t centiWatt) {
 }
 
 void PS9530_UI::updateControlLimits() {
-    if (standbyMode) {
-        /* We're in standby mode, set the controller to 0V and 0A */
-        control.setMilliVoltSetpoint(0);
-        control.setMilliAmpsLimit(0);
+    control.setMilliVoltSetpoint(voltageSetpointMilliVolts);
+
+    /* Both the current and the power limit define a maximum current.
+    * Set the one that actuall implies the lower current limit.
+    */
+    if (powerLimitCentiWatt*10UL>(uint32_t)voltageSetpointMilliVolts*currentLimitMilliAmps/1000UL) {
+        /* The current limit is more limiting */
+        control.setMilliAmpsLimit(currentLimitMilliAmps);
+        limitingMode = LimitingByCurrent;
     } else {
-        /* We're not in standby mode, set the voltage and current limit */
-        control.setMilliVoltSetpoint(voltageSetpointMilliVolts);
-
-        /* Both the current and the power limit define a maximum current.
-        * Set the one that actuall implies the lower current limit.
-        */
-        if (powerLimitCentiWatt*10UL>(uint32_t)voltageSetpointMilliVolts*currentLimitMilliAmps/1000UL) {
-            /* The current limit is more limiting */
-            control.setMilliAmpsLimit(currentLimitMilliAmps);
-            limitingMode = LimitingByCurrent;
-        } else {
-            /* The power limit is more limiting */
-            uint16_t actualCurrentLimitMilliAmps = powerLimitCentiWatt*10000UL/voltageSetpointMilliVolts;
-            control.setMilliAmpsLimit(actualCurrentLimitMilliAmps);
-            limitingMode = LimitingByPower;
-        }
+        /* The power limit is more limiting */
+        uint16_t actualCurrentLimitMilliAmps = powerLimitCentiWatt*10000UL/voltageSetpointMilliVolts;
+        control.setMilliAmpsLimit(actualCurrentLimitMilliAmps);
+        limitingMode = LimitingByPower;
     }
-}
-
-void PS9530_UI::setStandbyMode(bool newMode) {
-    if (newMode==standbyMode) {
-        /* Mode does not change, so we do nothing */
-        return;
-    }
-
-    display.setStandby(newMode);
-    standbyMode = newMode;
-    updateControlLimits();
 }

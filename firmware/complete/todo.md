@@ -3,7 +3,6 @@ bugs:
 * amp readings off
 * volt reading not stable
 * limited state handling kaputt
-* no standby on overtemperature
 
 missing features:
 * lock function
