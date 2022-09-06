@@ -27,8 +27,7 @@ PS9530_Ctrl& PS9530_Ctrl::getInstance() {
 }
 
 PS9530_Ctrl::PS9530_Ctrl():
-    milliVoltSetpoint(0U),
-    milliAmpsLimit(0U),
+    rawDACValue{0, 0},
     currentMuxChannel(muxChannel_voltage),
     rawADCMeasurements{0,0,0,0},
     currentADCState(adcChannel__idle<<1)
@@ -84,21 +83,14 @@ void PS9530_Ctrl::updateDAC() {
     case muxChannel_voltage: {
         /* Select voltage channel on MUX */
         PORT_MUX &= ~MASK_MUX;
-        // TODO: Use proper calibration table
-        uint32_t dac_value = milliVoltSetpoint-2;
-        dac_value <<= 14UL;
-        dac_value /= 30000UL;
-        dac_set_unsafe(dac_value);
+        dac_set_unsafe(rawDACValue[0]);
         currentMuxChannel = muxChannel_current;
         break;
     }
     case muxChannel_current:
+        /* Select voltage channel on MUX */
         PORT_MUX |= MASK_MUX;
-        // TODO: Use proper calibration table
-        uint32_t dac_value = milliAmpsLimit-1;
-        dac_value <<= 14UL;
-        dac_value /= 10000UL;
-        dac_set_unsafe(dac_value);
+        dac_set_unsafe(rawDACValue[1]);
         currentMuxChannel = muxChannel_voltage;
         break;
     }
@@ -124,13 +116,20 @@ void PS9530_Ctrl::startADCConversion() {
 
 void PS9530_Ctrl::setMilliVoltSetpoint(uint16_t milliVolts) {
     ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-        milliVoltSetpoint = milliVolts;
+        // TODO: Use proper calibration table
+        uint32_t dac_value = milliVolts;
+        dac_value *= 16383;
+        dac_value /= 30000UL;
+        rawDACValue[muxChannel_voltage] = dac_value;
     }
 }
 
 void PS9530_Ctrl::setMilliAmpsLimit(uint16_t milliAmpere) {
     ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-        milliAmpsLimit = milliAmpere;
+        uint32_t dac_value = milliAmpere;
+        dac_value *= 16383;
+        dac_value /= 10000UL;
+        rawDACValue[muxChannel_voltage] = dac_value;
     }
 }
 

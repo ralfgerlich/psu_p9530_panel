@@ -60,8 +60,8 @@ private:
 
     static PS9530_Ctrl instance;
 
-    uint16_t milliVoltSetpoint;
-    uint16_t milliAmpsLimit;
+    /** Raw values for the DAC channels */
+    uint16_t rawDACValue[2];
 
     enum {
         muxChannel_voltage = 0,
