@@ -251,7 +251,7 @@ int16_t PS9530_Ctrl::interpolateADCTemp(uint8_t index, uint16_t adcValue) {
     } else if (adcValue > maxADC) {
         adcValue = maxADC;
     }
-    const uint16_t adcOffset = adcValue - minTempADC[index];
+    const uint16_t adcOffset = adcValue - minADC;
     const uint8_t tableIndex = adcOffset >> shift;
     const uint16_t adcRest = adcOffset - (tableIndex << shift);
     const int16_t base = pgm_read_word(&tempOffset[index][tableIndex]);
