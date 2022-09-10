@@ -253,10 +253,10 @@ int16_t PS9530_Ctrl::interpolateADCTemp(uint8_t index, uint16_t adcValue) {
     }
     const uint16_t adcOffset = adcValue - minADC;
     const uint8_t tableIndex = adcOffset >> shift;
-    const uint16_t adcRest = adcOffset - (tableIndex << shift);
+    const int16_t adcRest = adcOffset - (tableIndex << shift);
     const int16_t base = pgm_read_word(&tempOffset[index][tableIndex]);
     const int16_t gradient = pgm_read_word(&tempGradient[index][tableIndex]);
-    return base + ((adcRest * gradient) >> shift);
+    return base + (int16_t(adcRest * gradient) >> shift);
 }
 
 void PS9530_Ctrl::updateOvertemperature() {
