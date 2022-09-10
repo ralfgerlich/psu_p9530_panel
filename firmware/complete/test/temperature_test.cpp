@@ -39,9 +39,9 @@ void test_temp_2() {
     PS9530_Ctrl& ctrl = PS9530_Ctrl::getInstance();
     double volts_per_Step = VOLTS_PER_STEP(ADC_REF_VALUE, ADC_RESOLUTION_BITS);
 
-    TEST_ASSERT_INT16_WITHIN(10, 25, ctrl.interpolateADCTemp(0, uint16_t(2/volts_per_Step)));
-    TEST_ASSERT_INT16_WITHIN(10, 77, ctrl.interpolateADCTemp(0, uint16_t(1.62f/volts_per_Step)));
-    TEST_ASSERT_INT16_WITHIN(10, 130, ctrl.interpolateADCTemp(0, uint16_t(1.24f/volts_per_Step)));
+    TEST_ASSERT_INT16_WITHIN(10, 25, ctrl.interpolateADCTemp(1, uint16_t(2/volts_per_Step)));
+    TEST_ASSERT_INT16_WITHIN(10, 77, ctrl.interpolateADCTemp(1, uint16_t(1.62f/volts_per_Step)));
+    TEST_ASSERT_INT16_WITHIN(10, 130, ctrl.interpolateADCTemp(1, uint16_t(1.24f/volts_per_Step)));
 }
 
 int main( int argc, char **argv) {
