@@ -271,7 +271,7 @@ void PS9530_Ctrl::updateOvertemperature() {
         // We have exceeded the upper temperature limit 1
         overTempMode |= overTempMode_1;
     }
-    int16_t temp2 = getTemperature1();
+    int16_t temp2 = getTemperature2();
     if (overTempMode & overTempMode_2) {
         // We are in overtemperature for temperature 2
         if (temp2 < TEMP2_LOWER_LIMIT) {
