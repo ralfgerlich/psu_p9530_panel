@@ -275,21 +275,24 @@ void PsDisplay::renderMainscreen() {
     tft.setTextSize(1);
     uint8_t changedStates = this->state ^ this->painted_state;
     if (changedStates & (PS_DISPLAY_STATE_OVERTEMP | PS_DISPLAY_STATE_STANDBY)) {
-        //paint old state in bg color
-        if (!isPaintedState(PS_DISPLAY_STATE_OVERTEMP | PS_DISPLAY_STATE_STANDBY)) {
-            paintSmallLogo(false);
-        } else if (isPaintedState(PS_DISPLAY_STATE_OVERTEMP)) {
-            paintFlag(false, PS_DISPLAY_STATE_OVERTEMP, getRowYPos(1));
-        } else {
-            paintFlag(false, PS_DISPLAY_STATE_STANDBY, getRowYPos(1));
-        }
-        //paint new state
-        if (!isState(PS_DISPLAY_STATE_OVERTEMP | PS_DISPLAY_STATE_STANDBY)) {
-            paintSmallLogo(true);
-        } else if (isState(PS_DISPLAY_STATE_OVERTEMP)) {
-            paintFlag(true, PS_DISPLAY_STATE_OVERTEMP, getRowYPos(1));
-        } else {
-            paintFlag(true, PS_DISPLAY_STATE_STANDBY, getRowYPos(1));
+        //as long as we are in overtemp mode overtemp flag is king
+        if (!(isPaintedState(PS_DISPLAY_STATE_OVERTEMP) && !(changedStates & PS_DISPLAY_STATE_OVERTEMP))) {
+            //paint old state in bg color
+            if (!isPaintedState(PS_DISPLAY_STATE_OVERTEMP | PS_DISPLAY_STATE_STANDBY)) {
+                paintSmallLogo(false);
+            } else if (isPaintedState(PS_DISPLAY_STATE_OVERTEMP)) {
+                paintFlag(false, PS_DISPLAY_STATE_OVERTEMP, getRowYPos(1));
+            } else {
+                paintFlag(false, PS_DISPLAY_STATE_STANDBY, getRowYPos(1));
+            }
+            //paint new state
+            if (!isState(PS_DISPLAY_STATE_OVERTEMP | PS_DISPLAY_STATE_STANDBY)) {
+                paintSmallLogo(true);
+            } else if (isState(PS_DISPLAY_STATE_OVERTEMP)) {
+                paintFlag(true, PS_DISPLAY_STATE_OVERTEMP, getRowYPos(1));
+            } else {
+                paintFlag(true, PS_DISPLAY_STATE_STANDBY, getRowYPos(1));
+            }
         }
     }
     if (changedStates & PS_DISPLAY_STATE_LIMITED_A) {
