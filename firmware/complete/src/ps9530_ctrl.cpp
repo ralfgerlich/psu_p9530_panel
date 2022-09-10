@@ -231,7 +231,7 @@ uint16_t PS9530_Ctrl::interpolateADCVoltage(uint16_t adcValue) {
     const uint8_t adcRest = adcValue & (~((~0)<<PS9530_VOLTAGE_SHIFT));
     const uint16_t base = pgm_read_word(&adcVoltageOffset[tableIndex]);
     const uint16_t gradient = pgm_read_word(&adcVoltageGradient[tableIndex]);
-    return base + ((adcRest * gradient) >> 5);
+    return base + ((adcRest * gradient) >> PS9530_VOLTAGE_SHIFT);
 }
 
 uint16_t PS9530_Ctrl::interpolateADCCurrent(uint16_t adcValue) {
@@ -239,7 +239,7 @@ uint16_t PS9530_Ctrl::interpolateADCCurrent(uint16_t adcValue) {
     const uint8_t adcRest = adcValue & (~((~0)<<PS9530_CURRENT_SHIFT));
     const uint16_t base = pgm_read_word(&adcCurrentOffset[tableIndex]);
     const uint16_t gradient = pgm_read_word(&adcCurrentGradient[tableIndex]);
-    return base + ((adcRest * gradient) >> 5);
+    return base + ((adcRest * gradient) >> PS9530_CURRENT_SHIFT);
 }
 
 int16_t PS9530_Ctrl::interpolateADCTemp(uint8_t index, uint16_t adcValue) {
