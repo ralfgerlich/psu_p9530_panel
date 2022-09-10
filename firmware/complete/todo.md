@@ -1,7 +1,7 @@
 bugs:
-* temperature readings off or broken
-* amp readings off (amp setting grob richtig)
-* volt reading not stable
+* temperature readings off for temp1 - looks mostly okay for temp2 now
+* amp readings off (amp setting grob richtig) - reading off weil 2xtransistoren defekt denk ich
+* volt reading not stable at last digit
 * limited state handling kaputt
 
 missing features:
@@ -12,7 +12,6 @@ missing features:
 * standby mit aus signal statt dac
 
 hardware:
-* power transistoren tauschen
 * maybe caps?? die restlichen scheinen aber okay
 
 workaround found for:
