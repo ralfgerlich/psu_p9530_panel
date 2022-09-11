@@ -1,18 +1,17 @@
 bugs:
-* amp readings off (amp setting grob richtig)
+* amp setting lookup table leicht daneben
+* volt setting lookup table leicht daneben
 * volt reading not stable at last digit
-* limited state handling kaputt
 
 missing features:
 * memory function
 * remote function
-* standby mit aus signal statt dac
+* standby mit aus signal statt dac (needs hardware change)
 
 hardware:
 * maybe caps?? die restlichen scheinen aber okay
-
-workaround found for:
-* inkrementalgeber gibt bei schnellem drehen manchmal/selten fake signale
+* frontend platine design?
+* standby mit aus signal statt dac
 
 fragen:
 * stellt das relais zurück?
