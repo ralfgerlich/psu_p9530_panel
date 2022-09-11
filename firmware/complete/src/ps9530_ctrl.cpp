@@ -18,9 +18,9 @@
 #define DDR_CTRL DDRD
 #define MASK_CTRL _BV(PIN7)
 
-#define TEMP1_LOWER_LIMIT 40
-#define TEMP1_UPPER_LIMIT 60
-#define TEMP2_LOWER_LIMIT 40
+#define TEMP1_LOWER_LIMIT 80
+#define TEMP1_UPPER_LIMIT 100
+#define TEMP2_LOWER_LIMIT 50
 #define TEMP2_UPPER_LIMIT 60
 
 #include "ps9530_ctrl.h"
@@ -78,11 +78,14 @@ void PS9530_Ctrl::updateADC() {
         /* We just did the actual measurement */
         const uint8_t currentADCChannel = currentADCState >> 1;
         rawADCMeasurements[currentADCChannel] = ADC;
-        updateOvertemperature();
     }
     /* Update the state */
     currentADCState++;
     startADCConversion();
+    if (currentADCState>=2*adcChannel__idle) {
+        /* We have a full measurement cycle */
+        updateOvertemperature();
+    }
 }
 
 void PS9530_Ctrl::setStandbyMode(bool standbyMode) {
