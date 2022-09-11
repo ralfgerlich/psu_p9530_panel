@@ -1,10 +1,9 @@
 bugs:
-* amp readings off (amp setting grob richtig) - reading off weil 2xtransistoren defekt denk ich
+* amp readings off (amp setting grob richtig)
 * volt reading not stable at last digit
 * limited state handling kaputt
 
 missing features:
-* lock function
 * memory function
 * remote function
 * graph with all curves
