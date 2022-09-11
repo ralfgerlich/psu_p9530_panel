@@ -6,7 +6,6 @@ bugs:
 missing features:
 * memory function
 * remote function
-* graph with all curves
 * standby mit aus signal statt dac
 
 hardware:
@@ -14,3 +13,6 @@ hardware:
 
 workaround found for:
 * inkrementalgeber gibt bei schnellem drehen manchmal/selten fake signale
+
+fragen:
+* stellt das relais zurück?

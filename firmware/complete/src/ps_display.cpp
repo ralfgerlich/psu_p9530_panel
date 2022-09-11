@@ -355,7 +355,7 @@ void PsDisplay::renderTest() {
     tft.endWrite();
 }
 
-void PsDisplay::renderHistory(const uint8_t* history_data, uint16_t history_pos, uint8_t thickness) {
+void PsDisplay::renderHistory(const uint8_t* history_data, uint16_t history_pos, uint8_t thickness, uint16_t color_override) {
     tft.startWrite();
     for (int16_t i = 0; i < HISTORY_LENGTH; i++) {
         int16_t current_pos = (history_pos+i) % HISTORY_LENGTH;
@@ -369,7 +369,7 @@ void PsDisplay::renderHistory(const uint8_t* history_data, uint16_t history_pos,
             }
             if (i > 1) { //not the best workaround for the sticky edge due to wrap and missing old data
                 for (uint8_t j=0; j < thickness; j++) {
-                    tft.writePixel(i, PS_DISPLAY_HEIGHT-history_data[current_pos]+j, TOOLBOX_LOGO_LIGHT_RED);
+                    tft.writePixel(i, PS_DISPLAY_HEIGHT-history_data[current_pos]+j, color_override != 0x1337 ? color_override : TOOLBOX_LOGO_LIGHT_RED);
                 }
             }
         }
@@ -402,6 +402,20 @@ void PsDisplay::renderWatts() {
     formatCentiNumber(buffer, centi_watts, ROW_WATTS);
     fastStringPrint(buffer, buffer_watts, PT18_IN_PXW*2, ROW_NULL);
     renderHistory(history_watts, history_watts_pos);
+}
+
+void PsDisplay::renderFullGraph() {
+    char buffer[PS_DISPLAY_BUFFER_LENGTH];
+    tft.setTextSize(1);
+    tft.setCursor(10, getRowYPos(1));
+    formatMilliNumber(buffer, milli_volts, ROW_VOLTS);
+    fastStringPrint(buffer, buffer_volts, PT18_IN_PXW, ROW_NULL, ILI9341_GREENYELLOW);
+    tft.setCursor(60+PT18_IN_PXW*6, getRowYPos(1));
+    formatMilliNumber(buffer, milli_amps, ROW_AMPS);
+    fastStringPrint(buffer, buffer_amps, PT18_IN_PXW, ROW_NULL, ILI9341_YELLOW);
+    renderHistory(history_watts, history_watts_pos, 2);
+    renderHistory(history_amps, history_apms_pos, 2, ILI9341_YELLOW);
+    renderHistory(history_volts, history_volts_pos, 2, ILI9341_GREENYELLOW);
 }
 
 void PsDisplay::setStandby(bool standby) {
