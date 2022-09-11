@@ -4,6 +4,7 @@
 #include "Toolbox/toolbox_logo_font_toolbox.xbm"
 #include "Toolbox/toolbox_logo_font_bodensee.xbm"
 #include "Fonts/courier-prime-code-regular.h"
+#include "Icons/lock.xbm"
 
 //display state flags
 #define PS_DISPLAY_STATE_LOCKED 0b00000001
@@ -300,6 +301,22 @@ void PsDisplay::renderMainscreen() {
     }
     if (changedStates & PS_DISPLAY_STATE_LIMITED_P) {
         paintFlag(isState(PS_DISPLAY_STATE_LIMITED_P), PS_DISPLAY_STATE_LIMITED_P, getRowYPos(5));
+    }
+    if (changedStates & PS_DISPLAY_STATE_LOCKED) {
+         tft.drawXBitmap(10, getRowYPos(6)-getRowYPos(1),
+#if defined(__AVR__) || defined(ESP8266)
+        lock_bits,
+#else
+        // Some non-AVR MCU's have a "flat" memory model and don't
+        // distinguish between flash and RAM addresses.  In this case,
+        // the RAM-resident-optimized drawRGBBitmap in the ILI9341
+        // library can be invoked by forcibly type-converting the
+        // PROGMEM bitmap pointer to a non-const uint16_t *.
+        (uint16_t *)lock_bits,
+#endif
+        lock_width, lock_height,
+        isState(PS_DISPLAY_STATE_LOCKED) ? ILI9341_BLACK : TOOLBOX_LOGO_LIGHT_RED);
+        setPaintedState(isState(PS_DISPLAY_STATE_LOCKED), PS_DISPLAY_STATE_LOCKED);
     }
     yield();
     //optimized hybrid
