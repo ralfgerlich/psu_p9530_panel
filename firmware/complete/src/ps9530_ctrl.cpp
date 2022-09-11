@@ -214,15 +214,15 @@ const uint16_t PS9530_Ctrl::adcCurrentGradient[32] PROGMEM =
      318, 317, 317, 318, 317, 317, 318, 317, 317, 318,
      317, 317, 318, 317, 317, 318, 317, 317, 318, 317,
      318, 317};
-const uint16_t PS9530_Ctrl::minTempADC[2] PROGMEM = {548, 485};
-const uint16_t PS9530_Ctrl::maxTempADC[2] PROGMEM = {856, 1194};
+const uint16_t PS9530_Ctrl::minTempADC[2] PROGMEM = {550, 485};
+const uint16_t PS9530_Ctrl::maxTempADC[2] PROGMEM = {860, 1194};
 const uint8_t PS9530_Ctrl::shiftTempADC[2] PROGMEM = {5, 6};
 const int16_t PS9530_Ctrl::tempOffset[2][11] PROGMEM = {
-    {150, 123, 101, 81, 61, 41, 21, 1, -19, -41, -55},
+    {150, 124, 102, 81, 61, 42, 22, 2, -19, -40, -55},
     {150, 116, 91, 70, 50, 32, 16, 1, -14, -28, -41},
 };
 const int16_t PS9530_Ctrl::tempGradient[2][11] PROGMEM = {
-    {-27, -22, -20, -20, -20, -20, -20, -20, -22, -14, 0},
+    {-26, -22, -21, -20, -19, -20, -20, -21, -21, -15, 0},
     {-34, -25, -21, -20, -18, -16, -15, -15, -14, -13, -13},
 };
 

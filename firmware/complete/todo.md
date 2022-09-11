@@ -1,5 +1,4 @@
 bugs:
-* temperature readings off for temp1 - looks mostly okay for temp2 now
 * amp readings off (amp setting grob richtig) - reading off weil 2xtransistoren defekt denk ich
 * volt reading not stable at last digit
 * limited state handling kaputt

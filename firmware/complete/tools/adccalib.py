@@ -26,15 +26,18 @@ sensor = 'KTY81-121'
 column = 'Rtyp'
 
 # Resistor Values [Ohm]
+
+# Conversion for Temp1
+R54 = 24.E3
+R56 = 12.E3
+R82 = 2.55e3
+
 Rsense = 0.05
-R54 = 24000
-R56 = 11950
 R60 = 2.7E3
 R61 = 33.E3
 R62 = 100.E3
 R63 = 680
 R64 = 100.E3
-R82 = 2550
 R331 = 22.E3
 R332 = 5.6E3
 
