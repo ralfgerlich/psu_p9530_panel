@@ -45,6 +45,7 @@ class PsDisplay {
     void renderVolts(void);
     void renderAmps(void);
     void renderWatts(void);
+    void renderFullGraph(void);
     void renderTest(void);
 
     void setStandby(bool standby);
@@ -72,7 +73,7 @@ class PsDisplay {
     void formatCentiNumber(char * buffer, int16_t value, row_t row, bool zero_padding = false);
     void paintFlag(bool visible, uint8_t flag, uint8_t y);
     void paintSmallLogo(bool visible);
-    void renderHistory(const uint8_t* history_data, uint16_t history_pos, uint8_t thickness = 2);
+    void renderHistory(const uint8_t* history_data, uint16_t history_pos, uint8_t thickness = 2, uint16_t color_override = 0x1337);
     uint8_t getRowYPos(uint8_t row);
 
     Adafruit_ILI9341& tft;

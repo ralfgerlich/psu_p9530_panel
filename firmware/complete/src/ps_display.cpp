@@ -28,6 +28,8 @@
 #define isState(mask) (this->state & (mask))
 #define isPaintedState(mask) (this->painted_state & (mask))
 
+static const uint8_t rowSpacing = (PS_DISPLAY_HEIGHT-PS_DISPLAY_VIRTUAL_ROW_COUNT*PT18_IN_PXH)/(PS_DISPLAY_ROW_COUNT+1.f);
+
 PsDisplay::PsDisplay( Adafruit_ILI9341 & tft) :
     tft(tft) {
 }
@@ -257,7 +259,6 @@ void PsDisplay::paintFlag(bool visible, uint8_t flag, uint8_t y) {
 }
 
 uint8_t PsDisplay::getRowYPos(uint8_t row) {
-    static const uint8_t rowSpacing = (PS_DISPLAY_HEIGHT-PS_DISPLAY_VIRTUAL_ROW_COUNT*PT18_IN_PXH)/(PS_DISPLAY_ROW_COUNT+1.f);
     return getVirtualRow(row)*PT18_IN_PXH + rowSpacing*row;
 }
 
@@ -303,7 +304,8 @@ void PsDisplay::renderMainscreen() {
         paintFlag(isState(PS_DISPLAY_STATE_LIMITED_P), PS_DISPLAY_STATE_LIMITED_P, getRowYPos(5));
     }
     if (changedStates & PS_DISPLAY_STATE_LOCKED) {
-         tft.drawXBitmap(10, getRowYPos(6)-getRowYPos(1),
+        setPaintedState(isState(PS_DISPLAY_STATE_LOCKED), PS_DISPLAY_STATE_LOCKED);
+        tft.drawXBitmap(10, getRowYPos(6) - lock_height,
 #if defined(__AVR__) || defined(ESP8266)
         lock_bits,
 #else
@@ -315,8 +317,7 @@ void PsDisplay::renderMainscreen() {
         (uint16_t *)lock_bits,
 #endif
         lock_width, lock_height,
-        isState(PS_DISPLAY_STATE_LOCKED) ? ILI9341_BLACK : TOOLBOX_LOGO_LIGHT_RED);
-        setPaintedState(isState(PS_DISPLAY_STATE_LOCKED), PS_DISPLAY_STATE_LOCKED);
+        isPaintedState(PS_DISPLAY_STATE_LOCKED) ? TOOLBOX_LOGO_LIGHT_RED : ILI9341_BLACK);
     }
     yield();
     //optimized hybrid
@@ -354,7 +355,7 @@ void PsDisplay::renderTest() {
     tft.endWrite();
 }
 
-void PsDisplay::renderHistory(const uint8_t* history_data, uint16_t history_pos, uint8_t thickness) {
+void PsDisplay::renderHistory(const uint8_t* history_data, uint16_t history_pos, uint8_t thickness, uint16_t color_override) {
     tft.startWrite();
     for (int16_t i = 0; i < HISTORY_LENGTH; i++) {
         int16_t current_pos = (history_pos+i) % HISTORY_LENGTH;
@@ -368,7 +369,7 @@ void PsDisplay::renderHistory(const uint8_t* history_data, uint16_t history_pos,
             }
             if (i > 1) { //not the best workaround for the sticky edge due to wrap and missing old data
                 for (uint8_t j=0; j < thickness; j++) {
-                    tft.writePixel(i, PS_DISPLAY_HEIGHT-history_data[current_pos]+j, TOOLBOX_LOGO_LIGHT_RED);
+                    tft.writePixel(i, PS_DISPLAY_HEIGHT-history_data[current_pos]+j, color_override != 0x1337 ? color_override : TOOLBOX_LOGO_LIGHT_RED);
                 }
             }
         }
@@ -401,6 +402,20 @@ void PsDisplay::renderWatts() {
     formatCentiNumber(buffer, centi_watts, ROW_WATTS);
     fastStringPrint(buffer, buffer_watts, PT18_IN_PXW*2, ROW_NULL);
     renderHistory(history_watts, history_watts_pos);
+}
+
+void PsDisplay::renderFullGraph() {
+    char buffer[PS_DISPLAY_BUFFER_LENGTH];
+    tft.setTextSize(1);
+    tft.setCursor(10, getRowYPos(1));
+    formatMilliNumber(buffer, milli_volts, ROW_VOLTS);
+    fastStringPrint(buffer, buffer_volts, PT18_IN_PXW, ROW_NULL, ILI9341_GREENYELLOW);
+    tft.setCursor(60+PT18_IN_PXW*6, getRowYPos(1));
+    formatMilliNumber(buffer, milli_amps, ROW_AMPS);
+    fastStringPrint(buffer, buffer_amps, PT18_IN_PXW, ROW_NULL, ILI9341_YELLOW);
+    renderHistory(history_watts, history_watts_pos, 2);
+    renderHistory(history_amps, history_apms_pos, 2, ILI9341_YELLOW);
+    renderHistory(history_volts, history_volts_pos, 2, ILI9341_GREENYELLOW);
 }
 
 void PsDisplay::setStandby(bool standby) {
