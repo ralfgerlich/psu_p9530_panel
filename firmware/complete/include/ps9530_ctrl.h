@@ -109,6 +109,32 @@ private:
      */
     static uint16_t interpolateADCCurrent(uint16_t adcValue);
 
+    /** DAC offset for voltage conversion */
+    static const uint16_t voltageDACOffset[32] PROGMEM;
+    /** DAC gradient for voltage conversion */
+    static const uint16_t voltageDACGradient[32] PROGMEM;
+
+    /**
+     * @brief Convert a voltage target value to a DAC value
+     * 
+     * @param milliVolts The target voltage in Millivolts
+     * @return The value for the voltage DAC channel
+     */
+    static uint16_t interpolateDACVoltage(uint16_t milliVolts);
+
+    /** DAC offset for voltage conversion */
+    static const uint16_t currentDACOffset[32] PROGMEM;
+    /** DAC gradient for current conversion */
+    static const uint16_t currentDACGradient[32] PROGMEM;
+
+    /**
+     * @brief Convert a current target value to a DAC value
+     * 
+     * @param milliAmps The target current in Milliamps
+     * @return The value for the current DAC channel
+     */
+    static uint16_t interpolateDACCurrent(uint16_t milliAmps);
+
     enum {
         /** Index for temperature Sensor 1 */
         tempSensor_1=0,
@@ -145,7 +171,7 @@ private:
 
     /** Check for overtemperature and put system in standby in that case */
     void updateOvertemperature();
-public:
+
     /** Raw ADC measurements */
     uint16_t rawADCMeasurements[4];
 

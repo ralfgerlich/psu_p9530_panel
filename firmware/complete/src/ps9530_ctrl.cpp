@@ -140,19 +140,13 @@ void PS9530_Ctrl::startADCConversion() {
 
 void PS9530_Ctrl::setMilliVoltSetpoint(uint16_t milliVolts) {
     ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-        uint32_t dac_value = milliVolts;
-        dac_value *= 16383;
-        dac_value /= 30000UL;
-        rawDACValue[muxChannel_voltage] = dac_value;
+        rawDACValue[muxChannel_voltage] = interpolateDACVoltage(milliVolts);
     }
 }
 
 void PS9530_Ctrl::setMilliAmpsLimit(uint16_t milliAmpere) {
     ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-        uint32_t dac_value = milliAmpere;
-        dac_value *= 16383;
-        dac_value /= 10000UL;
-        rawDACValue[muxChannel_current] = dac_value;
+        rawDACValue[muxChannel_current] = interpolateDACCurrent(milliAmpere);
     }
 }
 
@@ -193,8 +187,11 @@ int16_t PS9530_Ctrl::getTemperature2() const {
 bool PS9530_Ctrl::isOvertemp() const {
     return overTempMode != 0;
 }
-#define PS9530_VOLTAGE_SHIFT 5
-#define PS9530_CURRENT_SHIFT 5
+
+#define PS9530_ADC_VOLTAGE_SHIFT 5
+#define PS9530_ADC_CURRENT_SHIFT 5
+#define PS9530_DAC_VOLTAGE_SHIFT 10
+#define PS9530_DAC_CURRENT_SHIFT 9
 const uint16_t PS9530_Ctrl::adcVoltageOffset[32] PROGMEM = 
 {37, 1165, 2192, 3260, 4320, 5405, 6472, 7509, 8569, 9636,
 10690, 11718, 12785, 13873, 14903, 15954, 17022, 18079, 19137, 20213,
@@ -215,6 +212,26 @@ const uint16_t PS9530_Ctrl::adcCurrentGradient[32] PROGMEM =
 303, 311, 311, 308, 298, 299, 308, 311, 310, 306,
 302, 307, 310, 305, 303, 303, 305, 308, 311, 308,
 280, 316};
+const uint16_t PS9530_Ctrl::voltageDACOffset[32] PROGMEM = 
+{0, 540, 1091, 1639, 2190, 2742, 3289, 3840, 4393, 4944,
+5492, 6043, 6595, 7143, 7693, 8245, 8792, 9343, 9895, 10444,
+10984, 11524, 12083, 12644, 13202, 13760, 14324, 14874, 15393, 15935,
+16383, 16383};
+const uint16_t PS9530_Ctrl::voltageDACGradient[32] PROGMEM = 
+{540, 551, 548, 551, 552, 547, 551, 553, 551, 548,
+551, 552, 548, 550, 552, 547, 551, 552, 549, 540,
+540, 559, 561, 558, 558, 564, 550, 519, 542, 448,
+0, 0};
+const uint16_t PS9530_Ctrl::currentDACOffset[32] PROGMEM = 
+{0, 874, 1626, 2373, 3126, 3876, 4624, 5374, 6123, 6871,
+7624, 8385, 9133, 9882, 10631, 11366, 12127, 12877, 13637, 14391,
+15139, 15888, 16383, 16383, 16383, 16383, 16383, 16383, 16383, 16383,
+16383, 16383};
+const uint16_t PS9530_Ctrl::currentDACGradient[32] PROGMEM = 
+{874, 752, 747, 753, 750, 748, 750, 749, 748, 753,
+761, 748, 749, 749, 735, 761, 750, 760, 754, 748,
+749, 495, 0, 0, 0, 0, 0, 0, 0, 0,
+0, 0};
 const uint16_t PS9530_Ctrl::minTempADC[2] PROGMEM = {550, 485};
 const uint16_t PS9530_Ctrl::maxTempADC[2] PROGMEM = {860, 1194};
 const uint8_t PS9530_Ctrl::shiftTempADC[2] PROGMEM = {5, 6};
@@ -228,19 +245,35 @@ const int16_t PS9530_Ctrl::tempGradient[2][11] PROGMEM = {
 };
 
 uint16_t PS9530_Ctrl::interpolateADCVoltage(uint16_t adcValue) {
-    const uint16_t tableIndex = adcValue >> PS9530_VOLTAGE_SHIFT;
-    const uint8_t adcRest = adcValue & (~((~0)<<PS9530_VOLTAGE_SHIFT));
+    const uint16_t tableIndex = adcValue >> PS9530_ADC_VOLTAGE_SHIFT;
+    const uint8_t adcRest = adcValue & (~((~0)<<PS9530_ADC_VOLTAGE_SHIFT));
     const uint16_t base = pgm_read_word(&adcVoltageOffset[tableIndex]);
     const uint16_t gradient = pgm_read_word(&adcVoltageGradient[tableIndex]);
-    return base + ((adcRest * gradient) >> PS9530_VOLTAGE_SHIFT);
+    return base + ((adcRest * gradient) >> PS9530_ADC_VOLTAGE_SHIFT);
 }
 
 uint16_t PS9530_Ctrl::interpolateADCCurrent(uint16_t adcValue) {
-    const uint16_t tableIndex = adcValue >> PS9530_CURRENT_SHIFT;
-    const uint8_t adcRest = adcValue & (~((~0)<<PS9530_CURRENT_SHIFT));
+    const uint16_t tableIndex = adcValue >> PS9530_ADC_CURRENT_SHIFT;
+    const uint8_t adcRest = adcValue & (~((~0)<<PS9530_ADC_CURRENT_SHIFT));
     const uint16_t base = pgm_read_word(&adcCurrentOffset[tableIndex]);
     const uint16_t gradient = pgm_read_word(&adcCurrentGradient[tableIndex]);
-    return base + ((adcRest * gradient) >> PS9530_CURRENT_SHIFT);
+    return base + ((adcRest * gradient) >> PS9530_ADC_CURRENT_SHIFT);
+}
+
+uint16_t PS9530_Ctrl::interpolateDACVoltage(uint16_t milliVolts) {
+    const uint16_t tableIndex = milliVolts >> PS9530_DAC_VOLTAGE_SHIFT;
+    const uint8_t milliAmpsRest = milliVolts & (~((~0)<<PS9530_DAC_VOLTAGE_SHIFT));
+    const uint16_t base = pgm_read_word(&voltageDACOffset[tableIndex]);
+    const uint16_t gradient = pgm_read_word(&voltageDACGradient[tableIndex]);
+    return base + ((milliAmpsRest * gradient) >> PS9530_DAC_VOLTAGE_SHIFT);
+}
+
+uint16_t PS9530_Ctrl::interpolateDACCurrent(uint16_t milliAmps) {
+    const uint16_t tableIndex = milliAmps >> PS9530_DAC_CURRENT_SHIFT;
+    const uint8_t milliAmpsRest = milliAmps & (~((~0)<<PS9530_DAC_CURRENT_SHIFT));
+    const uint16_t base = pgm_read_word(&currentDACOffset[tableIndex]);
+    const uint16_t gradient = pgm_read_word(&currentDACGradient[tableIndex]);
+    return base + ((milliAmpsRest * gradient) >> PS9530_DAC_CURRENT_SHIFT);
 }
 
 int16_t PS9530_Ctrl::interpolateADCTemp(uint8_t index, uint16_t adcValue) {

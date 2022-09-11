@@ -44,7 +44,7 @@ vref = 2.5
 adc_max = 1023
 
 # Number of steps to generate for voltage and current ADC
-voltageADCSteps = 32
+adcSteps = 32
 
 
 # Calibration of temperature table
@@ -108,7 +108,7 @@ currentMeasurementData = pd.read_excel(calibration_data_src, sheet_name="Current
 
 # Measurement calibration tables
 # ADC Values to consider
-adc_values = np.linspace(start=0, stop=adc_max+1, endpoint=True, num=voltageADCSteps+1)
+adc_values = np.linspace(start=0, stop=adc_max+1, endpoint=True, num=adcSteps+1)
 
 # Sort measurements by rawADC value
 voltageMeasurementData.sort_values(by='rawADC', inplace=True)
@@ -123,16 +123,62 @@ measuredCurrentOffsets = np.round(1000.0*adc2Current(adc_values)).astype(int)
 measuredVoltageGradient = np.diff(measuredVoltageOffsets)
 measuredCurrentGradient = np.diff(measuredCurrentOffsets)
 
-measuredVoltageShift = np.ceil(np.log2((adc_max+1)/voltageADCSteps)).astype(int)
+measuredVoltageShift = np.ceil(np.log2((adc_max+1)/adcSteps)).astype(int)
 measuredCurrentShift = measuredVoltageShift
 
-print("#define PS9530_VOLTAGE_SHIFT %s" % measuredVoltageShift)
-print("#define PS9530_CURRENT_SHIFT %s" % measuredCurrentShift)
-print("const uint16_t PS9530_Ctrl::adcVoltageOffset[%d] PROGMEM = \n%s;" % (voltageADCSteps, to_c_array(measuredVoltageOffsets[:-1], colcount=10)))
-print("const uint16_t PS9530_Ctrl::adcVoltageGradient[%d] PROGMEM = \n%s;" % (voltageADCSteps, to_c_array(measuredVoltageGradient, colcount=10)))
+# Setpoint calibration tables
+dacSteps = 32
 
-print("const uint16_t PS9530_Ctrl::adcCurrentOffset[%d] PROGMEM = \n%s;" % (voltageADCSteps, to_c_array(measuredCurrentOffsets[:-1], colcount=10)))
-print("const uint16_t PS9530_Ctrl::adcCurrentGradient[%d] PROGMEM = \n%s;" % (voltageADCSteps, to_c_array(measuredCurrentGradient, colcount=10)))
+# Voltage calibration table
+print(voltageSetpointData)
+# Minimum maximum voltage to consider
+maxVoltageMillivolts = 30.E3
+# Bits required to express maximum voltage
+voltageDACBits = np.ceil(np.log2(maxVoltageMillivolts)).astype(int)
+# Actual maximum value that can be expressed (+1)
+maxVoltageMilliVoltsActual = 1<<voltageDACBits
+# Voltage values to be considered for interpolate
+voltageValues = np.linspace(start=0, stop=maxVoltageMilliVoltsActual, endpoint=True, num=dacSteps+1)
+# Interpolateion function
+voltage2DAC = interp1d(voltageSetpointData.Vmeas*1.E3, voltageSetpointData.rawDAC, fill_value="extrapolate", kind="quadratic")
+# Voltage offsets
+setpointVoltageOffsets = np.clip(a=np.round(voltage2DAC(voltageValues)), a_min=0, a_max=16383).astype(int)
+setpointVoltageGradients = np.diff(setpointVoltageOffsets)
+# FIXME: We might want to calculate dacSteps from the bit width instead...
+setpointVoltageShift = voltageDACBits - np.ceil(np.log2(dacSteps)).astype(int)
+
+# Current calibration table
+# Minimum maximum current to consider
+maxCurrentMilliAmps = 10.E3
+# Bits required to express maximum current
+currentDACBits = np.ceil(np.log2(maxCurrentMilliAmps)).astype(int)
+# Actual maximum value that can be expressed (+1)
+maxCurrentMilliAmpsActual = 1<<currentDACBits
+# Current values to be considered for interpolate
+currentValues = np.linspace(start=0, stop=maxCurrentMilliAmpsActual, endpoint=True, num=dacSteps+1)
+# Interpolateion function
+current2DAC = interp1d(currentSetpointData.Imeas*1.E3, currentSetpointData.rawDAC, fill_value="extrapolate", kind="quadratic")
+# Current offsets
+setpointCurrentOffsets = np.clip(a=np.round(current2DAC(currentValues)), a_min=0, a_max=16383).astype(int)
+setpointCurrentGradients = np.diff(setpointCurrentOffsets)
+# FIXME: We might want to calculate dacSteps from the bit width instead...
+setpointCurrentShift = currentDACBits - np.ceil(np.log2(dacSteps)).astype(int)
+
+print("#define PS9530_ADC_VOLTAGE_SHIFT %s" % measuredVoltageShift)
+print("#define PS9530_ADC_CURRENT_SHIFT %s" % measuredCurrentShift)
+print("#define PS9530_DAC_VOLTAGE_SHIFT %s" % setpointVoltageShift)
+print("#define PS9530_DAC_CURRENT_SHIFT %s" % setpointCurrentShift)
+print("const uint16_t PS9530_Ctrl::adcVoltageOffset[%d] PROGMEM = \n%s;" % (adcSteps, to_c_array(measuredVoltageOffsets[:-1], colcount=10)))
+print("const uint16_t PS9530_Ctrl::adcVoltageGradient[%d] PROGMEM = \n%s;" % (adcSteps, to_c_array(measuredVoltageGradient, colcount=10)))
+
+print("const uint16_t PS9530_Ctrl::adcCurrentOffset[%d] PROGMEM = \n%s;" % (adcSteps, to_c_array(measuredCurrentOffsets[:-1], colcount=10)))
+print("const uint16_t PS9530_Ctrl::adcCurrentGradient[%d] PROGMEM = \n%s;" % (adcSteps, to_c_array(measuredCurrentGradient, colcount=10)))
+
+print("const uint16_t PS9530_Ctrl::voltageDACOffset[%d] PROGMEM = \n%s;" % (dacSteps, to_c_array(setpointVoltageOffsets[:-1], colcount=10)))
+print("const uint16_t PS9530_Ctrl::voltageDACGradient[%d] PROGMEM = \n%s;" % (dacSteps, to_c_array(setpointVoltageGradients, colcount=10)))
+
+print("const uint16_t PS9530_Ctrl::currentDACOffset[%d] PROGMEM = \n%s;" % (dacSteps, to_c_array(setpointCurrentOffsets[:-1], colcount=10)))
+print("const uint16_t PS9530_Ctrl::currentDACGradient[%d] PROGMEM = \n%s;" % (dacSteps, to_c_array(setpointCurrentGradients, colcount=10)))
 
 print("const uint16_t PS9530_Ctrl::minTempADC[2] PROGMEM = %s;" % to_c_array(minTempADC))
 print("const uint16_t PS9530_Ctrl::maxTempADC[2] PROGMEM = %s;" % to_c_array(maxTempADC))
