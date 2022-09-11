@@ -28,6 +28,8 @@
 #define isState(mask) (this->state & (mask))
 #define isPaintedState(mask) (this->painted_state & (mask))
 
+static const uint8_t rowSpacing = (PS_DISPLAY_HEIGHT-PS_DISPLAY_VIRTUAL_ROW_COUNT*PT18_IN_PXH)/(PS_DISPLAY_ROW_COUNT+1.f);
+
 PsDisplay::PsDisplay( Adafruit_ILI9341 & tft) :
     tft(tft) {
 }
@@ -257,7 +259,6 @@ void PsDisplay::paintFlag(bool visible, uint8_t flag, uint8_t y) {
 }
 
 uint8_t PsDisplay::getRowYPos(uint8_t row) {
-    static const uint8_t rowSpacing = (PS_DISPLAY_HEIGHT-PS_DISPLAY_VIRTUAL_ROW_COUNT*PT18_IN_PXH)/(PS_DISPLAY_ROW_COUNT+1.f);
     return getVirtualRow(row)*PT18_IN_PXH + rowSpacing*row;
 }
 
@@ -304,7 +305,7 @@ void PsDisplay::renderMainscreen() {
     }
     if (changedStates & PS_DISPLAY_STATE_LOCKED) {
         setPaintedState(isState(PS_DISPLAY_STATE_LOCKED), PS_DISPLAY_STATE_LOCKED);
-        tft.drawXBitmap(10, getRowYPos(6)-getRowYPos(1),
+        tft.drawXBitmap(10, getRowYPos(6) - lock_height,
 #if defined(__AVR__) || defined(ESP8266)
         lock_bits,
 #else
