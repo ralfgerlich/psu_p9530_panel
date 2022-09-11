@@ -303,7 +303,8 @@ void PsDisplay::renderMainscreen() {
         paintFlag(isState(PS_DISPLAY_STATE_LIMITED_P), PS_DISPLAY_STATE_LIMITED_P, getRowYPos(5));
     }
     if (changedStates & PS_DISPLAY_STATE_LOCKED) {
-         tft.drawXBitmap(10, getRowYPos(6)-getRowYPos(1),
+        setPaintedState(isState(PS_DISPLAY_STATE_LOCKED), PS_DISPLAY_STATE_LOCKED);
+        tft.drawXBitmap(10, getRowYPos(6)-getRowYPos(1),
 #if defined(__AVR__) || defined(ESP8266)
         lock_bits,
 #else
@@ -315,8 +316,7 @@ void PsDisplay::renderMainscreen() {
         (uint16_t *)lock_bits,
 #endif
         lock_width, lock_height,
-        isState(PS_DISPLAY_STATE_LOCKED) ? ILI9341_BLACK : TOOLBOX_LOGO_LIGHT_RED);
-        setPaintedState(isState(PS_DISPLAY_STATE_LOCKED), PS_DISPLAY_STATE_LOCKED);
+        isPaintedState(PS_DISPLAY_STATE_LOCKED) ? TOOLBOX_LOGO_LIGHT_RED : ILI9341_BLACK);
     }
     yield();
     //optimized hybrid
