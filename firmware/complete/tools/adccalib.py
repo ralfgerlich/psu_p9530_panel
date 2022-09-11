@@ -2,6 +2,8 @@
 # Copyright (c) 2022, Ralf Gerlich
 import pandas as pd
 import numpy as np
+import scipy
+from scipy.interpolate import interp1d
 
 
 def to_c_array(values, formatter=str, colcount=15):
@@ -18,28 +20,22 @@ def to_c_array(values, formatter=str, colcount=15):
     return '{%s}' % body
 
 
+# Temperature sensor
 # Location of datasheet data
-datasheet_data = '../../../datasheets/PTC_Data.ods'
+datasheet_data_src = '../../../datasheets/PTC_Data.ods'
 # Selected sensor
 sensor = 'KTY81-121'
 # Selected column
 column = 'Rtyp'
 
-# Resistor Values [Ohm]
+# Voltage and current
+calibration_data_src = '../../../datasheets/calibration_data.ods'
 
-# Conversion for Temp1
+# Resistor Values [Ohm] for Temp1 & Temp2
 R54 = 24.E3
 R56 = 12.E3
-R82 = 2.55e3
-
-Rsense = 0.05
-R60 = 2.7E3
-R61 = 33.E3
-R62 = 100.E3
 R63 = 680
-R64 = 100.E3
-R331 = 22.E3
-R332 = 5.6E3
+R82 = 2.55e3
 
 # Reference voltage on ADC [V]
 vref = 2.5
@@ -50,11 +46,13 @@ adc_max = 1023
 # Number of steps to generate for voltage and current ADC
 voltageADCSteps = 32
 
+
+# Calibration of temperature table
 # Maximum number of entries in temperature table
 max_temp_entries = 16
 
 # Read raw data
-temp_data_raw = pd.read_excel(datasheet_data, sheet_name=sensor)
+temp_data_raw = pd.read_excel(datasheet_data_src, sheet_name=sensor)
 
 # Extract temperature and resistance
 temp_data = temp_data_raw[['Temp_C', column]]
@@ -102,36 +100,39 @@ temp2Table = np.round(np.interp(tempADCTable[:, 1], dataTemp2['adcTemp2'], dataT
 temp1Gradient = np.diff(temp1Table)
 temp2Gradient = np.diff(temp2Table)
 
+# Data for the voltage and current setpoints/measurements
+voltageSetpointData = pd.read_excel(calibration_data_src, sheet_name="VoltageSetPoint")
+currentSetpointData = pd.read_excel(calibration_data_src, sheet_name="CurrentSetPoint")
+voltageMeasurementData = pd.read_excel(calibration_data_src, sheet_name="VoltageMeasurement")
+currentMeasurementData = pd.read_excel(calibration_data_src, sheet_name="CurrentMeasurement")
+
+# Measurement calibration tables
 # ADC Values to consider
 adc_values = np.linspace(start=0, stop=adc_max+1, endpoint=True, num=voltageADCSteps+1)
-# Input voltage to the ADC
-voltageIn = adc_values * vref / adc_max
 
-# Voltage calibration
-# Input Voltage on IC5A
-voltageIC5In = voltageIn * R62 / R64
-# Actual voltage on the rails
-voltage = voltageIC5In * (R60 + R61) / R60
-voltageShift=np.ceil(np.log2((adc_max+1)/voltageADCSteps)).astype(int)
-voltageOffset = np.round(1.E3 * voltage).astype(int)
-voltageGradient = np.diff(voltageOffset)
+# Sort measurements by rawADC value
+voltageMeasurementData.sort_values(by='rawADC', inplace=True)
+currentMeasurementData.sort_values(by='rawADC', inplace=True)
 
-# Current calibration
-# Input on IC312
-voltageIC312In = voltageIn / (1+R331/R332)
-# Actual current sensed
-current = voltageIC312In / Rsense
-currentShift = np.ceil(np.log2(1024/voltageADCSteps)).astype(int)
-currentOffset = np.round(current * 1.E3).astype(int)
-currentGradient = np.diff(currentOffset)
+# Interpolate along the ADC values to consider
+adc2Voltage = interp1d(voltageMeasurementData.rawADC, voltageMeasurementData.Vmeas, fill_value="extrapolate", kind="quadratic")
+adc2Current = interp1d(currentMeasurementData.rawADC, currentMeasurementData.Imeas, fill_value="extrapolate", kind="quadratic")
+measuredVoltageOffsets = np.round(1000.0*adc2Voltage(adc_values)).astype(int)
+measuredCurrentOffsets = np.round(1000.0*adc2Current(adc_values)).astype(int)
 
-print("#define PS9530_VOLTAGE_SHIFT %s" % voltageShift)
-print("#define PS9530_CURRENT_SHIFT %s" % currentShift)
-print("const uint16_t PS9530_Ctrl::adcVoltageOffset[%d] PROGMEM = \n%s;" % (voltageADCSteps, to_c_array(voltageOffset[:-1], colcount=10)))
-print("const uint16_t PS9530_Ctrl::adcVoltageGradient[%d] PROGMEM = \n%s;" % (voltageADCSteps, to_c_array(voltageGradient, colcount=10)))
+measuredVoltageGradient = np.diff(measuredVoltageOffsets)
+measuredCurrentGradient = np.diff(measuredCurrentOffsets)
 
-print("const uint16_t PS9530_Ctrl::adcCurrentOffset[%d] PROGMEM = \n%s;" % (voltageADCSteps, to_c_array(currentOffset[:-1], colcount=10)))
-print("const uint16_t PS9530_Ctrl::adcCurrentGradient[%d] PROGMEM = \n%s;" % (voltageADCSteps, to_c_array(currentGradient, colcount=10)))
+measuredVoltageShift = np.ceil(np.log2((adc_max+1)/voltageADCSteps)).astype(int)
+measuredCurrentShift = measuredVoltageShift
+
+print("#define PS9530_VOLTAGE_SHIFT %s" % measuredVoltageShift)
+print("#define PS9530_CURRENT_SHIFT %s" % measuredCurrentShift)
+print("const uint16_t PS9530_Ctrl::adcVoltageOffset[%d] PROGMEM = \n%s;" % (voltageADCSteps, to_c_array(measuredVoltageOffsets[:-1], colcount=10)))
+print("const uint16_t PS9530_Ctrl::adcVoltageGradient[%d] PROGMEM = \n%s;" % (voltageADCSteps, to_c_array(measuredVoltageGradient, colcount=10)))
+
+print("const uint16_t PS9530_Ctrl::adcCurrentOffset[%d] PROGMEM = \n%s;" % (voltageADCSteps, to_c_array(measuredCurrentOffsets[:-1], colcount=10)))
+print("const uint16_t PS9530_Ctrl::adcCurrentGradient[%d] PROGMEM = \n%s;" % (voltageADCSteps, to_c_array(measuredCurrentGradient, colcount=10)))
 
 print("const uint16_t PS9530_Ctrl::minTempADC[2] PROGMEM = %s;" % to_c_array(minTempADC))
 print("const uint16_t PS9530_Ctrl::maxTempADC[2] PROGMEM = %s;" % to_c_array(maxTempADC))

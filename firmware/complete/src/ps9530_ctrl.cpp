@@ -140,7 +140,6 @@ void PS9530_Ctrl::startADCConversion() {
 
 void PS9530_Ctrl::setMilliVoltSetpoint(uint16_t milliVolts) {
     ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-        // TODO: Use proper calibration table
         uint32_t dac_value = milliVolts;
         dac_value *= 16383;
         dac_value /= 30000UL;
@@ -168,7 +167,7 @@ uint16_t PS9530_Ctrl::getMilliVoltsMeasurement() const {
 uint16_t PS9530_Ctrl::getMilliAmpsMeasurement() const {
     uint16_t result;
     ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-        result = interpolateADCVoltage(rawADCMeasurements[adcChannel_current]);
+        result = interpolateADCCurrent(rawADCMeasurements[adcChannel_current]);
     }
     return result;
 }
@@ -194,29 +193,28 @@ int16_t PS9530_Ctrl::getTemperature2() const {
 bool PS9530_Ctrl::isOvertemp() const {
     return overTempMode != 0;
 }
-
 #define PS9530_VOLTAGE_SHIFT 5
 #define PS9530_CURRENT_SHIFT 5
-const uint16_t PS9530_Ctrl::adcVoltageOffset[32] PROGMEM =
-    {0, 1034, 2068, 3102, 4136, 5170, 6204, 7238, 8272, 9306,
-     10340, 11374, 12408, 13442, 14476, 15510, 16544, 17578, 18612, 19646,
-     20680, 21714, 22748, 23782, 24816, 25850, 26884, 27918, 28952, 29986,
-     31020, 32054};
-const uint16_t PS9530_Ctrl::adcVoltageGradient[32] PROGMEM =
-    {1034, 1034, 1034, 1034, 1034, 1034, 1034, 1034, 1034, 1034,
-     1034, 1034, 1034, 1034, 1034, 1034, 1034, 1034, 1034, 1034,
-     1034, 1034, 1034, 1034, 1034, 1034, 1034, 1034, 1034, 1034,
-     1034, 1034};
-const uint16_t PS9530_Ctrl::adcCurrentOffset[32] PROGMEM =
-    {0, 317, 635, 952, 1269, 1587, 1904, 2221, 2539, 2856,
-     3173, 3491, 3808, 4125, 4443, 4760, 5077, 5395, 5712, 6029,
-     6347, 6664, 6981, 7299, 7616, 7933, 8251, 8568, 8885, 9203,
-     9520, 9838};
-const uint16_t PS9530_Ctrl::adcCurrentGradient[32] PROGMEM =
-    {317, 318, 317, 317, 318, 317, 317, 318, 317, 317,
-     318, 317, 317, 318, 317, 317, 318, 317, 317, 318,
-     317, 317, 318, 317, 317, 318, 317, 317, 318, 317,
-     318, 317};
+const uint16_t PS9530_Ctrl::adcVoltageOffset[32] PROGMEM = 
+{37, 1165, 2192, 3260, 4320, 5405, 6472, 7509, 8569, 9636,
+10690, 11718, 12785, 13873, 14903, 15954, 17022, 18079, 19137, 20213,
+21301, 22328, 23351, 24400, 25473, 26505, 27534, 28655, 29736, 30746,
+31686, 32555};
+const uint16_t PS9530_Ctrl::adcVoltageGradient[32] PROGMEM = 
+{1128, 1027, 1068, 1060, 1085, 1067, 1037, 1060, 1067, 1054,
+1028, 1067, 1088, 1030, 1051, 1068, 1057, 1058, 1076, 1088,
+1027, 1023, 1049, 1073, 1032, 1029, 1121, 1081, 1010, 940,
+869, 799};
+const uint16_t PS9530_Ctrl::adcCurrentOffset[32] PROGMEM = 
+{2, 374, 695, 990, 1302, 1617, 1921, 2227, 2537, 2841,
+3138, 3441, 3752, 4063, 4371, 4669, 4968, 5276, 5587, 5897,
+6203, 6505, 6812, 7122, 7427, 7730, 8033, 8338, 8646, 8957,
+9265, 9545};
+const uint16_t PS9530_Ctrl::adcCurrentGradient[32] PROGMEM = 
+{372, 321, 295, 312, 315, 304, 306, 310, 304, 297,
+303, 311, 311, 308, 298, 299, 308, 311, 310, 306,
+302, 307, 310, 305, 303, 303, 305, 308, 311, 308,
+280, 316};
 const uint16_t PS9530_Ctrl::minTempADC[2] PROGMEM = {550, 485};
 const uint16_t PS9530_Ctrl::maxTempADC[2] PROGMEM = {860, 1194};
 const uint8_t PS9530_Ctrl::shiftTempADC[2] PROGMEM = {5, 6};
