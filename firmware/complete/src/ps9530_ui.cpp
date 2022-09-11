@@ -385,9 +385,11 @@ void PS9530_UI::moveCurser(CurserDirection direction) {
 void PS9530_UI::handleLockKey() {
     if (currentInputMode == InputLocked) {
         currentInputMode = lastInputMode;
+        display.setLocked(false);
     } else {
         lastInputMode = currentInputMode;
         currentInputMode = InputLocked;
+        display.setLocked(true);
     }
 }
 
