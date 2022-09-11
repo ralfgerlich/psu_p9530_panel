@@ -52,52 +52,66 @@ void PS9530_UI::handleKeyboardEvents() {
     while ((keyCode = control.readKeycode()) != kbd_none) {
         hadEvent = true;
         Serial.println(keyCode);
-        switch (keyCode) {
-            case kbd_u:
-                changeInputMode(InputVoltage);
-                break;
-            case kbd_i:
-                changeInputMode(InputCurrent);
-                break;
-            case kbd_p:
-                changeInputMode(InputPower);
-                break;
-            case kbd_enc_cw: case kbd_enc_ccw:
-                handleEncoderRotation(keyCode);
-                break;
-            case kbd_1: case kbd_2: case kbd_3:
-            case kbd_4: case kbd_5: case kbd_6:
-            case kbd_7: case kbd_8: case kbd_9:
-            case kbd_0:
-                handleDigitKey(keyCode);
-                break;
-            case kbd_dot:
-                handleDotKey();
-                break;
-            case kbd_ce:
-                handleCEKey();
-                break;
-            case kbd_enter:
-                handleEnterKey();
-                break;
-            case kbd_left: case kbd_right:
-                handleDirectionKey(keyCode);
-                break;
-            case kbd_lock:
-                handleLockKey();
-                break;
-            case kbd_memory:
-                handleMemoryKey();
-                break;
-            case kbd_standby:
-                handleStandbyKey();
-                break;
-            case kbd_remote:
-                handleRemoteKey();
-                break;
-            default:
-                /* Ingore any other keys */
-                break;
+        if (currentInputMode != InputLocked) {
+            switch (keyCode) {
+                case kbd_u:
+                    changeInputMode(InputVoltage);
+                    break;
+                case kbd_i:
+                    changeInputMode(InputCurrent);
+                    break;
+                case kbd_p:
+                    changeInputMode(InputPower);
+                    break;
+                case kbd_enc_cw: case kbd_enc_ccw:
+                    handleEncoderRotation(keyCode);
+                    break;
+                case kbd_1: case kbd_2: case kbd_3:
+                case kbd_4: case kbd_5: case kbd_6:
+                case kbd_7: case kbd_8: case kbd_9:
+                case kbd_0:
+                    handleDigitKey(keyCode);
+                    break;
+                case kbd_dot:
+                    handleDotKey();
+                    break;
+                case kbd_ce:
+                    handleCEKey();
+                    break;
+                case kbd_enter:
+                    handleEnterKey();
+                    break;
+                case kbd_left: case kbd_right:
+                    handleDirectionKey(keyCode);
+                    break;
+                case kbd_lock:
+                    handleLockKey();
+                    break;
+                case kbd_memory:
+                    handleMemoryKey();
+                    break;
+                case kbd_standby:
+                    handleStandbyKey();
+                    break;
+                case kbd_remote:
+                    handleRemoteKey();
+                    break;
+                default:
+                    /* Ingore any other keys */
+                    break;
+            }
+        } else {
+            switch (keyCode) {
+                case kbd_lock:
+                    handleLockKey();
+                    break;
+                case kbd_standby:
+                    handleStandbyKey();
+                    break;
+                default:
+                    /* Ingore any other keys */
+                    break;
+            }
         }
     }
     display.renderMainscreen();
@@ -138,9 +152,6 @@ void PS9530_UI::changeInputMode(InputMode newMode) {
     /* If the current input mode is not InputNone, reset the
      * respective limit to the original value. */
     switch (currentInputMode) {
-    case InputNone:
-        /* Nothing to do */
-        break;
     case InputVoltage:
         setVoltageSetpointMilliVolts(originalLimitValue);
         break;
@@ -150,14 +161,14 @@ void PS9530_UI::changeInputMode(InputMode newMode) {
     case InputPower:
         setPowerLimitCentiWatt(originalLimitValue);
         break;
+    default:
+        /* Nothing to do */
+        break;
     }
     currentInputMode = newMode;
     currentInputValue = 0;
     /* Set up the value to edit */
     switch (currentInputMode) {
-    case InputNone:
-        /* Nothing to be done here */
-        break;
     case InputVoltage:
         currentInputValue = voltageSetpointMilliVolts/10;
         originalLimitValue = voltageSetpointMilliVolts;
@@ -176,18 +187,21 @@ void PS9530_UI::changeInputMode(InputMode newMode) {
         currentMaximumValue = MAX_POWER_DECIWATT;
         currentInputOnesIndex = 1;
         break;
+    default:
+        /* Nothing to be done here */
+        break;
     }
     /* Reset the cursor position */
     switch (currentInputMode) {
-    case InputNone:
-        /* Nothing to be done here */
-        break;
     case InputVoltage:
     case InputCurrent:
     case InputPower:
         currentInputDigit = currentInputDigitCount-1;
         currentInputFactor = 1000;
         updateEditedValue();
+        break;
+    default:
+        /* Nothing to be done here */
         break;
     }
 }
@@ -222,6 +236,8 @@ void PS9530_UI::updateEditedValue() {
     case InputPower:
         display.setCurser(PsDisplay::ROW_WATTS, currentInputDigitCount-1-currentInputDigit);
         display.setCentiWattsLimit(currentInputValue*10);
+        break;
+    default:
         break;
     }
 }
@@ -324,6 +340,8 @@ void PS9530_UI::handleEnterKey() {
     case InputPower:
         setPowerLimitCentiWatt(currentInputValue*10);
         break;
+    default:
+        break;
     }
     /* Leave input mode */
     currentInputMode=InputNone;
@@ -365,7 +383,12 @@ void PS9530_UI::moveCurser(CurserDirection direction) {
 }
 
 void PS9530_UI::handleLockKey() {
-    
+    if (currentInputMode == InputLocked) {
+        currentInputMode = lastInputMode;
+    } else {
+        lastInputMode = currentInputMode;
+        currentInputMode = InputLocked;
+    }
 }
 
 void PS9530_UI::handleMemoryKey() {

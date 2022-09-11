@@ -5,7 +5,6 @@ bugs:
 * steuerung nicht möglich - ging noch in e03df41b7a4c49042a71132f5b700ccbe3eb6b6c
 
 missing features:
-* lock function
 * memory function
 * remote function
 * graph with all curves

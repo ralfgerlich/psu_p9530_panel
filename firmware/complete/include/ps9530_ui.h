@@ -25,7 +25,8 @@ protected:
         InputNone,
         InputVoltage,
         InputCurrent,
-        InputPower
+        InputPower,
+        InputLocked
     };
 
     /** Change the input mode */
@@ -73,6 +74,7 @@ protected:
      * encoder.
      */
     InputMode currentInputMode;
+    InputMode lastInputMode;
     /** The number of the digit currently being modified */
     uint8_t currentInputDigit;
     uint16_t currentInputFactor;
