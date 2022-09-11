@@ -1,5 +1,5 @@
 bugs:
-* amp readings off (amp setting grob richtig) - reading off weil 2xtransistoren defekt denk ich
+* amp readings off (amp setting grob richtig)
 * volt reading not stable at last digit
 * limited state handling kaputt
 * steuerung nicht möglich - ging noch in e03df41b7a4c49042a71132f5b700ccbe3eb6b6c
