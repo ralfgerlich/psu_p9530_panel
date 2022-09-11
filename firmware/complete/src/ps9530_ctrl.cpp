@@ -150,7 +150,7 @@ void PS9530_Ctrl::setMilliAmpsLimit(uint16_t milliAmpere) {
         uint32_t dac_value = milliAmpere;
         dac_value *= 16383;
         dac_value /= 10000UL;
-        rawDACValue[muxChannel_voltage] = dac_value;
+        rawDACValue[muxChannel_current] = dac_value;
     }
 }
 
