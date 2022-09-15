@@ -9,12 +9,12 @@ missing features:
 * switch to graphical modes
 * memory function
 * remote function
-* standby mit aus signal statt dac (needs hardware change)
+* standby mit aus signal statt dac? (needs hardware change)?
 
 hardware:
 * maybe caps?? die restlichen scheinen aber okay
 * frontend platine design?
-* standby mit aus signal statt dac
+* standby mit aus signal statt dac?
 
 fragen:
 * stellt das relais zurück? wann?
@@ -22,9 +22,8 @@ fragen:
 improvements:
 * font ausdünnen
 * font in 2x size
-* watts in display on the fly rechnen statt alle zu speichern?
 * bei langem standby toolbox logo in groß? bildschirmschoner?
-* bessere fargen für die graphen?
+* bessere farben für die graphen?
 * gibt es eine bessere highlight farbe?
 * const expr runlength encoding für logo?
 * besseres font encoding? runlength?
