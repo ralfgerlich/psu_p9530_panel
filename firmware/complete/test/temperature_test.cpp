@@ -29,11 +29,11 @@ void test_temp_1() {
     //uint16_t full_range_steps = (2.1f - 1.2f)/volts_per_Step;
     //double steps_per_degree_c = (130-20)/full_range_steps;
 
-    TEST_ASSERT_INT16_WITHIN(1, -25, ctrl.interpolateADCTemp(0, uint16_t(1.994f/volts_per_Step)));
-    TEST_ASSERT_INT16_WITHIN(1, 20, ctrl.interpolateADCTemp(0, uint16_t(1.821f/volts_per_Step)));
-    TEST_ASSERT_INT16_WITHIN(1, 25, ctrl.interpolateADCTemp(0, uint16_t(1.801f/volts_per_Step)));
-    TEST_ASSERT_INT16_WITHIN(1, 77, ctrl.interpolateADCTemp(0, uint16_t(1.595f/volts_per_Step)));
-    TEST_ASSERT_INT16_WITHIN(1, 130, ctrl.interpolateADCTemp(0, uint16_t(1.400f/volts_per_Step)));
+    TEST_ASSERT_INT16_WITHIN(2, -25, ctrl.interpolateADCTemp(0, uint16_t(1.994f/volts_per_Step)));
+    TEST_ASSERT_INT16_WITHIN(2, 20, ctrl.interpolateADCTemp(0, uint16_t(1.821f/volts_per_Step)));
+    TEST_ASSERT_INT16_WITHIN(2, 25, ctrl.interpolateADCTemp(0, uint16_t(1.801f/volts_per_Step)));
+    TEST_ASSERT_INT16_WITHIN(2, 77, ctrl.interpolateADCTemp(0, uint16_t(1.595f/volts_per_Step)));
+    TEST_ASSERT_INT16_WITHIN(2, 130, ctrl.interpolateADCTemp(0, uint16_t(1.400f/volts_per_Step)));
 }
 
 void test_temp_2() {
