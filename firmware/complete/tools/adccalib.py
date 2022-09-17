@@ -2,8 +2,8 @@
 # Copyright (c) 2022, Ralf Gerlich
 import pandas as pd
 import numpy as np
-import scipy
 from scipy.interpolate import interp1d
+import os.path
 
 
 def to_c_array(values, formatter=str, colcount=15):
@@ -19,17 +19,18 @@ def to_c_array(values, formatter=str, colcount=15):
     # assemble components into the complete string
     return '{%s}' % body
 
+datasheets_path = '../../../datasheets';
 
 # Temperature sensor
 # Location of datasheet data
-datasheet_data_src = '../../../datasheets/PTC_Data.ods'
+datasheet_data_src = os.path.join(datasheets_path,'PTC_Data.ods')
 # Selected sensor
 sensor = 'KTY81-121'
 # Selected column
 column = 'Rtyp'
 
 # Voltage and current
-calibration_data_src = '../../../datasheets/calibration_data.ods'
+calibration_data_src = os.path.join(datasheets_path,'calibration_data.ods')
 
 # Resistor Values [Ohm] for Temp1 & Temp2
 R54 = 24.E3
@@ -101,10 +102,11 @@ temp1Gradient = np.diff(temp1Table)
 temp2Gradient = np.diff(temp2Table)
 
 # Data for the voltage and current setpoints/measurements
-voltageSetpointData = pd.read_excel(calibration_data_src, sheet_name="VoltageSetPoint")
-currentSetpointData = pd.read_excel(calibration_data_src, sheet_name="CurrentSetPoint")
-voltageMeasurementData = pd.read_excel(calibration_data_src, sheet_name="VoltageMeasurement")
-currentMeasurementData = pd.read_excel(calibration_data_src, sheet_name="CurrentMeasurement")
+voltageSetpointData = pd.read_csv(os.path.join(datasheets_path, 'voltageSetpointData.csv'), decimal='.')
+currentSetpointData = pd.read_csv(os.path.join(datasheets_path, 'currentSetpointData.csv'), decimal='.')
+voltageMeasurementData = pd.read_csv(os.path.join(datasheets_path, 'voltageMeasurementData.csv'), decimal='.')
+currentMeasurementData = pd.read_csv(os.path.join(datasheets_path, 'currentMeasurementData.csv'), decimal='.')
+
 
 # Measurement calibration tables
 # ADC Values to consider
@@ -120,9 +122,6 @@ adc2Current = interp1d(currentMeasurementData.rawADC, currentMeasurementData.Ime
 measuredVoltageOffsets = np.round(1000.0*adc2Voltage(adc_values)).astype(int)
 measuredCurrentOffsets = np.round(1000.0*adc2Current(adc_values)).astype(int)
 
-measuredVoltageGradient = np.diff(measuredVoltageOffsets)
-measuredCurrentGradient = np.diff(measuredCurrentOffsets)
-
 measuredVoltageShift = np.ceil(np.log2((adc_max+1)/adcSteps)).astype(int)
 measuredCurrentShift = measuredVoltageShift
 
@@ -130,7 +129,6 @@ measuredCurrentShift = measuredVoltageShift
 dacSteps = 32
 
 # Voltage calibration table
-print(voltageSetpointData)
 # Minimum maximum voltage to consider
 maxVoltageMillivolts = 30.E3
 # Bits required to express maximum voltage
@@ -168,26 +166,19 @@ print("#define PS9530_ADC_VOLTAGE_SHIFT %s" % measuredVoltageShift)
 print("#define PS9530_ADC_CURRENT_SHIFT %s" % measuredCurrentShift)
 print("#define PS9530_DAC_VOLTAGE_SHIFT %s" % setpointVoltageShift)
 print("#define PS9530_DAC_CURRENT_SHIFT %s" % setpointCurrentShift)
-print("const uint16_t PS9530_Ctrl::adcVoltageOffset[%d] PROGMEM = \n%s;" % (adcSteps, to_c_array(measuredVoltageOffsets[:-1], colcount=10)))
-print("const uint16_t PS9530_Ctrl::adcVoltageGradient[%d] PROGMEM = \n%s;" % (adcSteps, to_c_array(measuredVoltageGradient, colcount=10)))
+print("#define PS9530_ADC_TEMP1_SHIFT %d" % actTempStepShift[0])
+print("#define PS9530_ADC_TEMP2_SHIFT %d" % actTempStepShift[1])
+print("const uint16_t PS9530_Ctrl::adcVoltageOffset[%d] PROGMEM = \n%s;" % (adcSteps+1, to_c_array(measuredVoltageOffsets, colcount=10)))
 
-print("const uint16_t PS9530_Ctrl::adcCurrentOffset[%d] PROGMEM = \n%s;" % (adcSteps, to_c_array(measuredCurrentOffsets[:-1], colcount=10)))
-print("const uint16_t PS9530_Ctrl::adcCurrentGradient[%d] PROGMEM = \n%s;" % (adcSteps, to_c_array(measuredCurrentGradient, colcount=10)))
+print("const uint16_t PS9530_Ctrl::adcCurrentOffset[%d] PROGMEM = \n%s;" % (adcSteps+1, to_c_array(measuredCurrentOffsets, colcount=10)))
 
-print("const uint16_t PS9530_Ctrl::voltageDACOffset[%d] PROGMEM = \n%s;" % (dacSteps, to_c_array(setpointVoltageOffsets[:-1], colcount=10)))
-print("const uint16_t PS9530_Ctrl::voltageDACGradient[%d] PROGMEM = \n%s;" % (dacSteps, to_c_array(setpointVoltageGradients, colcount=10)))
+print("const uint16_t PS9530_Ctrl::voltageDACOffset[%d] PROGMEM = \n%s;" % (dacSteps+1, to_c_array(setpointVoltageOffsets, colcount=10)))
 
-print("const uint16_t PS9530_Ctrl::currentDACOffset[%d] PROGMEM = \n%s;" % (dacSteps, to_c_array(setpointCurrentOffsets[:-1], colcount=10)))
-print("const uint16_t PS9530_Ctrl::currentDACGradient[%d] PROGMEM = \n%s;" % (dacSteps, to_c_array(setpointCurrentGradients, colcount=10)))
+print("const uint16_t PS9530_Ctrl::currentDACOffset[%d] PROGMEM = \n%s;" % (dacSteps+1, to_c_array(setpointCurrentOffsets, colcount=10)))
 
 print("const uint16_t PS9530_Ctrl::minTempADC[2] PROGMEM = %s;" % to_c_array(minTempADC))
 print("const uint16_t PS9530_Ctrl::maxTempADC[2] PROGMEM = %s;" % to_c_array(maxTempADC))
-print("const uint8_t PS9530_Ctrl::shiftTempADC[2] PROGMEM = %s;" % to_c_array(actTempStepShift))
-print("const int16_t PS9530_Ctrl::tempOffset[2][%d] PROGMEM = {" % (maxTempSteps-1));
-print("    %s," % to_c_array(temp1Table[:-1].astype(int)))
-print("    %s," % to_c_array(temp2Table[:-1].astype(int)))
-print("};");
-print("const int16_t PS9530_Ctrl::tempGradient[2][%d] PROGMEM = {" % (maxTempSteps-1));
-print("    %s," % to_c_array(temp1Gradient.astype(int)))
-print("    %s," % to_c_array(temp2Gradient.astype(int)))
+print("const int16_t PS9530_Ctrl::tempOffset[2][%d] PROGMEM = {" % maxTempSteps);
+print("    %s," % to_c_array(temp1Table.astype(int)))
+print("    %s," % to_c_array(temp2Table.astype(int)))
 print("};");

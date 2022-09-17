@@ -6,6 +6,13 @@
 #include <avr/pgmspace.h>
 #include "kbd.h"
 
+#define PS9530_ADC_VOLTAGE_SHIFT 5
+#define PS9530_ADC_CURRENT_SHIFT 5
+#define PS9530_DAC_VOLTAGE_SHIFT 10
+#define PS9530_DAC_CURRENT_SHIFT 9
+#define PS9530_ADC_TEMP1_SHIFT 5
+#define PS9530_ADC_TEMP2_SHIFT 6
+
 class PS9530_Ctrl {
 public:
     static PS9530_Ctrl& getInstance();
@@ -84,9 +91,7 @@ private:
     } currentMuxChannel;
 
     /** Voltage offset for ADC conversion */
-    static const uint16_t adcVoltageOffset[32] PROGMEM;
-    /** Voltage gradient for ADC conversion */
-    static const uint16_t adcVoltageGradient[32] PROGMEM;
+    static const uint16_t adcVoltageOffset[33] PROGMEM;
 
     /**
      * @brief Convert an ADC measurement into a voltage
@@ -97,9 +102,7 @@ private:
     static uint16_t interpolateADCVoltage(uint16_t adcValue);
 
     /** Current offset for ADC conversion */
-    static const uint16_t adcCurrentOffset[32] PROGMEM;
-    /** Current gradient for ADC conversion */
-    static const uint16_t adcCurrentGradient[32] PROGMEM;
+    static const uint16_t adcCurrentOffset[33] PROGMEM;
 
     /**
      * @brief Convert an ADC measurement into a current
@@ -110,9 +113,7 @@ private:
     static uint16_t interpolateADCCurrent(uint16_t adcValue);
 
     /** DAC offset for voltage conversion */
-    static const uint16_t voltageDACOffset[32] PROGMEM;
-    /** DAC gradient for voltage conversion */
-    static const uint16_t voltageDACGradient[32] PROGMEM;
+    static const uint16_t voltageDACOffset[33] PROGMEM;
 
     /**
      * @brief Convert a voltage target value to a DAC value
@@ -123,9 +124,7 @@ private:
     static uint16_t interpolateDACVoltage(uint16_t milliVolts);
 
     /** DAC offset for voltage conversion */
-    static const uint16_t currentDACOffset[32] PROGMEM;
-    /** DAC gradient for current conversion */
-    static const uint16_t currentDACGradient[32] PROGMEM;
+    static const uint16_t currentDACOffset[33] PROGMEM;
 
     /**
      * @brief Convert a current target value to a DAC value
@@ -146,12 +145,8 @@ private:
     static const uint16_t minTempADC[2] PROGMEM;
     /** Maximum ADC value for temperature ADC conversion */
     static const uint16_t maxTempADC[2] PROGMEM;
-    /** Bit shift value for temperature ADC conversion */
-    static const uint8_t shiftTempADC[2] PROGMEM;
     /** Temperature offset for ADC conversion */
-    static const int16_t tempOffset[2][11] PROGMEM;
-    /** Temperature gradient for ADC conversion */
-    static const int16_t tempGradient[2][11] PROGMEM;
+    static const int16_t tempOffset[2][12] PROGMEM;
 
     /**
      * @brief Convert an ADC measurement into a temperature
@@ -160,7 +155,7 @@ private:
      * @param adcValue The value from the ADC (in the range 0...1023)
      * @return The temperature in Degree Celsius
      */
-    static int16_t interpolateADCTemp(uint8_t index, uint16_t adcValue);
+    static int16_t interpolateADCTemp(uint8_t index, uint16_t adcValue, uint8_t shift);
 
     /** Flags indicating whether we are in overtemperature mode and why */
     enum {
