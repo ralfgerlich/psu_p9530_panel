@@ -55,6 +55,9 @@ class PsDisplay {
     void setLimitedV(bool limited_v);
     void setLimitedA(bool limited_a);
     void setLimitedP(bool limited_p);
+    bool isLimitedV();
+    bool isLimitedA();
+    bool isLimitedP();
     void setOvertemp(bool overtemp);
     void setMilliVoltsSetpoint(int16_t voltage_setpoint);
     void setMilliAmpsLimit(int16_t amps_limit);

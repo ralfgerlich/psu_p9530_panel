@@ -18,6 +18,8 @@ public:
     /** Handle all pending events and update the system state */
     void update();
 protected:
+    /** Set the UI limiter flags according to the current limiting controller */
+    void setLimiterFlags(PS9530_Ctrl::LimitingMode limitingController);
     /** Handle all pending keyboard events */
     void handleKeyboardEvents();
 

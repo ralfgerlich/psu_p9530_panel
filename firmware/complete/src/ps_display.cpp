@@ -446,6 +446,18 @@ void PsDisplay::setLimitedP(bool limited_p) {
     setState(limited_p, PS_DISPLAY_STATE_LIMITED_P);
 }
 
+bool PsDisplay::isLimitedV() {
+    return isState(PS_DISPLAY_STATE_LIMITED_V);
+}
+
+bool PsDisplay::isLimitedA() {
+    return isState(PS_DISPLAY_STATE_LIMITED_A);
+}
+
+bool PsDisplay::isLimitedP() {
+    return isState(PS_DISPLAY_STATE_LIMITED_P);
+}
+
 void PsDisplay::setOvertemp(bool overtemp) {
     setState(overtemp, PS_DISPLAY_STATE_OVERTEMP);
 }

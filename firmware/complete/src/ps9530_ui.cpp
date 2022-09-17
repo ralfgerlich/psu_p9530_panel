@@ -35,7 +35,11 @@ void PS9530_UI::update() {
     updateMeasurements();
     display.setOvertemp(control.isOvertemp());
     display.setStandby(control.isStandbyEnabled());
-    if (control.getCurrentLimitingMode()==PS9530_Ctrl::LimitingMode_Voltage) {
+    setLimiterFlags(control.getCurrentLimitingMode());
+}
+
+void PS9530_UI::setLimiterFlags(PS9530_Ctrl::LimitingMode limitingController) {
+    if (limitingController==PS9530_Ctrl::LimitingMode_Voltage) {
         display.setLimitedV(true);
         display.setLimitedA(false);
         display.setLimitedP(false);
@@ -44,6 +48,7 @@ void PS9530_UI::update() {
         display.setLimitedA(limitingMode==LimitingByCurrent);
         display.setLimitedP(limitingMode==LimitingByPower);
     }
+
 }
 
 void PS9530_UI::handleKeyboardEvents() {
