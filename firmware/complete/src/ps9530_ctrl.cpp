@@ -77,7 +77,26 @@ void PS9530_Ctrl::updateADC() {
     if (currentADCState & 1) {
         /* We just did the actual measurement */
         const uint8_t currentADCChannel = currentADCState >> 1;
-        rawADCMeasurements[currentADCChannel] = ADC;
+        /* Apply a filter with a cut-off-frequency of ca. 20Hz.
+         * We use the filter concept
+         *   y[t+1] = alpha*x[t+1] + (1-alpha)*y[t]
+         * where x[t] is the sequence of measurements,
+         *       y[t] is the sequence of filtered values, and
+         *       alpha is the smoothing factor with
+         *   alpha= dT/(T+dT)
+         * where dT is the sampling time (1/f), and
+         *        T is the filtering time constant.
+         * 
+         * With dT=1/100 s and T = 1/20s we get alpha=1/6, which is about 11/64.
+         * 
+         * We use a scale factor of 64, as the ADC values are in the range [0;1023],
+         * and this multiplied by 64 gives a maximum range of [0;64449], which
+         * still fits into a 16-bit unsigned integer.
+         */
+        const uint16_t newValue = ADC;
+        const uint16_t oldValue = rawADCMeasurements[currentADCChannel];
+        const uint16_t filteredValue = (11U*newValue+53U*oldValue)>>6;
+        rawADCMeasurements[currentADCChannel] = filteredValue;
     }
     /* Update the state */
     currentADCState++;
