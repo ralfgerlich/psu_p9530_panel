@@ -185,14 +185,39 @@ const int16_t PS9530_Ctrl::tempOffset[2][12] PROGMEM = {
 };
 
 void PS9530_Ctrl::setMilliVoltSetpoint(uint16_t milliVolts) {
-    ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-        rawDACValue[muxChannel_voltage] = interpolateDACVoltage(milliVolts);
-    }
+    voltageSetpointMilliVolts = milliVolts;
+    updateLimits();
 }
 
 void PS9530_Ctrl::setMilliAmpsLimit(uint16_t milliAmpere) {
+    currentLimitMilliAmps = milliAmpere;
+    updateLimits();
+}
+
+void PS9530_Ctrl::setCentiWattLimit(uint16_t centiWatts) {
+    powerLimitCentiWatt = centiWatts;
+    updateLimits();
+}
+
+void PS9530_Ctrl::updateLimits() {
+    uint16_t actualCurrentLimitMilliAmps;
+
+    /* Both the current and the power limit define a maximum current.
+    * Set the one that actuall implies the lower current limit.
+    */
+    if (powerLimitCentiWatt*10UL>(uint32_t)voltageSetpointMilliVolts*currentLimitMilliAmps/1000UL) {
+        /* The current limit is more limiting */
+        actualCurrentLimitMilliAmps = currentLimitMilliAmps;
+        currentLimitReason = CurrentLimitFromCurrent;
+    } else {
+        /* The power limit is more limiting */
+        actualCurrentLimitMilliAmps = powerLimitCentiWatt*10000UL/voltageSetpointMilliVolts;
+        currentLimitReason = CurrentLimitFromPower;
+    }
+
     ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-        rawDACValue[muxChannel_current] = interpolateDACCurrent(milliAmpere);
+        rawDACValue[muxChannel_voltage] = interpolateDACVoltage(voltageSetpointMilliVolts);
+        rawDACValue[muxChannel_current] = interpolateDACCurrent(actualCurrentLimitMilliAmps);
     }
 }
 
@@ -313,11 +338,17 @@ void PS9530_Ctrl::updateOvertemperature() {
     }
 }
 
-PS9530_Ctrl::LimitingMode PS9530_Ctrl::getCurrentLimitingMode() {
-    if (PIN_CTRL & MASK_CTRL) {
+PS9530_Ctrl::LimitingMode PS9530_Ctrl::getLimitingMode() {
+    return getLimitingMode((PIN_CTRL & MASK_CTRL)!=0);
+}
+
+PS9530_Ctrl::LimitingMode PS9530_Ctrl::getLimitingMode(bool currentLimiterPin) {
+    if (!currentLimiterPin) {
+        return LimitingMode_Voltage;
+    } else if (currentLimitReason==CurrentLimitFromCurrent) {
         return LimitingMode_Current;
     } else {
-        return LimitingMode_Voltage;
+        return LimitingMode_Power;
     }
 }
 

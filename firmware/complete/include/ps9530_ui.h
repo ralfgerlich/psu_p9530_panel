@@ -96,19 +96,11 @@ protected:
     /** The original value of the currently edited value. */
     uint16_t originalLimitValue;
 
-    /** Current limiter mode */
-    enum {
-        LimitingByCurrent,
-        LimitingByPower
-    } limitingMode;
-
     void setVoltageSetpointMilliVolts(uint16_t milliVolts);
     void setCurrentLimitMilliAmps(uint16_t milliAmps);
     void setPowerLimitCentiWatt(uint16_t centiWatt);
 
     void setStandbyMode(bool newMode);
-
-    void updateControlLimits();
 
     void updateMeasurements();
 private:

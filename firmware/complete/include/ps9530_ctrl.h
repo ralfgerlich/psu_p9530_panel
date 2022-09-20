@@ -41,10 +41,15 @@ public:
     /** Determine whether we are in standby mode */
     bool isStandbyEnabled() const;
 
-    /** Set the setpoint for the voltage in millivolts */
+    /** Set the setpoint for the voltage in Millivolts */
     void setMilliVoltSetpoint(uint16_t milliVolts);
-    /** Set the limit for the current in millivolts */
+    /** Set the limit for the current in Milliampere */
     void setMilliAmpsLimit(uint16_t milliAmpere);
+    /** Set the limit for the power in Centiwatt */
+    void setCentiWattLimit(uint16_t centiWatt);
+
+    /** Update the hardware voltage and current limit */
+    void updateLimits();
 
     /** Get the voltage measured in millivolts */
     uint16_t getMilliVoltsMeasurement() const;
@@ -61,10 +66,11 @@ public:
 
     enum LimitingMode {
         LimitingMode_Voltage=0,
-        LimitingMode_Current
+        LimitingMode_Current,
+        LimitingMode_Power
     };
     /** Get the current limiter mode */
-    LimitingMode getCurrentLimitingMode();
+    LimitingMode getLimitingMode();
 private:
     PS9530_Ctrl();
 
@@ -81,6 +87,24 @@ private:
 
     /** Flag indicating standby mode */
     bool standbyMode;
+
+    /** Voltage setpoint in Millivolts */
+    uint16_t voltageSetpointMilliVolts;
+    /** Current limit in Milliampere */
+    uint16_t currentLimitMilliAmps;
+    /** Power limit in Centiwatt */
+    uint16_t powerLimitCentiWatt;
+
+    /** Flag indicating whether we set the hardware current limit from
+     * the current limit or the power limit.
+     */
+    enum {
+        CurrentLimitFromCurrent,
+        CurrentLimitFromPower
+    } currentLimitReason;
+
+    /** Get the limiter mode based on the value of the limiter pin */
+    LimitingMode getLimitingMode(bool limiterPin);
 
     /** Raw values for the DAC channels */
     uint16_t rawDACValue[2];

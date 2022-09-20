@@ -11,8 +11,7 @@ PS9530_UI::PS9530_UI(PS9530_Ctrl& control,
                      PsDisplay& display):
     control(control),
     display(display),
-    currentInputMode(InputNone),
-    limitingMode(LimitingByCurrent)
+    currentInputMode(InputNone)
 {
 }
 
@@ -35,20 +34,13 @@ void PS9530_UI::update() {
     updateMeasurements();
     display.setOvertemp(control.isOvertemp());
     display.setStandby(control.isStandbyEnabled());
-    setLimiterFlags(control.getCurrentLimitingMode());
+    setLimiterFlags(control.getLimitingMode());
 }
 
 void PS9530_UI::setLimiterFlags(PS9530_Ctrl::LimitingMode limitingController) {
-    if (limitingController==PS9530_Ctrl::LimitingMode_Voltage) {
-        display.setLimitedV(true);
-        display.setLimitedA(false);
-        display.setLimitedP(false);
-    } else {
-        display.setLimitedV(false);
-        display.setLimitedA(limitingMode==LimitingByCurrent);
-        display.setLimitedP(limitingMode==LimitingByPower);
-    }
-
+    display.setLimitedV(limitingController==PS9530_Ctrl::LimitingMode_Voltage);
+    display.setLimitedA(limitingController==PS9530_Ctrl::LimitingMode_Current);
+    display.setLimitedP(limitingController==PS9530_Ctrl::LimitingMode_Power);
 }
 
 void PS9530_UI::handleKeyboardEvents() {
@@ -412,36 +404,18 @@ void PS9530_UI::handleRemoteKey() {
 
 void PS9530_UI::setVoltageSetpointMilliVolts(uint16_t milliVolts) {
     voltageSetpointMilliVolts = milliVolts;
+    control.setMilliVoltSetpoint(milliVolts);
     display.setMilliVoltsSetpoint(milliVolts);
-    updateControlLimits();
 }
 
 void PS9530_UI::setCurrentLimitMilliAmps(uint16_t milliAmps) {
     currentLimitMilliAmps = milliAmps;
+    control.setMilliAmpsLimit(milliAmps);
     display.setMilliAmpsLimit(milliAmps);
-    updateControlLimits();
 }
 
 void PS9530_UI::setPowerLimitCentiWatt(uint16_t centiWatt) {
     powerLimitCentiWatt = centiWatt;
+    control.setCentiWattLimit(centiWatt);
     display.setCentiWattsLimit(centiWatt);
-    updateControlLimits();
-}
-
-void PS9530_UI::updateControlLimits() {
-    control.setMilliVoltSetpoint(voltageSetpointMilliVolts);
-
-    /* Both the current and the power limit define a maximum current.
-    * Set the one that actuall implies the lower current limit.
-    */
-    if (powerLimitCentiWatt*10UL>(uint32_t)voltageSetpointMilliVolts*currentLimitMilliAmps/1000UL) {
-        /* The current limit is more limiting */
-        control.setMilliAmpsLimit(currentLimitMilliAmps);
-        limitingMode = LimitingByCurrent;
-    } else {
-        /* The power limit is more limiting */
-        uint16_t actualCurrentLimitMilliAmps = powerLimitCentiWatt*10000UL/voltageSetpointMilliVolts;
-        control.setMilliAmpsLimit(actualCurrentLimitMilliAmps);
-        limitingMode = LimitingByPower;
-    }
 }

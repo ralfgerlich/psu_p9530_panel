@@ -1,9 +1,7 @@
 bugs:
-* amp setting lookup table leicht daneben
-* volt setting lookup table leicht daneben
-* volt reading not stable at last digit (glätten/filtern)
+* volt/amp rekalibrieren
+* Power-Measurement in PS9530_Ctrl schieben
 * komma funktioniert nicht immer wie erwartet?
-* limit anzeige am anfang oder manchmal falsch
 
 missing features:
 * switch to graphical modes
