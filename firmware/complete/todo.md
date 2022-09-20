@@ -15,6 +15,7 @@ hardware:
 
 fragen:
 * stellt das relais zurück? wann?
+* liegt wenn der arduino startet kurz eine hohe spannung an?
 
 improvements:
 * font ausdünnen
@@ -25,7 +26,7 @@ improvements:
 * const expr runlength encoding für logo?
 * besseres font encoding? runlength?
 * code cleanup
-* pio tests mit avrsim ausführen?
+* lookup für 10^x statt mult und div
 
 doku:
 * schaltplan double check
