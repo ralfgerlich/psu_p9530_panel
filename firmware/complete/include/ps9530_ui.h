@@ -18,8 +18,6 @@ public:
     /** Handle all pending events and update the system state */
     void update();
 protected:
-    /** Set the UI limiter flags according to the current limiting controller */
-    void setLimiterFlags(PS9530_Ctrl::LimitingMode limitingController);
     /** Handle all pending keyboard events */
     void handleKeyboardEvents();
 
@@ -99,8 +97,6 @@ protected:
     void setVoltageSetpointMilliVolts(uint16_t milliVolts);
     void setCurrentLimitMilliAmps(uint16_t milliAmps);
     void setPowerLimitCentiWatt(uint16_t centiWatt);
-
-    void setStandbyMode(bool newMode);
 
     void updateMeasurements();
 private:

@@ -32,9 +32,6 @@ public:
      * aims for low execution time. */
     void updateADC();
 
-    /** Set standby mode */
-    void setStandbyMode(bool standbyMode);
-
     /** Toggle standby mode */
     void toggleStandbyMode();
 
@@ -65,8 +62,13 @@ public:
     bool isOvertemp() const;
 
     enum LimitingMode {
-        LimitingMode_Voltage=0,
+        /** Power supply is inactive (due to standby or overtemperature) */
+        LimitingMode_Inactive=0,
+        /** Output is limited due to voltage setpoint */
+        LimitingMode_Voltage,
+        /** Output is limited due to current limit */
         LimitingMode_Current,
+        /** Output is limited due to power limit */
         LimitingMode_Power
     };
     /** Get the current limiter mode */

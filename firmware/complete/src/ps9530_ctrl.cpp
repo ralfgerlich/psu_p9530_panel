@@ -107,10 +107,6 @@ void PS9530_Ctrl::updateADC() {
     }
 }
 
-void PS9530_Ctrl::setStandbyMode(bool standbyMode) {
-    standbyMode = standbyMode;
-}
-
 void PS9530_Ctrl::toggleStandbyMode() {
     standbyMode = !standbyMode;
 }
@@ -343,7 +339,9 @@ PS9530_Ctrl::LimitingMode PS9530_Ctrl::getLimitingMode() {
 }
 
 PS9530_Ctrl::LimitingMode PS9530_Ctrl::getLimitingMode(bool currentLimiterPin) {
-    if (!currentLimiterPin) {
+    if (isStandbyEnabled()) {
+        return LimitingMode_Inactive;
+    } else if (!currentLimiterPin) {
         return LimitingMode_Voltage;
     } else if (currentLimitReason==CurrentLimitFromCurrent) {
         return LimitingMode_Current;
