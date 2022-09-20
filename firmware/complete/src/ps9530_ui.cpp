@@ -136,10 +136,9 @@ void PS9530_UI::handleKeyboardEvents() {
 }
 
 void PS9530_UI::updateMeasurements() {
-    uint16_t centiWattPowerMeasurement = (uint32_t)control.getMilliVoltsMeasurement()*control.getMilliAmpsMeasurement()/10000UL;
     display.setMilliVolts(control.getMilliVoltsMeasurement());
     display.setMilliAmps(control.getMilliAmpsMeasurement());
-    display.setCentiWatts(centiWattPowerMeasurement);
+    display.setCentiWatts(control.getCentiWattsMeasurement());
 }
 
 void PS9530_UI::changeInputMode(InputMode newMode) {

@@ -48,10 +48,12 @@ public:
     /** Update the hardware voltage and current limit */
     void updateLimits();
 
-    /** Get the voltage measured in millivolts */
+    /** Get the voltage measured in Millivolts */
     uint16_t getMilliVoltsMeasurement() const;
-    /** Get the current measured in milliampere */
+    /** Get the current measured in Milliampere */
     uint16_t getMilliAmpsMeasurement() const;
+    /** Get the power measured in Centiwatts */
+    uint16_t getCentiWattsMeasurement() const;
 
     /** Get the temperature at sensor 1 in degrees C */
     int16_t getTemperature1() const;

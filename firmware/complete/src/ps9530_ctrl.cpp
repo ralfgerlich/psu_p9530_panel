@@ -233,6 +233,13 @@ uint16_t PS9530_Ctrl::getMilliAmpsMeasurement() const {
     return result;
 }
 
+uint16_t PS9530_Ctrl::getCentiWattsMeasurement() const {
+    const uint16_t milliVolts = getMilliVoltsMeasurement();
+    const uint16_t milliAmpere = getMilliAmpsMeasurement();
+    const uint16_t centiWattsMeasurement = (uint32_t)milliVolts*milliAmpere/10000UL;
+    return centiWattsMeasurement;
+}
+
 int16_t PS9530_Ctrl::getTemperature1() const {
     int16_t result;
     ATOMIC_BLOCK(ATOMIC_RESTORESTATE)

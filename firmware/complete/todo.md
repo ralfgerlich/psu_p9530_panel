@@ -1,6 +1,5 @@
 bugs:
 * volt/amp rekalibrieren
-* Power-Measurement in PS9530_Ctrl schieben
 * komma funktioniert nicht immer wie erwartet?
 
 missing features:
