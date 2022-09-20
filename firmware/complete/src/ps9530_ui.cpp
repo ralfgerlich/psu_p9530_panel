@@ -307,7 +307,7 @@ void PS9530_UI::handleDotKey() {
             moveCurser(CURSER_LEFT);
         }
         moveCurser(CURSER_RIGHT);
-    } else if (currentInputDigit>currentInputOnesIndex) {
+    } else if (currentInputDigit>=currentInputOnesIndex) {
         //move everything to the right
         while (currentInputDigit>currentInputOnesIndex) {
             currentInputValue /= 10;
