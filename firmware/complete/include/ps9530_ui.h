@@ -77,7 +77,7 @@ protected:
     InputMode lastInputMode;
     /** The number of the digit currently being modified */
     uint8_t currentInputDigit;
-    uint16_t currentInputFactor;
+    uint8_t currentInputFactorIndex;
     /** The number of editable digits in the currently edited value */
     const uint16_t currentInputDigitMax = 3;
     /** The index of the one place in the current input mode */
@@ -93,6 +93,8 @@ protected:
     uint16_t currentMaximumValue;
     /** The original value of the currently edited value. */
     uint16_t originalLimitValue;
+
+    static const uint16_t inputFactorLookup[4] PROGMEM;
 
     void setVoltageSetpointMilliVolts(uint16_t milliVolts);
     void setCurrentLimitMilliAmps(uint16_t milliAmps);

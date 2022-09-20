@@ -7,6 +7,8 @@
 #define MAX_CURRENT_CENTIAMPS 1000UL
 #define MAX_POWER_DECIWATT 3000UL
 
+const uint16_t PS9530_UI::inputFactorLookup[4] PROGMEM = {1, 10, 100, 1000};
+
 PS9530_UI::PS9530_UI(PS9530_Ctrl& control,
                      PsDisplay& display):
     control(control),
@@ -122,8 +124,8 @@ void PS9530_UI::handleKeyboardEvents() {
         Serial.println(currentInputMode);
         Serial.print(F("currentInputValue="));
         Serial.println(currentInputValue);
-        Serial.print(F("currentInputFactor="));
-        Serial.println(currentInputFactor);
+        Serial.print(F("currentInputFactorIndex="));
+        Serial.println(pgm_read_word(&inputFactorLookup[currentInputFactorIndex]));
         Serial.print(F("currentInputDigit="));
         Serial.println(currentInputDigit);
         Serial.print(F("currentInputDigitMax="));
@@ -191,7 +193,7 @@ void PS9530_UI::changeInputMode(InputMode newMode) {
     case InputPower:
         // reset to second digit
         currentInputDigit = currentInputDigitMax-1;
-        currentInputFactor = 100;
+        currentInputFactorIndex = 2;
         updateEditedValue();
         break;
     default:
@@ -243,11 +245,11 @@ void PS9530_UI::handleEncoderRotation(KeyCode direction) {
     }
     switch (direction) {
     case kbd_enc_cw:
-        currentInputValue += currentInputFactor;
+        currentInputValue += pgm_read_word(&inputFactorLookup[currentInputFactorIndex]);
         updateEditedValue();
         break;
     case kbd_enc_ccw:
-        currentInputValue -= currentInputFactor;
+        currentInputValue -= pgm_read_word(&inputFactorLookup[currentInputFactorIndex]);
         updateEditedValue();
         break;
     default:
@@ -277,9 +279,9 @@ void PS9530_UI::handleDigitKey(KeyCode keycode) {
         /* This should not happen, but we exit just to be safe */
         return;
     }
-    uint8_t digitAtPos = uint16_t(currentInputValue/currentInputFactor) % 10;
-    currentInputValue -= digitAtPos*currentInputFactor;
-    currentInputValue += digit*currentInputFactor;
+    uint8_t digitAtPos = uint16_t(currentInputValue/pgm_read_word(&inputFactorLookup[currentInputFactorIndex])) % 10;
+    currentInputValue -= digitAtPos*pgm_read_word(&inputFactorLookup[currentInputFactorIndex]);
+    currentInputValue += digit*pgm_read_word(&inputFactorLookup[currentInputFactorIndex]);
     moveCurser(CURSER_RIGHT);
     updateEditedValue();
 }
@@ -315,7 +317,7 @@ void PS9530_UI::handleCEKey() {
     currentInputValue = 0;
     /* Reset to the first digit */
     currentInputDigit = currentInputDigitMax;
-    currentInputFactor = 1000;
+    currentInputFactorIndex = 3;
     updateEditedValue();
 }
 
@@ -365,12 +367,12 @@ void PS9530_UI::moveCurser(CurserDirection direction) {
     if (direction == CURSER_LEFT) {
         if (currentInputDigit<currentInputDigitMax) {
             currentInputDigit++;
-            currentInputFactor *= 10;
+            currentInputFactorIndex++;
         }
     } else {
         if (currentInputDigit>0) {
             currentInputDigit--;
-            currentInputFactor /= 10;
+            currentInputFactorIndex--;
         }
     }
 }

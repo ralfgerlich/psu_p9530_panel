@@ -25,7 +25,6 @@ improvements:
 * const expr runlength encoding für logo?
 * besseres font encoding? runlength?
 * code cleanup
-* lookup für 10^x statt mult und div
 
 doku:
 * schaltplan double check
