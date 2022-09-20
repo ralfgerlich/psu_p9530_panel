@@ -79,7 +79,7 @@ protected:
     uint8_t currentInputDigit;
     uint16_t currentInputFactor;
     /** The number of editable digits in the currently edited value */
-    const uint16_t currentInputDigitCount = 4;
+    const uint16_t currentInputDigitMax = 3;
     /** The index of the one place in the current input mode */
     uint8_t currentInputOnesIndex;
     /** The value currently being edited (including terminating
