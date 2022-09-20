@@ -1,6 +1,5 @@
 bugs:
 * volt/amp rekalibrieren
-* komma funktioniert nicht immer wie erwartet?
 
 missing features:
 * switch to graphical modes

@@ -289,7 +289,7 @@ void PS9530_UI::handleDotKey() {
         /* Ignore this keypress if we are in none of the input modes */
         return;
     }
-    if (currentInputDigit<currentInputOnesIndex && currentInputValue*100U <= currentMaximumValue) {
+    if (currentInputDigit<currentInputOnesIndex && currentInputValue <= 100) {
         //move everything to the left
         while (currentInputDigit<currentInputOnesIndex) {
             currentInputValue *= 10;
