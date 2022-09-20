@@ -28,7 +28,7 @@
 #define isState(mask) (this->state & (mask))
 #define isPaintedState(mask) (this->painted_state & (mask))
 
-static const uint8_t rowSpacing = (PS_DISPLAY_HEIGHT-PS_DISPLAY_VIRTUAL_ROW_COUNT*PT18_IN_PXH)/(PS_DISPLAY_ROW_COUNT+1.f);
+static constexpr uint8_t rowSpacing = (PS_DISPLAY_HEIGHT-PS_DISPLAY_VIRTUAL_ROW_COUNT*PT18_IN_PXH)/(PS_DISPLAY_ROW_COUNT+1.f);
 
 PsDisplay::PsDisplay( Adafruit_ILI9341 & tft) :
     tft(tft) {
