@@ -201,8 +201,9 @@ void PS9530_UI::changeInputMode(InputMode newMode) {
     case InputVoltage:
     case InputCurrent:
     case InputPower:
-        currentInputDigit = currentInputDigitMax;
-        currentInputFactor = 1000;
+        // reset to second digit
+        currentInputDigit = currentInputDigitMax-1;
+        currentInputFactor = 100;
         updateEditedValue();
         break;
     default:
@@ -324,7 +325,7 @@ void PS9530_UI::handleCEKey() {
     }
     /* Clear the whole number */
     currentInputValue = 0;
-    /* Reset to the second digit */
+    /* Reset to the first digit */
     currentInputDigit = currentInputDigitMax;
     currentInputFactor = 1000;
     updateEditedValue();
