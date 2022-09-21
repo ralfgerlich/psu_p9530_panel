@@ -22,10 +22,10 @@ def to_c_array(values, formatter=str, colcount=15):
 datasheets_path = '../../../datasheets'
 
 # Temperature sensor
-# Location of datasheet data
-datasheet_data_src = os.path.join(datasheets_path,'PTC_Data.ods')
 # Selected sensor
 sensor = 'KTY81-121'
+# Location of datasheet data
+datasheet_data_src = os.path.join(datasheets_path,sensor+".csv")
 # Selected column
 column = 'Rtyp'
 
@@ -50,7 +50,7 @@ adcSteps = 32
 max_temp_entries = 16
 
 # Read raw data
-temp_data_raw = pd.read_excel(datasheet_data_src, sheet_name=sensor)
+temp_data_raw = pd.read_csv(datasheet_data_src)
 
 # Extract temperature and resistance
 temp_data = temp_data_raw[['Temp_C', column]]
