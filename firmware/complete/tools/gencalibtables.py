@@ -1,4 +1,4 @@
-# Generation of lookup tables for the temperature sensors
+# Generation of calibration tables for ADC and DAC
 # Copyright (c) 2022, Ralf Gerlich
 import pandas as pd
 import numpy as np
@@ -19,7 +19,7 @@ def to_c_array(values, formatter=str, colcount=15):
     # assemble components into the complete string
     return '{%s}' % body
 
-datasheets_path = '../../../datasheets';
+datasheets_path = '../../../datasheets'
 
 # Temperature sensor
 # Location of datasheet data
@@ -28,9 +28,6 @@ datasheet_data_src = os.path.join(datasheets_path,'PTC_Data.ods')
 sensor = 'KTY81-121'
 # Selected column
 column = 'Rtyp'
-
-# Voltage and current
-calibration_data_src = os.path.join(datasheets_path,'calibration_data.ods')
 
 # Resistor Values [Ohm] for Temp1 & Temp2
 R54 = 24.E3
@@ -102,25 +99,21 @@ temp1Gradient = np.diff(temp1Table)
 temp2Gradient = np.diff(temp2Table)
 
 # Data for the voltage and current setpoints/measurements
-voltageSetpointData = pd.read_csv(os.path.join(datasheets_path, 'voltageSetpointData.csv'), decimal='.')
-currentSetpointData = pd.read_csv(os.path.join(datasheets_path, 'currentSetpointData.csv'), decimal='.')
-voltageMeasurementData = pd.read_csv(os.path.join(datasheets_path, 'voltageMeasurementData.csv'), decimal='.')
-currentMeasurementData = pd.read_csv(os.path.join(datasheets_path, 'currentMeasurementData.csv'), decimal='.')
+voltageCalibrationData = pd.read_csv(os.path.join(datasheets_path, 'voltageCalibrationData.csv'), decimal=',')
+currentCalibrationData = pd.read_csv(os.path.join(datasheets_path, 'currentCalibrationData.csv'), decimal=',')
 
+# Interpolation functions
+adc2voltage = interp1d(voltageCalibrationData.ADC, voltageCalibrationData.U, fill_value="extrapolate", kind="quadratic")
+voltage2dac = interp1d(voltageCalibrationData.U, voltageCalibrationData.DAC, fill_value="extrapolate", kind="quadratic")
+adc2current = interp1d(currentCalibrationData.ADC, currentCalibrationData.I, fill_value="extrapolate", kind="quadratic")
+current2dac = interp1d(currentCalibrationData.I, currentCalibrationData.DAC, fill_value="extrapolate", kind="quadratic")
 
 # Measurement calibration tables
 # ADC Values to consider
 adc_values = np.linspace(start=0, stop=adc_max+1, endpoint=True, num=adcSteps+1)
-
-# Sort measurements by rawADC value
-voltageMeasurementData.sort_values(by='rawADC', inplace=True)
-currentMeasurementData.sort_values(by='rawADC', inplace=True)
-
-# Interpolate along the ADC values to consider
-adc2Voltage = interp1d(voltageMeasurementData.rawADC, voltageMeasurementData.Vmeas, fill_value="extrapolate", kind="quadratic")
-adc2Current = interp1d(currentMeasurementData.rawADC, currentMeasurementData.Imeas, fill_value="extrapolate", kind="quadratic")
-measuredVoltageOffsets = np.round(1000.0*adc2Voltage(adc_values)).astype(int)
-measuredCurrentOffsets = np.round(1000.0*adc2Current(adc_values)).astype(int)
+# Voltages [mV] and currents [mA] for the ADC values to consider
+measuredVoltageOffsets = np.round(1000.0*adc2voltage(adc_values)).astype(int)
+measuredCurrentOffsets = np.round(1000.0*adc2current(adc_values)).astype(int)
 
 measuredVoltageShift = np.ceil(np.log2((adc_max+1)/adcSteps)).astype(int)
 measuredCurrentShift = measuredVoltageShift
@@ -137,10 +130,8 @@ voltageDACBits = np.ceil(np.log2(maxVoltageMillivolts)).astype(int)
 maxVoltageMilliVoltsActual = 1<<voltageDACBits
 # Voltage values to be considered for interpolate
 voltageValues = np.linspace(start=0, stop=maxVoltageMilliVoltsActual, endpoint=True, num=dacSteps+1)
-# Interpolateion function
-voltage2DAC = interp1d(voltageSetpointData.Vmeas*1.E3, voltageSetpointData.rawDAC, fill_value="extrapolate", kind="quadratic")
 # Voltage offsets
-setpointVoltageOffsets = np.clip(a=np.round(voltage2DAC(voltageValues)), a_min=0, a_max=16383).astype(int)
+setpointVoltageOffsets = np.clip(a=np.round(voltage2dac(voltageValues)), a_min=0, a_max=16383).astype(int)
 setpointVoltageGradients = np.diff(setpointVoltageOffsets)
 # FIXME: We might want to calculate dacSteps from the bit width instead...
 setpointVoltageShift = voltageDACBits - np.ceil(np.log2(dacSteps)).astype(int)
@@ -154,10 +145,8 @@ currentDACBits = np.ceil(np.log2(maxCurrentMilliAmps)).astype(int)
 maxCurrentMilliAmpsActual = 1<<currentDACBits
 # Current values to be considered for interpolate
 currentValues = np.linspace(start=0, stop=maxCurrentMilliAmpsActual, endpoint=True, num=dacSteps+1)
-# Interpolateion function
-current2DAC = interp1d(currentSetpointData.Imeas*1.E3, currentSetpointData.rawDAC, fill_value="extrapolate", kind="quadratic")
 # Current offsets
-setpointCurrentOffsets = np.clip(a=np.round(current2DAC(currentValues)), a_min=0, a_max=16383).astype(int)
+setpointCurrentOffsets = np.clip(a=np.round(current2dac(currentValues)), a_min=0, a_max=16383).astype(int)
 setpointCurrentGradients = np.diff(setpointCurrentOffsets)
 # FIXME: We might want to calculate dacSteps from the bit width instead...
 setpointCurrentShift = currentDACBits - np.ceil(np.log2(dacSteps)).astype(int)
