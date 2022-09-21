@@ -44,40 +44,27 @@ adc_max = 1023
 # Number of steps to generate for voltage and current ADC
 adcSteps = 32
 
-
-# Calibration of temperature table
-# Maximum number of entries in temperature table
+# Maximum number of steps to generate for temperature tables
 max_temp_entries = 16
 
-# Read raw data
-temp_data_raw = pd.read_csv(datasheet_data_src)
+# Temperature resistance data
+temp_data = pd.read_csv(datasheet_data_src)
 
-# Extract temperature and resistance
-temp_data = temp_data_raw[['Temp_C', column]]
+# Calculate voltages for temperature sensors
+voltageTemp1 = 5*R82/(R82 + temp_data[column]) * R56 / R54
+voltageTemp2 = 5*R63/(R63 + temp_data[column])
 
-# Calculate values for Temp1
-rTot = R82 + temp_data[column]
-iTot = -5/rTot
-vR82 = iTot * R82
-vTemp1 = -vR82 * R56 / R54
-temp_data['vTemp1'] = vTemp1
-adcTemp1 = np.round(vTemp1 / vref * adc_max).astype(int)
-temp_data['adcTemp1'] = adcTemp1
+# Calculate ADC values for temperature sensors
+adcTemp1 = voltageTemp1 / vref * adc_max
+adcTemp2 = voltageTemp2 / vref * adc_max
 
-# Calculate values for Temp2
-rTot = R63 + temp_data[column]
-iTot = 5 / rTot
-vTemp2 = iTot * R63
-temp_data['vTemp2'] = vTemp2
-adcTemp2 = np.round(vTemp2 / vref * adc_max).astype(int)
-temp_data['adcTemp2'] = adcTemp2
-
-dataTemp1 = temp_data.sort_values(by='adcTemp1')
-dataTemp2 = temp_data.sort_values(by='adcTemp2')
+# Interpolate ADC values to temperatures
+adc2temp1 = interp1d(adcTemp1, temp_data['Temp_C'], fill_value='extrapolate', kind='quadratic')
+adc2temp2 = interp1d(adcTemp2, temp_data['Temp_C'], fill_value='extrapolate', kind='quadratic')
 
 # Determine minimum and maxmimum values
-minTempADC = np.min((adcTemp1, adcTemp2), axis=1)
-maxTempADC = np.max((adcTemp1, adcTemp2), axis=1)
+minTempADC = np.floor(np.min((adcTemp1, adcTemp2), axis=1)).astype(int)
+maxTempADC = np.ceil(np.max((adcTemp1, adcTemp2), axis=1)).astype(int)
 
 # Determine minimum step value
 minTempStep = (maxTempADC-minTempADC)/max_temp_entries
@@ -85,18 +72,14 @@ actTempStepShift = np.ceil(np.log2(minTempStep)).astype(int)
 actTempSteps = np.ceil((maxTempADC-minTempADC)/(1<<actTempStepShift)).astype(int)
 maxTempSteps = np.max(actTempSteps)
 
-# Determine ADC values
+# Determine ADC values to consider
 minTempADCTable = minTempADC
 maxTempADCTable = minTempADC + (maxTempSteps<<actTempStepShift)
 tempADCTable = np.linspace(minTempADCTable, maxTempADCTable, maxTempSteps, endpoint=False)
 
 # Interpolate associated temperatures
-temp1Table = np.round(np.interp(tempADCTable[:, 0], dataTemp1['adcTemp1'], dataTemp1['Temp_C']))
-temp2Table = np.round(np.interp(tempADCTable[:, 1], dataTemp2['adcTemp2'], dataTemp2['Temp_C']))
-
-# Determine gradient table
-temp1Gradient = np.diff(temp1Table)
-temp2Gradient = np.diff(temp2Table)
+temp1Table = adc2temp1(tempADCTable[:, 0])
+temp2Table = adc2temp2(tempADCTable[:, 1])
 
 # Data for the voltage and current setpoints/measurements
 voltageCalibrationData = pd.read_csv(os.path.join(datasheets_path, 'voltageCalibrationData.csv'), decimal=',')
@@ -131,7 +114,7 @@ maxVoltageMilliVoltsActual = 1<<voltageDACBits
 # Voltage values to be considered for interpolate
 voltageValues = np.linspace(start=0, stop=maxVoltageMilliVoltsActual, endpoint=True, num=dacSteps+1)
 # Voltage offsets
-setpointVoltageOffsets = np.clip(a=np.round(voltage2dac(voltageValues)), a_min=0, a_max=16383).astype(int)
+setpointVoltageOffsets = np.clip(a=np.round(voltage2dac(voltageValues/1.E3)), a_min=0, a_max=16383).astype(int)
 setpointVoltageGradients = np.diff(setpointVoltageOffsets)
 # FIXME: We might want to calculate dacSteps from the bit width instead...
 setpointVoltageShift = voltageDACBits - np.ceil(np.log2(dacSteps)).astype(int)
@@ -146,7 +129,7 @@ maxCurrentMilliAmpsActual = 1<<currentDACBits
 # Current values to be considered for interpolate
 currentValues = np.linspace(start=0, stop=maxCurrentMilliAmpsActual, endpoint=True, num=dacSteps+1)
 # Current offsets
-setpointCurrentOffsets = np.clip(a=np.round(current2dac(currentValues)), a_min=0, a_max=16383).astype(int)
+setpointCurrentOffsets = np.clip(a=np.round(current2dac(currentValues/1.E3)), a_min=0, a_max=16383).astype(int)
 setpointCurrentGradients = np.diff(setpointCurrentOffsets)
 # FIXME: We might want to calculate dacSteps from the bit width instead...
 setpointCurrentShift = currentDACBits - np.ceil(np.log2(dacSteps)).astype(int)
