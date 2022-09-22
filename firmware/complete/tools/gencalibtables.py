@@ -86,10 +86,10 @@ voltageCalibrationData = pd.read_csv(os.path.join(datasheets_path, 'voltageCalib
 currentCalibrationData = pd.read_csv(os.path.join(datasheets_path, 'currentCalibrationData.csv'), decimal=',')
 
 # Interpolation functions
-adc2voltage = interp1d(voltageCalibrationData.ADC, voltageCalibrationData.U, fill_value="extrapolate", kind="quadratic")
-voltage2dac = interp1d(voltageCalibrationData.U, voltageCalibrationData.DAC, fill_value="extrapolate", kind="quadratic")
-adc2current = interp1d(currentCalibrationData.ADC, currentCalibrationData.I, fill_value="extrapolate", kind="quadratic")
-current2dac = interp1d(currentCalibrationData.I, currentCalibrationData.DAC, fill_value="extrapolate", kind="quadratic")
+adc2voltage = interp1d(voltageCalibrationData.ADC, voltageCalibrationData.U, fill_value="extrapolate", kind="linear")
+voltage2dac = interp1d(voltageCalibrationData.U, voltageCalibrationData.DAC, fill_value="extrapolate", kind="linear")
+adc2current = interp1d(currentCalibrationData.ADC, currentCalibrationData.I, fill_value="extrapolate", kind="linear")
+current2dac = interp1d(currentCalibrationData.I, currentCalibrationData.DAC, fill_value="extrapolate", kind="linear")
 
 # Measurement calibration tables
 # ADC Values to consider
@@ -115,7 +115,6 @@ maxVoltageMilliVoltsActual = 1<<voltageDACBits
 voltageValues = np.linspace(start=0, stop=maxVoltageMilliVoltsActual, endpoint=True, num=dacSteps+1)
 # Voltage offsets
 setpointVoltageOffsets = np.clip(a=np.round(voltage2dac(voltageValues/1.E3)), a_min=0, a_max=16383).astype(int)
-setpointVoltageGradients = np.diff(setpointVoltageOffsets)
 # FIXME: We might want to calculate dacSteps from the bit width instead...
 setpointVoltageShift = voltageDACBits - np.ceil(np.log2(dacSteps)).astype(int)
 
@@ -130,7 +129,6 @@ maxCurrentMilliAmpsActual = 1<<currentDACBits
 currentValues = np.linspace(start=0, stop=maxCurrentMilliAmpsActual, endpoint=True, num=dacSteps+1)
 # Current offsets
 setpointCurrentOffsets = np.clip(a=np.round(current2dac(currentValues/1.E3)), a_min=0, a_max=16383).astype(int)
-setpointCurrentGradients = np.diff(setpointCurrentOffsets)
 # FIXME: We might want to calculate dacSteps from the bit width instead...
 setpointCurrentShift = currentDACBits - np.ceil(np.log2(dacSteps)).astype(int)
 
@@ -154,3 +152,31 @@ print("const int16_t PS9530_Ctrl::tempOffset[2][%d] PROGMEM = {" % maxTempSteps)
 print("    %s," % to_c_array(temp1Table.astype(int)))
 print("    %s," % to_c_array(temp2Table.astype(int)))
 print("};");
+
+# Generate random test points
+numTestpoints = 10
+
+# Generate random values in the ADC range
+testADCValues = np.sort(np.random.randint(0, adc_max, 10))
+testADCVoltages = np.round(interp1d(adc_values, measuredVoltageOffsets)(testADCValues)).astype(int)
+testADCCurrents = np.round(interp1d(adc_values, measuredCurrentOffsets)(testADCValues)).astype(int)
+
+voltageADCTests = [f"    TEST_ASSERT_UINT16_WITHIN(2, {voltage}, PS9530_Ctrl::interpolateADCVoltage({adc}));\n" for adc, voltage in zip(testADCValues, testADCVoltages)]
+currentADCTests = [f"    TEST_ASSERT_UINT16_WITHIN(2, {current}, PS9530_Ctrl::interpolateADCCurrent({adc}));\n" for adc, current in zip(testADCValues, testADCCurrents)]
+print("".join(voltageADCTests))
+print()
+print("".join(currentADCTests))
+print()
+
+# Generate random values in the voltage range
+testDACVoltages = np.sort(np.random.randint(0, maxVoltageMillivolts, 10))
+testDACVoltageValues = np.round(interp1d(voltageValues, setpointVoltageOffsets)(testDACVoltages)).astype(int)
+testDACCurrents = np.sort(np.random.randint(0, maxCurrentMilliAmps, 10))
+testDACCurrentValues = np.round(interp1d(currentValues, setpointCurrentOffsets)(testDACCurrents)).astype(int)
+
+voltageDACTests = [f"    TEST_ASSERT_UINT16_WITHIN(2, {dac}, PS9530_Ctrl::interpolateDACVoltage({voltage}));\n" for dac, voltage in zip(testDACVoltageValues, testDACVoltages)]
+currentDACTests = [f"    TEST_ASSERT_UINT16_WITHIN(2, {dac}, PS9530_Ctrl::interpolateDACCurrent({current}));\n" for dac, current in zip(testDACCurrentValues, testDACCurrents)]
+print("".join(voltageDACTests))
+print()
+print("".join(currentDACTests))
+print()
