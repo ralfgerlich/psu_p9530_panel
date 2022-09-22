@@ -1,8 +1,8 @@
 /* spi.h - Declarations for the SPI interface
  * Copyright (c) 2022, Ralf Gerlich
  */
-#ifndef SPI_H
-#define SPI_H
+#ifndef HAL_SPI_H
+#define HAL_SPI_H
 
 #include <avr/io.h>
 
@@ -69,4 +69,4 @@ static inline void __spi_restore_state(uint16_t* state) {
 }
 
 
-#endif /* SPI_H */
+#endif /* HAL_SPI_H */

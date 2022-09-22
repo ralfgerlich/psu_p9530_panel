@@ -5,7 +5,7 @@
 
 #include "dac.h"
 #include "kbd.h"
-#include "spi.h"
+#include "hal_spi.h"
 #include "ps_display.h"
 
 #define PORT_MUX PORTC

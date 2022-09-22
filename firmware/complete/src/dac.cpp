@@ -1,5 +1,5 @@
 #include "dac.h"
-#include "spi.h"
+#include "hal_spi.h"
 #include <avr/io.h>
 #include <util/atomic.h>
 

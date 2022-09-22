@@ -3,7 +3,7 @@
  */
 #include <Arduino.h>
 #include "kbd.h"
-#include "spi.h"
+#include "hal_spi.h"
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
