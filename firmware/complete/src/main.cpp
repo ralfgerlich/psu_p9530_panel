@@ -3,7 +3,7 @@
 #include <util/delay.h>
 #include "dac.h"
 #include "kbd.h"
-#include "spi.h"
+#include "hal_spi.h"
 #include "ps9530_ctrl.h"
 #include "ps_display.h"
 #include "ps9530_ui.h"
