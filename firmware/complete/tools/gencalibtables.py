@@ -83,15 +83,13 @@ temp2Table = adc2temp2(tempADCTable[:, 1])
 
 # Data for the voltage and current setpoints/measurements
 voltageCalibrationData = pd.read_csv(os.path.join(datasheets_path, 'voltageCalibrationData.csv'), decimal=',')
-# currentCalibrationData = pd.read_csv(os.path.join(datasheets_path, 'currentCalibrationData.csv'), decimal=',')
-currentMeasurementData = pd.read_csv(os.path.join(datasheets_path, 'currentMeasurementData.csv'), decimal=',')
-currentSetpointData = pd.read_csv(os.path.join(datasheets_path, 'currentSetpointData.csv'), decimal=',')
+currentCalibrationData = pd.read_csv(os.path.join(datasheets_path, 'currentCalibrationData.csv'), decimal=',')
 
 # Interpolation functions
 adc2voltage = interp1d(voltageCalibrationData.ADC, voltageCalibrationData.U, fill_value="extrapolate", kind="linear")
 voltage2dac = interp1d(voltageCalibrationData.U, voltageCalibrationData.DAC, fill_value="extrapolate", kind="linear")
-adc2current = interp1d(currentMeasurementData.ADC, currentMeasurementData.I, fill_value="extrapolate", kind="linear")
-current2dac = interp1d(currentSetpointData.I, currentSetpointData.DAC, fill_value="extrapolate", kind="linear")
+adc2current = interp1d(currentCalibrationData.ADC, currentCalibrationData.I, fill_value="extrapolate", kind="linear")
+current2dac = interp1d(currentCalibrationData.I, currentCalibrationData.DAC, fill_value="extrapolate", kind="linear")
 
 # Measurement calibration tables
 # ADC Values to consider

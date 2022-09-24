@@ -38,6 +38,14 @@ void PS9530_UI::update() {
     display.setLimitedV(limitingMode==PS9530_Ctrl::LimitingMode_Voltage);
     display.setLimitedA(limitingMode==PS9530_Ctrl::LimitingMode_Current);
     display.setLimitedP(limitingMode==PS9530_Ctrl::LimitingMode_Power);
+    Serial.print(F("U: ADC="));
+    Serial.print(control.rawADCMeasurements[PS9530_Ctrl::adcChannel_voltage]);
+    Serial.print(F(" DAC="));
+    Serial.print(control.rawDACValue[PS9530_Ctrl::muxChannel_voltage]);
+    Serial.print(F(" I: ADC="));
+    Serial.print(control.rawADCMeasurements[PS9530_Ctrl::adcChannel_current]);
+    Serial.print(F(" DAC="));
+    Serial.println(control.rawDACValue[PS9530_Ctrl::muxChannel_current]);
 }
 
 void PS9530_UI::handleKeyboardEvents() {

@@ -6,27 +6,27 @@
 #include "ps9530_ctrl.h"
 
 void test_dac_voltage() {
-    TEST_ASSERT_UINT16_WITHIN(2, 656, PS9530_Ctrl::interpolateDACVoltage(1347));
-    TEST_ASSERT_UINT16_WITHIN(2, 7166, PS9530_Ctrl::interpolateDACVoltage(13435));
-    TEST_ASSERT_UINT16_WITHIN(2, 8478, PS9530_Ctrl::interpolateDACVoltage(15870));
-    TEST_ASSERT_UINT16_WITHIN(2, 9083, PS9530_Ctrl::interpolateDACVoltage(16988));
-    TEST_ASSERT_UINT16_WITHIN(2, 9333, PS9530_Ctrl::interpolateDACVoltage(17449));
-    TEST_ASSERT_UINT16_WITHIN(2, 10447, PS9530_Ctrl::interpolateDACVoltage(19494));
-    TEST_ASSERT_UINT16_WITHIN(2, 11564, PS9530_Ctrl::interpolateDACVoltage(21571));
-    TEST_ASSERT_UINT16_WITHIN(2, 11790, PS9530_Ctrl::interpolateDACVoltage(21987));
-    TEST_ASSERT_UINT16_WITHIN(2, 12824, PS9530_Ctrl::interpolateDACVoltage(23884));
-    TEST_ASSERT_UINT16_WITHIN(2, 15378, PS9530_Ctrl::interpolateDACVoltage(28670));
+    TEST_ASSERT_UINT16_WITHIN(2, 395, PS9530_Ctrl::interpolateDACVoltage(840));
+    TEST_ASSERT_UINT16_WITHIN(2, 410, PS9530_Ctrl::interpolateDACVoltage(872));
+    TEST_ASSERT_UINT16_WITHIN(2, 589, PS9530_Ctrl::interpolateDACVoltage(1224));
+    TEST_ASSERT_UINT16_WITHIN(2, 3636, PS9530_Ctrl::interpolateDACVoltage(6860));
+    TEST_ASSERT_UINT16_WITHIN(2, 8310, PS9530_Ctrl::interpolateDACVoltage(15578));
+    TEST_ASSERT_UINT16_WITHIN(2, 9322, PS9530_Ctrl::interpolateDACVoltage(17450));
+    TEST_ASSERT_UINT16_WITHIN(2, 9399, PS9530_Ctrl::interpolateDACVoltage(17592));
+    TEST_ASSERT_UINT16_WITHIN(2, 12563, PS9530_Ctrl::interpolateDACVoltage(23464));
+    TEST_ASSERT_UINT16_WITHIN(2, 14397, PS9530_Ctrl::interpolateDACVoltage(26883));
+    TEST_ASSERT_UINT16_WITHIN(2, 15538, PS9530_Ctrl::interpolateDACVoltage(29010));
 }
 
 void test_dac_current() {
-    TEST_ASSERT_UINT16_WITHIN(2, 387, PS9530_Ctrl::interpolateDACCurrent(222));
-    TEST_ASSERT_UINT16_WITHIN(2, 3212, PS9530_Ctrl::interpolateDACCurrent(2096));
-    TEST_ASSERT_UINT16_WITHIN(2, 5927, PS9530_Ctrl::interpolateDACCurrent(3951));
-    TEST_ASSERT_UINT16_WITHIN(2, 7464, PS9530_Ctrl::interpolateDACCurrent(4992));
-    TEST_ASSERT_UINT16_WITHIN(2, 7516, PS9530_Ctrl::interpolateDACCurrent(5028));
-    TEST_ASSERT_UINT16_WITHIN(2, 8240, PS9530_Ctrl::interpolateDACCurrent(5525));
-    TEST_ASSERT_UINT16_WITHIN(2, 11014, PS9530_Ctrl::interpolateDACCurrent(7418));
-    TEST_ASSERT_UINT16_WITHIN(2, 11865, PS9530_Ctrl::interpolateDACCurrent(7996));
-    TEST_ASSERT_UINT16_WITHIN(2, 14178, PS9530_Ctrl::interpolateDACCurrent(9573));
-    TEST_ASSERT_UINT16_WITHIN(2, 14698, PS9530_Ctrl::interpolateDACCurrent(9924));
+    TEST_ASSERT_UINT16_WITHIN(2, 1584, PS9530_Ctrl::interpolateDACCurrent(986));
+    TEST_ASSERT_UINT16_WITHIN(2, 2074, PS9530_Ctrl::interpolateDACCurrent(1319));
+    TEST_ASSERT_UINT16_WITHIN(2, 2089, PS9530_Ctrl::interpolateDACCurrent(1329));
+    TEST_ASSERT_UINT16_WITHIN(2, 3748, PS9530_Ctrl::interpolateDACCurrent(2462));
+    TEST_ASSERT_UINT16_WITHIN(2, 4573, PS9530_Ctrl::interpolateDACCurrent(3026));
+    TEST_ASSERT_UINT16_WITHIN(2, 4819, PS9530_Ctrl::interpolateDACCurrent(3194));
+    TEST_ASSERT_UINT16_WITHIN(2, 5110, PS9530_Ctrl::interpolateDACCurrent(3393));
+    TEST_ASSERT_UINT16_WITHIN(2, 7237, PS9530_Ctrl::interpolateDACCurrent(4840));
+    TEST_ASSERT_UINT16_WITHIN(2, 10174, PS9530_Ctrl::interpolateDACCurrent(6849));
+    TEST_ASSERT_UINT16_WITHIN(2, 13574, PS9530_Ctrl::interpolateDACCurrent(9187));
 }

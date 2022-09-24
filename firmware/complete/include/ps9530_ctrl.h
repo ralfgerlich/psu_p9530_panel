@@ -111,12 +111,14 @@ private:
     LimitingMode getLimitingMode(bool limiterPin);
 
     /** Raw values for the DAC channels */
+public:
     uint16_t rawDACValue[2];
 
     enum {
         muxChannel_voltage = 0,
         muxChannel_current
     } currentMuxChannel;
+protected:
 
     /** Voltage offset for ADC conversion */
     static const uint16_t adcVoltageOffset[33] PROGMEM;
@@ -194,7 +196,7 @@ private:
 
     /** Check for overtemperature and put system in standby in that case */
     void updateOvertemperature();
-
+public:
     /** Raw ADC measurements */
     uint16_t rawADCMeasurements[4];
 
@@ -209,6 +211,7 @@ private:
         adcChannel_temp2,
         adcChannel__idle
     };
+protected:
 
     /** Current ADC state
      * Lowest bit indicates whether this is the dummy measurement (0) or the
