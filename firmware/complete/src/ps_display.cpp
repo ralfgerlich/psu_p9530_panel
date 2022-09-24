@@ -58,8 +58,8 @@ void PsDisplay::clear() {
     yield();
 }
 
-void PsDisplay::drawXBitmapPartial(int16_t x, int16_t y, const uint8_t bitmap[], int16_t sw, int16_t sh,
-                               int16_t w, int16_t h, uint16_t color) {
+void PsDisplay::drawXBitmapPartial(const int16_t x, int16_t y, const uint8_t bitmap[], const int16_t sw, const int16_t sh,
+                               const int16_t w, const int16_t h, const uint16_t color) {
 
   int16_t byteWidth = (w + 7) / 8; // Bitmap scanline pad = whole byte
   uint8_t b = 0;
@@ -111,7 +111,7 @@ void PsDisplay::renderLogo() {
         TOOLBOX_LOGO_DARK_GREY);
 }
 
-void PsDisplay::paintLogo(uint8_t x, uint8_t y, uint16_t size_x, uint16_t size_y, const unsigned char* picture, uint16_t color_override) {
+void PsDisplay::paintLogo(const uint8_t x, const uint8_t y, const uint16_t size_x, const uint16_t size_y, const unsigned char* picture, const uint16_t color_override) {
     tft.drawXBitmap(x, y,
 #if defined(__AVR__) || defined(ESP8266)
         picture,
@@ -165,7 +165,7 @@ void PsDisplay::paintLogo(uint8_t x, uint8_t y, uint16_t size_x, uint16_t size_y
             color_override != 0x1337 ? color_override : TOOLBOX_LOGO_DARK_RED);
 }
 
-void PsDisplay::formatNumber(char * buffer, char * format, int16_t value_a, int16_t value_b, row_t row) {
+void PsDisplay::formatNumber(char * buffer, const char * format, const int16_t value_a, const int16_t value_b, const row_t row) {
     char unit;
     if (row == ROW_VOLTS) {
         unit = 'V';
@@ -177,7 +177,7 @@ void PsDisplay::formatNumber(char * buffer, char * format, int16_t value_a, int1
     sprintf(buffer, format, value_a, value_b, unit);
 }
 
-void PsDisplay::formatMilliNumber(char * buffer, int16_t value, row_t row, bool zero_padding) {
+void PsDisplay::formatMilliNumber(char * buffer, const int16_t value, const row_t row, const bool zero_padding) {
     char format[12];
     if (zero_padding) {
         strcpy_P(format, PSTR("%02d.%02d%c"));
@@ -187,7 +187,7 @@ void PsDisplay::formatMilliNumber(char * buffer, int16_t value, row_t row, bool 
     formatNumber(buffer, format, value/1000, (value%1000)/10, row);
 }
 
-void PsDisplay::formatCentiNumber(char * buffer, int16_t value, row_t row, bool zero_padding) {
+void PsDisplay::formatCentiNumber(char * buffer, const int16_t value, const row_t row, const bool zero_padding) {
     char format[11];
     if (zero_padding) {
         strcpy_P(format, PSTR("%03d.%1d%c"));
@@ -197,7 +197,7 @@ void PsDisplay::formatCentiNumber(char * buffer, int16_t value, row_t row, bool 
     formatNumber(buffer, format, value/100, (value%100)/10, row);
 }
 
-void PsDisplay::fastStringPrint(char * buffer, char * old_buffer, uint8_t font_width, row_t row, uint16_t fg_color, uint16_t se_color, uint16_t bg_color) {
+void PsDisplay::fastStringPrint(const char * buffer, char * old_buffer, const uint8_t font_width, const row_t row, const uint16_t fg_color, const uint16_t se_color, const uint16_t bg_color) {
     for (uint8_t i=0; i<PS_DISPLAY_BUFFER_LENGTH-1; i++) {
         uint16_t char_color = fg_color;
         bool force_paint = false;
@@ -233,7 +233,7 @@ void PsDisplay::fastStringPrint(char * buffer, char * old_buffer, uint8_t font_w
     }
 }
 
-void PsDisplay::paintSmallLogo(bool visible) {
+void PsDisplay::paintSmallLogo(const bool visible) {
     if (visible) {
         paintLogo(0, 5, toolbox_logo_only_small_width, toolbox_logo_only_small_height, toolbox_logo_only_small_bits);
     } else {
@@ -241,7 +241,7 @@ void PsDisplay::paintSmallLogo(bool visible) {
     }
 }
 
-void PsDisplay::paintFlag(bool visible, uint8_t flag, uint8_t y) {
+void PsDisplay::paintFlag(const bool visible, const uint8_t flag, const uint8_t y) {
     setPaintedState(visible, flag);
     if (visible) {
         tft.setTextColor(DEFAULT_ATTENTION_COLOR);
@@ -258,7 +258,7 @@ void PsDisplay::paintFlag(bool visible, uint8_t flag, uint8_t y) {
     }
 }
 
-uint8_t PsDisplay::getRowYPos(uint8_t row) {
+constexpr uint8_t PsDisplay::getRowYPos(const uint8_t row) {
     return getVirtualRow(row)*PT18_IN_PXH + rowSpacing*row;
 }
 
@@ -393,7 +393,7 @@ void PsDisplay::renderTest() {
     tft.endWrite();
 }
 
-void PsDisplay::renderHistory(const uint8_t* history_data, uint16_t history_pos, uint8_t thickness, uint16_t color_override) {
+void PsDisplay::renderHistory(const uint8_t* history_data, const uint16_t history_pos, const uint8_t thickness, const uint16_t color_override) {
     tft.startWrite();
     for (int16_t i = 0; i < HISTORY_LENGTH; i++) {
         int16_t current_pos = (history_pos+i) % HISTORY_LENGTH;
@@ -421,7 +421,7 @@ void PsDisplay::clearText(char * old_buffer) {
     memset(old_buffer, '\0', PS_DISPLAY_BUFFER_LENGTH);
 }
 
-void PsDisplay::renderSingleGraph(uint16_t value1, char * old_buffer1, uint16_t value2, char * old_buffer2, uint8_t * history, uint16_t history_pos, row_t row) {
+void PsDisplay::renderSingleGraph(const uint16_t value1, char * old_buffer1, const uint16_t value2, char * old_buffer2, const uint8_t * history, const uint16_t history_pos, const row_t row) {
     char buffer[PS_DISPLAY_BUFFER_LENGTH];
     tft.setTextSize(2);
     tft.setCursor(60, PT18_IN_PXH*2+4);
@@ -497,89 +497,89 @@ void PsDisplay::renderFullGraph() {
     painted_selected_pos = selected_pos;
 }
 
-PsDisplay::screen_mode_t PsDisplay::getScreenMode() {
+const PsDisplay::screen_mode_t PsDisplay::getScreenMode() const {
     return screen_mode;
 }
 
-void PsDisplay::setScreenMode(screen_mode_t mode) {
+void PsDisplay::setScreenMode(const screen_mode_t mode) {
     screen_mode = mode;
 }
 
-void PsDisplay::setStandby(bool standby) {
+void PsDisplay::setStandby(const bool standby) {
     setState(standby, PS_DISPLAY_STATE_STANDBY);
 }
 
-void PsDisplay::setLocked(bool locked) {
+void PsDisplay::setLocked(const bool locked) {
     setState(locked, PS_DISPLAY_STATE_LOCKED);
 }
 
-void PsDisplay::setMemory(bool memory) {
+void PsDisplay::setMemory(const bool memory) {
     setState(memory, PS_DISPLAY_STATE_MEMORY);
 }
 
-void PsDisplay::setRemote(bool remote) {
+void PsDisplay::setRemote(const bool remote) {
     setState(remote, PS_DISPLAY_STATE_REMOTE);
 }
 
-void PsDisplay::setLimitedV(bool limited_v) {
+void PsDisplay::setLimitedV(const bool limited_v) {
     setState(limited_v, PS_DISPLAY_STATE_LIMITED_V);
 }
 
-void PsDisplay::setLimitedA(bool limited_a) {
+void PsDisplay::setLimitedA(const bool limited_a) {
     setState(limited_a, PS_DISPLAY_STATE_LIMITED_A);
 }
 
-void PsDisplay::setLimitedP(bool limited_p) {
+void PsDisplay::setLimitedP(const bool limited_p) {
     setState(limited_p, PS_DISPLAY_STATE_LIMITED_P);
 }
 
-bool PsDisplay::isLimitedV() {
+const bool PsDisplay::isLimitedV() const {
     return isState(PS_DISPLAY_STATE_LIMITED_V);
 }
 
-bool PsDisplay::isLimitedA() {
+const bool PsDisplay::isLimitedA() const {
     return isState(PS_DISPLAY_STATE_LIMITED_A);
 }
 
-bool PsDisplay::isLimitedP() {
+const bool PsDisplay::isLimitedP() const {
     return isState(PS_DISPLAY_STATE_LIMITED_P);
 }
 
-void PsDisplay::setOvertemp(bool overtemp) {
+void PsDisplay::setOvertemp(const bool overtemp) {
     setState(overtemp, PS_DISPLAY_STATE_OVERTEMP);
 }
 
-void PsDisplay::setMilliVoltsSetpoint(int16_t voltage_setpoint) {
+void PsDisplay::setMilliVoltsSetpoint(const int16_t voltage_setpoint) {
     this->milli_volts_setpoint = voltage_setpoint;
 }
 
-void PsDisplay::setMilliAmpsLimit(int16_t amps_limit) {
+void PsDisplay::setMilliAmpsLimit(const int16_t amps_limit) {
     this->milli_amps_limit = amps_limit;
 }
 
-void PsDisplay::setCentiWattsLimit(int16_t watts_limit) {
+void PsDisplay::setCentiWattsLimit(const int16_t watts_limit) {
     this->centi_watts_limit = watts_limit;
 }
 
-void PsDisplay::setMilliVolts(int16_t voltage) {
+void PsDisplay::setMilliVolts(const int16_t voltage) {
     this->milli_volts = voltage;
     history_volts_pos = (history_volts_pos+1) % HISTORY_LENGTH;
     history_volts[history_volts_pos] = (voltage / 30000.f) *(PS_DISPLAY_HEIGHT-(PT18_IN_PXH*2+6*2)) +1;
 }
 
-void PsDisplay::setMilliAmps(int16_t amps) {
+void PsDisplay::setMilliAmps(const int16_t amps) {
     this->milli_amps = amps;
     history_apms_pos = (history_apms_pos+1) % HISTORY_LENGTH;
     history_amps[history_apms_pos] = (amps / 10000.f) *(PS_DISPLAY_HEIGHT-(PT18_IN_PXH*2+6*2)) +1;
 }
 
-void PsDisplay::setCentiWatts(int16_t watts) {
+void PsDisplay::setCentiWatts(const int16_t watts) {
     this->centi_watts = watts;
     history_watts_pos = (history_watts_pos+1) % HISTORY_LENGTH;
     history_watts[history_watts_pos] = (watts / 30000.f) *(PS_DISPLAY_HEIGHT-(PT18_IN_PXH*2+6*2)) +1;
 }
 
-void PsDisplay::setCurser(row_t row, uint8_t pos) {
+void PsDisplay::setCurser(const row_t row, const uint8_t pos) {
     this->selected_pos = row << 4 | pos;
     if (pos >= 3 || (row != ROW_WATTS && pos >= 2)) {
         //correct position for decimal '.'

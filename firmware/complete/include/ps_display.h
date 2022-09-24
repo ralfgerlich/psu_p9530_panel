@@ -51,26 +51,26 @@ class PsDisplay {
 
     void render(void);
 
-    void setScreenMode(screen_mode_t mode);
-    screen_mode_t getScreenMode();
-    void setStandby(bool standby);
-    void setLocked(bool locked);
-    void setMemory(bool memory);
-    void setRemote(bool remote);
-    void setLimitedV(bool limited_v);
-    void setLimitedA(bool limited_a);
-    void setLimitedP(bool limited_p);
-    bool isLimitedV();
-    bool isLimitedA();
-    bool isLimitedP();
-    void setOvertemp(bool overtemp);
-    void setMilliVoltsSetpoint(int16_t voltage_setpoint);
-    void setMilliAmpsLimit(int16_t amps_limit);
-    void setCentiWattsLimit(int16_t watts_limit);
-    void setMilliVolts(int16_t voltage);
-    void setMilliAmps(int16_t amps);
-    void setCentiWatts(int16_t watts);
-    void setCurser(row_t row, uint8_t pos);
+    void setScreenMode(const screen_mode_t mode);
+    const screen_mode_t getScreenMode() const;
+    void setStandby(const bool standby);
+    void setLocked(const bool locked);
+    void setMemory(const bool memory);
+    void setRemote(const bool remote);
+    void setLimitedV(const bool limited_v);
+    void setLimitedA(const bool limited_a);
+    void setLimitedP(const bool limited_p);
+    const bool isLimitedV() const;
+    const bool isLimitedA() const;
+    const bool isLimitedP() const;
+    void setOvertemp(const bool overtemp);
+    void setMilliVoltsSetpoint(const int16_t voltage_setpoint);
+    void setMilliAmpsLimit(const int16_t amps_limit);
+    void setCentiWattsLimit(const int16_t watts_limit);
+    void setMilliVolts(const int16_t voltage);
+    void setMilliAmps(const int16_t amps);
+    void setCentiWatts(const int16_t watts);
+    void setCurser(const row_t row, const uint8_t pos);
     
     private:
     void clear(void);
@@ -81,18 +81,18 @@ class PsDisplay {
     inline void renderWatts(void);
     void renderFullGraph(void);
     void renderTest(void);
-    void renderSingleGraph(uint16_t value1, char * old_buffer1, uint16_t value2, char * old_buffer2, uint8_t * history, uint16_t history_pos, row_t row);
+    void renderSingleGraph(const uint16_t value1, char * old_buffer1, const uint16_t value2, char * old_buffer2, const uint8_t * history, const uint16_t history_pos, const row_t row);
     void clearText(char * old_buffer);
-    void paintLogo(uint8_t x, uint8_t y, uint16_t size_x, uint16_t size_y, const unsigned char* picture, uint16_t color_override = 0x1337);
-    void drawXBitmapPartial(int16_t x, int16_t y, const uint8_t bitmap[], int16_t sw, int16_t sh, int16_t w, int16_t h, uint16_t color);
-    void fastStringPrint(char * buffer, char * old_buffer, uint8_t font_width, row_t row = ROW_NULL, uint16_t fg_color = DEFAULT_TEXT_COLOR, uint16_t se_color = DEFAULT_HIGHLIGHT_COLOR, uint16_t bg_color = DEFAULT_BACKGROUND_COLOR);
-    void formatNumber(char * buffer, char * format, int16_t value_a, int16_t value_b, row_t row);
-    void formatMilliNumber(char * buffer, int16_t value, row_t row, bool zero_padding = false);
-    void formatCentiNumber(char * buffer, int16_t value, row_t row, bool zero_padding = false);
-    void paintFlag(bool visible, uint8_t flag, uint8_t y);
-    void paintSmallLogo(bool visible);
-    void renderHistory(const uint8_t* history_data, uint16_t history_pos, uint8_t thickness = 2, uint16_t color_override = 0x1337);
-    uint8_t getRowYPos(uint8_t row);
+    void paintLogo(const uint8_t x, const uint8_t y, const uint16_t size_x, const uint16_t size_y, const unsigned char* picture, const uint16_t color_override = 0x1337);
+    void drawXBitmapPartial(const int16_t x, int16_t y, const uint8_t bitmap[], const int16_t sw, const int16_t sh, const int16_t w, const int16_t h, const uint16_t color);
+    void fastStringPrint(const char * buffer, char * old_buffer, const uint8_t font_width, const row_t row = ROW_NULL, const uint16_t fg_color = DEFAULT_TEXT_COLOR, const uint16_t se_color = DEFAULT_HIGHLIGHT_COLOR, const uint16_t bg_color = DEFAULT_BACKGROUND_COLOR);
+    void formatNumber(char * buffer, const char * format, const int16_t value_a, const int16_t value_b, const row_t row);
+    void formatMilliNumber(char * buffer, const int16_t value, const row_t row, const bool zero_padding = false);
+    void formatCentiNumber(char * buffer, const int16_t value, const row_t row, const bool zero_padding = false);
+    void paintFlag(const bool visible, const uint8_t flag, const uint8_t y);
+    void paintSmallLogo(const bool visible);
+    void renderHistory(const uint8_t* history_data, const uint16_t history_pos, const uint8_t thickness = 2, const uint16_t color_override = 0x1337);
+    constexpr uint8_t getRowYPos(const uint8_t row);
 
     Adafruit_ILI9341& tft;
     bool init_done = 0;
