@@ -403,11 +403,11 @@ void PsDisplay::renderHistory(const uint8_t* history_data, const uint16_t histor
         }
         if (history_data[current_pos] != history_data[last_pos]) {
             for (uint8_t j=0; j < thickness; j++) {
-                tft.writePixel(i, 1+PS_DISPLAY_HEIGHT-history_data[last_pos]+j, DEFAULT_BACKGROUND_COLOR);
+                tft.writePixel(i, PS_DISPLAY_HEIGHT-1-history_data[last_pos]+j, DEFAULT_BACKGROUND_COLOR);
             }
             if (i > 1) { //not the best workaround for the sticky edge due to wrap and missing old data
                 for (uint8_t j=0; j < thickness; j++) {
-                    tft.writePixel(i, 1+PS_DISPLAY_HEIGHT-history_data[current_pos]+j, color_override != 0x1337 ? color_override : TOOLBOX_LOGO_LIGHT_RED);
+                    tft.writePixel(i, PS_DISPLAY_HEIGHT-1-history_data[current_pos]+j, color_override != 0x1337 ? color_override : TOOLBOX_LOGO_LIGHT_RED);
                 }
             }
         }
