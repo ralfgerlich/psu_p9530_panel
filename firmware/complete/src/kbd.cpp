@@ -184,11 +184,15 @@ void kbd_update() {
     }
 
     /* Process everything else */
+    uint32_t diff_state = kbd_state ^ new_state;
     uint32_t mask = 1;
     for (KeyCode code = (KeyCode)0; code < kbd__count_physical; code = (KeyCode)(code+1), mask<<=1) {
-        if (!(kbd_state & mask) && (new_state & mask)) {
-            /* The key has been released */
-            kbd_emplace_unsafe(code);
+        if (diff_state & mask) {
+            // the key state changed
+            if (new_state & mask) {
+                // the key has been released (new state on)
+                kbd_emplace_unsafe(code);
+            }
         }
     }
 
