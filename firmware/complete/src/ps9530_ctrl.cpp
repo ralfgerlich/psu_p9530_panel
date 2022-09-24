@@ -58,7 +58,7 @@ void PS9530_Ctrl::init() {
      * => f = 16MHZ/1024/156 = 100Hz */
     TCCR0A = (1 << WGM01) | (0 << WGM00);
     TCCR0B = (0 << WGM02) | (1 << CS02) | (0 << CS01) | (1 << CS00);
-    OCR0A = 49;
+    OCR0A = 155;
     TIMSK0 = (1 << OCIE0A);
     TIFR0 = (1 << OCIE0A);
 }
