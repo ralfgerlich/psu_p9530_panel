@@ -564,19 +564,22 @@ void PsDisplay::setCentiWattsLimit(const int16_t watts_limit) {
 void PsDisplay::setMilliVolts(const int16_t voltage) {
     this->milli_volts = voltage;
     history_volts_pos = (history_volts_pos+1) % HISTORY_LENGTH;
-    history_volts[history_volts_pos] = (voltage / 30000.f) *(PS_DISPLAY_HEIGHT-(PT18_IN_PXH*2+6*2)) +1;
+    // normalize to (PS_DISPLAY_HEIGHT-(PT18_IN_PXH*2+6*2))+1 => ~ 187 pixel
+    history_volts[history_volts_pos] = (voltage >> 8) * 1.589f +1;
 }
 
 void PsDisplay::setMilliAmps(const int16_t amps) {
     this->milli_amps = amps;
     history_apms_pos = (history_apms_pos+1) % HISTORY_LENGTH;
-    history_amps[history_apms_pos] = (amps / 10000.f) *(PS_DISPLAY_HEIGHT-(PT18_IN_PXH*2+6*2)) +1;
+    // normalize to (PS_DISPLAY_HEIGHT-(PT18_IN_PXH*2+6*2))+1 => ~ 187 pixel
+    history_amps[history_apms_pos] = (amps >> 6) * 1.192f +1;
 }
 
 void PsDisplay::setCentiWatts(const int16_t watts) {
     this->centi_watts = watts;
     history_watts_pos = (history_watts_pos+1) % HISTORY_LENGTH;
-    history_watts[history_watts_pos] = (watts / 30000.f) *(PS_DISPLAY_HEIGHT-(PT18_IN_PXH*2+6*2)) +1;
+    // normalize to (PS_DISPLAY_HEIGHT-(PT18_IN_PXH*2+6*2))+1 => ~ 187 pixel
+    history_watts[history_watts_pos] = (watts >> 8) * 1.589f +1;
 }
 
 void PsDisplay::setCurser(const row_t row, const uint8_t pos) {
