@@ -99,30 +99,42 @@ void PS9530_UI::handleKeyboardEvents() {
                 case kbd_4: case kbd_5: case kbd_6:
                 case kbd_7: case kbd_8: case kbd_9:
                 case kbd_0:
+                case kbd_1_long: case kbd_2_long: case kbd_3_long:
+                case kbd_4_long: case kbd_5_long: case kbd_6_long:
+                case kbd_7_long: case kbd_8_long: case kbd_9_long:
+                case kbd_0_long:
                     handleDigitKey(keyCode);
                     break;
                 case kbd_dot:
+                case kbd_dot_long:
                     handleDotKey();
                     break;
                 case kbd_ce:
+                case kbd_ce_long:
                     handleCEKey();
                     break;
                 case kbd_enter:
+                case kbd_enter_long:
                     handleEnterKey();
                     break;
                 case kbd_left: case kbd_right:
+                case kbd_left_long: case kbd_right_long:
                     handleDirectionKey(keyCode);
                     break;
                 case kbd_lock:
+                case kbd_lock_long:
                     handleLockKey();
                     break;
                 case kbd_memory:
+                case kbd_memory_long:
                     handleMemoryKey();
                     break;
                 case kbd_standby:
+                case kbd_standby_long:
                     handleStandbyKey();
                     break;
                 case kbd_remote:
+                case kbd_remote_long:
                     handleRemoteKey();
                     break;
                 default:
@@ -132,9 +144,11 @@ void PS9530_UI::handleKeyboardEvents() {
         } else {
             switch (keyCode) {
                 case kbd_lock:
+                case kbd_lock_long:
                     handleLockKey();
                     break;
                 case kbd_standby:
+                case kbd_standby_long:
                     handleStandbyKey();
                     break;
                 default:
