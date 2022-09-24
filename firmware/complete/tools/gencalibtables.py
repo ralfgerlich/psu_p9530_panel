@@ -41,8 +41,10 @@ vref = 2.5
 # Maximum ADC value
 adc_max = 1023
 
-# Number of steps to generate for voltage and current ADC
+# Number of steps to generate for voltage and current ADC tables
 adcSteps = 32
+# Number of steps to generate for voltage and current ADC tables
+adcSmallSteps = 8
 
 # Maximum number of steps to generate for temperature tables
 max_temp_entries = 16
@@ -98,11 +100,20 @@ adc_values = np.linspace(start=0, stop=adc_max+1, endpoint=True, num=adcSteps+1)
 measuredVoltageOffsets = np.round(1000.0*adc2voltage(adc_values)).astype(int)
 measuredCurrentOffsets = np.round(1000.0*adc2current(adc_values)).astype(int)
 
+# Small ADC values to consider specifically
+adc_values_small = np.linspace(start=0, stop=adc_values[1], endpoint=True, num=adcSmallSteps+1)
+# Voltages [mV] and currents [mA] for the small ADC values to consider
+measuredVoltageOffsetsSmall = np.round(1000.0*adc2voltage(adc_values_small)).astype(int)
+measuredCurrentOffsetsSmall = np.round(1000.0*adc2current(adc_values_small)).astype(int)
+
 measuredVoltageShift = np.ceil(np.log2((adc_max+1)/adcSteps)).astype(int)
 measuredCurrentShift = measuredVoltageShift
+measuredVoltageShiftSmall = np.ceil(np.log2((adc_values[1]/adcSmallSteps))).astype(int)
+measuredCurrentShiftSmall = measuredVoltageShiftSmall
 
 # Setpoint calibration tables
 dacSteps = 32
+dacSmallSteps = 8
 
 # Voltage calibration table
 # Minimum maximum voltage to consider
@@ -117,6 +128,12 @@ voltageValues = np.linspace(start=0, stop=maxVoltageMilliVoltsActual, endpoint=T
 setpointVoltageOffsets = np.clip(a=np.round(voltage2dac(voltageValues/1.E3)), a_min=0, a_max=16383).astype(int)
 # FIXME: We might want to calculate dacSteps from the bit width instead...
 setpointVoltageShift = voltageDACBits - np.ceil(np.log2(dacSteps)).astype(int)
+# Small voltage values to be considered
+voltageDACBitsSmall = np.ceil(np.log2(voltageValues[1])).astype(int)
+voltageValuesSmall = np.linspace(start=0, stop=voltageValues[1], endpoint=True, num=dacSmallSteps+1)
+setpointVoltageOffsetsSmall = np.clip(a=np.round(voltage2dac(voltageValuesSmall/1.E3)), a_min=0, a_max=16383).astype(int)
+setpointVoltageShiftSmall = voltageDACBitsSmall - np.ceil(np.log2(dacSmallSteps)).astype(int)
+
 
 # Current calibration table
 # Minimum maximum current to consider
@@ -131,20 +148,37 @@ currentValues = np.linspace(start=0, stop=maxCurrentMilliAmpsActual, endpoint=Tr
 setpointCurrentOffsets = np.clip(a=np.round(current2dac(currentValues/1.E3)), a_min=0, a_max=16383).astype(int)
 # FIXME: We might want to calculate dacSteps from the bit width instead...
 setpointCurrentShift = currentDACBits - np.ceil(np.log2(dacSteps)).astype(int)
+# Small current values to be considered
+currentDACBitsSmall = np.ceil(np.log2(currentValues[1])).astype(int)
+currentValuesSmall = np.linspace(start=0, stop=currentValues[1], endpoint=True, num=dacSmallSteps+1)
+setpointCurrentOffsetsSmall = np.clip(a=np.round(voltage2dac(voltageValuesSmall/1.E3)), a_min=0, a_max=16383).astype(int)
+setpointCurrentShiftSmall = currentDACBitsSmall - np.ceil(np.log2(dacSmallSteps)).astype(int)
 
-print("#define PS9530_ADC_VOLTAGE_SHIFT %s" % measuredVoltageShift)
-print("#define PS9530_ADC_CURRENT_SHIFT %s" % measuredCurrentShift)
-print("#define PS9530_DAC_VOLTAGE_SHIFT %s" % setpointVoltageShift)
-print("#define PS9530_DAC_CURRENT_SHIFT %s" % setpointCurrentShift)
-print("#define PS9530_ADC_TEMP1_SHIFT %d" % actTempStepShift[0])
-print("#define PS9530_ADC_TEMP2_SHIFT %d" % actTempStepShift[1])
+print("#define PS9530_ADC_VOLTAGE_SMALL %sU" % adc_values[1].astype(int))
+print("#define PS9530_ADC_VOLTAGE_SHIFT %sU" % measuredVoltageShift)
+print("#define PS9530_ADC_VOLTAGE_SHIFT_SMALL %sU" % measuredVoltageShiftSmall)
+print("#define PS9530_ADC_CURRENT_SMALL %sU" % adc_values[1].astype(int))
+print("#define PS9530_ADC_CURRENT_SHIFT %sU" % measuredCurrentShift)
+print("#define PS9530_ADC_CURRENT_SHIFT_SMALL %sU" % measuredCurrentShiftSmall)
+print("#define PS9530_DAC_VOLTAGE_SMALL %sU" % voltageValues[1].astype(int))
+print("#define PS9530_DAC_VOLTAGE_SHIFT %sU" % setpointVoltageShift)
+print("#define PS9530_DAC_VOLTAGE_SHIFT_SMALL %sU" % setpointVoltageShiftSmall)
+print("#define PS9530_DAC_CURRENT_SMALL %sU" % currentValues[1].astype(int))
+print("#define PS9530_DAC_CURRENT_SHIFT %sU" % setpointCurrentShift)
+print("#define PS9530_DAC_CURRENT_SHIFT_SMALL %sU" % setpointCurrentShiftSmall)
+print("#define PS9530_ADC_TEMP1_SHIFT %dU" % actTempStepShift[0])
+print("#define PS9530_ADC_TEMP2_SHIFT %dU" % actTempStepShift[1])
 print("const uint16_t PS9530_Ctrl::adcVoltageOffset[%d] PROGMEM = \n%s;" % (adcSteps+1, to_c_array(measuredVoltageOffsets, colcount=10)))
+print("const uint16_t PS9530_Ctrl::adcVoltageOffsetSmall[%d] PROGMEM = \n%s;" % (adcSmallSteps+1, to_c_array(measuredVoltageOffsetsSmall, colcount=10)))
 
 print("const uint16_t PS9530_Ctrl::adcCurrentOffset[%d] PROGMEM = \n%s;" % (adcSteps+1, to_c_array(measuredCurrentOffsets, colcount=10)))
+print("const uint16_t PS9530_Ctrl::adcCurrentOffsetSmall[%d] PROGMEM = \n%s;" % (adcSmallSteps+1, to_c_array(measuredCurrentOffsetsSmall, colcount=10)))
 
 print("const uint16_t PS9530_Ctrl::voltageDACOffset[%d] PROGMEM = \n%s;" % (dacSteps+1, to_c_array(setpointVoltageOffsets, colcount=10)))
+print("const uint16_t PS9530_Ctrl::voltageDACOffsetSmall[%d] PROGMEM = \n%s;" % (dacSmallSteps+1, to_c_array(setpointVoltageOffsetsSmall, colcount=10)))
 
 print("const uint16_t PS9530_Ctrl::currentDACOffset[%d] PROGMEM = \n%s;" % (dacSteps+1, to_c_array(setpointCurrentOffsets, colcount=10)))
+print("const uint16_t PS9530_Ctrl::currentDACOffsetSmall[%d] PROGMEM = \n%s;" % (dacSmallSteps+1, to_c_array(setpointCurrentOffsetsSmall, colcount=10)))
 
 print("const uint16_t PS9530_Ctrl::minTempADC[2] PROGMEM = %s;" % to_c_array(minTempADC))
 print("const uint16_t PS9530_Ctrl::maxTempADC[2] PROGMEM = %s;" % to_c_array(maxTempADC))
@@ -157,26 +191,50 @@ print("};");
 numTestpoints = 10
 
 # Generate random values in the ADC range
-testADCValues = np.sort(np.random.randint(0, adc_max, 10))
-testADCVoltages = np.round(interp1d(adc_values, measuredVoltageOffsets)(testADCValues)).astype(int)
-testADCCurrents = np.round(interp1d(adc_values, measuredCurrentOffsets)(testADCValues)).astype(int)
+testADCValuesSmall = np.sort(np.random.randint(adc_values[0], adc_values[1], 10))
+testADCValuesLarge = np.sort(np.random.randint(adc_values[1], adc_max, 10))
+testADCVoltagesSmall = np.round(interp1d(adc_values_small, measuredVoltageOffsetsSmall)(testADCValuesSmall)).astype(int)
+testADCVoltagesLarge = np.round(interp1d(adc_values, measuredVoltageOffsets)(testADCValuesLarge)).astype(int)
+testADCCurrentsSmall = np.round(interp1d(adc_values_small, measuredCurrentOffsetsSmall)(testADCValuesSmall)).astype(int)
+testADCCurrentsLarge = np.round(interp1d(adc_values, measuredCurrentOffsets)(testADCValuesLarge)).astype(int)
+
+testADCValues = np.concatenate((testADCValuesSmall, testADCValuesLarge))
+testADCVoltages = np.concatenate((testADCVoltagesSmall, testADCVoltagesLarge))
+testADCCurrents = np.concatenate((testADCCurrentsSmall, testADCCurrentsLarge))
 
 voltageADCTests = [f"    TEST_ASSERT_UINT16_WITHIN(2, {voltage}, PS9530_Ctrl::interpolateADCVoltage({adc}));\n" for adc, voltage in zip(testADCValues, testADCVoltages)]
 currentADCTests = [f"    TEST_ASSERT_UINT16_WITHIN(2, {current}, PS9530_Ctrl::interpolateADCCurrent({adc}));\n" for adc, current in zip(testADCValues, testADCCurrents)]
+print("void test_adc_voltage() {")
 print("".join(voltageADCTests))
+print("}")
 print()
+print("void test_adc_current() {")
 print("".join(currentADCTests))
+print("}")
 print()
 
 # Generate random values in the voltage range
-testDACVoltages = np.sort(np.random.randint(0, maxVoltageMillivolts, 10))
-testDACVoltageValues = np.round(interp1d(voltageValues, setpointVoltageOffsets)(testDACVoltages)).astype(int)
-testDACCurrents = np.sort(np.random.randint(0, maxCurrentMilliAmps, 10))
-testDACCurrentValues = np.round(interp1d(currentValues, setpointCurrentOffsets)(testDACCurrents)).astype(int)
+testDACVoltagesSmall = np.sort(np.random.randint(voltageValues[0], voltageValues[1], 10))
+testDACVoltagesLarge = np.sort(np.random.randint(voltageValues[1], maxVoltageMillivolts, 10))
+testDACVoltageValuesSmall = np.round(interp1d(voltageValuesSmall, setpointVoltageOffsetsSmall)(testDACVoltagesSmall)).astype(int)
+testDACVoltageValuesLarge = np.round(interp1d(voltageValues, setpointVoltageOffsets)(testDACVoltagesLarge)).astype(int)
+testDACVoltages = np.concatenate((testDACVoltagesSmall, testDACVoltagesLarge))
+testDACVoltageValues = np.concatenate((testDACVoltageValuesSmall, testDACVoltageValuesLarge))
+
+testDACCurrentsSmall = np.sort(np.random.randint(currentValues[0], currentValues[1], 10))
+testDACCurrentsLarge = np.sort(np.random.randint(currentValues[1], maxCurrentMilliAmps, 10))
+testDACCurrentValuesSmall = np.round(interp1d(currentValuesSmall, setpointCurrentOffsetsSmall)(testDACCurrentsSmall)).astype(int)
+testDACCurrentValuesLarge = np.round(interp1d(currentValues, setpointCurrentOffsets)(testDACCurrentsLarge)).astype(int)
+testDACCurrents = np.concatenate((testDACCurrentsSmall, testDACCurrentsLarge))
+testDACCurrentValues = np.concatenate((testDACCurrentValuesSmall, testDACCurrentValuesLarge))
 
 voltageDACTests = [f"    TEST_ASSERT_UINT16_WITHIN(2, {dac}, PS9530_Ctrl::interpolateDACVoltage({voltage}));\n" for dac, voltage in zip(testDACVoltageValues, testDACVoltages)]
 currentDACTests = [f"    TEST_ASSERT_UINT16_WITHIN(2, {dac}, PS9530_Ctrl::interpolateDACCurrent({current}));\n" for dac, current in zip(testDACCurrentValues, testDACCurrents)]
+print("void test_dac_voltage() {")
 print("".join(voltageDACTests))
+print("}")
 print()
+print("void test_dac_current() {")
 print("".join(currentDACTests))
+print("}")
 print()

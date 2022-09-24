@@ -1,7 +1,6 @@
 #include <unity.h>
 
-#include "test_adc.h"
-#include "test_dac.h"
+#include "test_interpolate.h"
 #include "test_limits.h"
 
 void setUp(void) {

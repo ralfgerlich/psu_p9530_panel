@@ -6,12 +6,20 @@
 #include <avr/pgmspace.h>
 #include "kbd.h"
 
-#define PS9530_ADC_VOLTAGE_SHIFT 5
-#define PS9530_ADC_CURRENT_SHIFT 5
-#define PS9530_DAC_VOLTAGE_SHIFT 10
-#define PS9530_DAC_CURRENT_SHIFT 9
-#define PS9530_ADC_TEMP1_SHIFT 5
-#define PS9530_ADC_TEMP2_SHIFT 6
+#define PS9530_ADC_VOLTAGE_SMALL 32U
+#define PS9530_ADC_VOLTAGE_SHIFT 5U
+#define PS9530_ADC_VOLTAGE_SHIFT_SMALL 2U
+#define PS9530_ADC_CURRENT_SMALL 32U
+#define PS9530_ADC_CURRENT_SHIFT 5U
+#define PS9530_ADC_CURRENT_SHIFT_SMALL 2U
+#define PS9530_DAC_VOLTAGE_SMALL 1024U
+#define PS9530_DAC_VOLTAGE_SHIFT 10U
+#define PS9530_DAC_VOLTAGE_SHIFT_SMALL 7U
+#define PS9530_DAC_CURRENT_SMALL 512U
+#define PS9530_DAC_CURRENT_SHIFT 9U
+#define PS9530_DAC_CURRENT_SHIFT_SMALL 6U
+#define PS9530_ADC_TEMP1_SHIFT 5U
+#define PS9530_ADC_TEMP2_SHIFT 6U
 
 class PS9530_Ctrl {
 public:
@@ -121,7 +129,8 @@ public:
 protected:
 
     /** Voltage offset for ADC conversion */
-    static const uint16_t adcVoltageOffset[33] PROGMEM;
+    static const uint16_t adcVoltageOffset[] PROGMEM;
+    static const uint16_t adcVoltageOffsetSmall[] PROGMEM;
 
     /**
      * @brief Convert an ADC measurement into a voltage
@@ -132,7 +141,8 @@ protected:
     static uint16_t interpolateADCVoltage(uint16_t adcValue);
 
     /** Current offset for ADC conversion */
-    static const uint16_t adcCurrentOffset[33] PROGMEM;
+    static const uint16_t adcCurrentOffset[] PROGMEM;
+    static const uint16_t adcCurrentOffsetSmall[] PROGMEM;
 
     /**
      * @brief Convert an ADC measurement into a current
@@ -143,7 +153,8 @@ protected:
     static uint16_t interpolateADCCurrent(uint16_t adcValue);
 
     /** DAC offset for voltage conversion */
-    static const uint16_t voltageDACOffset[33] PROGMEM;
+    static const uint16_t voltageDACOffset[] PROGMEM;
+    static const uint16_t voltageDACOffsetSmall[] PROGMEM;
 
     /**
      * @brief Convert a voltage target value to a DAC value
@@ -154,7 +165,8 @@ protected:
     static uint16_t interpolateDACVoltage(uint16_t milliVolts);
 
     /** DAC offset for voltage conversion */
-    static const uint16_t currentDACOffset[33] PROGMEM;
+    static const uint16_t currentDACOffset[] PROGMEM;
+    static const uint16_t currentDACOffsetSmall[] PROGMEM;
 
     /**
      * @brief Convert a current target value to a DAC value
