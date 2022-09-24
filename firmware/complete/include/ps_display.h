@@ -76,12 +76,12 @@ class PsDisplay {
     void clear(void);
     void renderLogo(void);
     void renderMainscreen(void);
-    inline void renderVolts(void);
-    inline void renderAmps(void);
-    inline void renderWatts(void);
-    void renderFullGraph(void);
+    inline void renderVolts(const bool mode_changed);
+    inline void renderAmps(const bool mode_changed);
+    inline void renderWatts(const bool mode_changed);
+    void renderFullGraph(const bool mode_changed);
     void renderTest(void);
-    void renderSingleGraph(const uint16_t value1, char * old_buffer1, const uint16_t value2, char * old_buffer2, const uint8_t * history, const uint16_t history_pos, const row_t row);
+    void renderSingleGraph(const uint16_t value1, char * old_buffer1, const uint16_t value2, char * old_buffer2, const uint8_t * history, const uint16_t history_pos, const row_t row, const bool mode_changed);
     void clearText(char * old_buffer);
     void paintLogo(const uint8_t x, const uint8_t y, const uint16_t size_x, const uint16_t size_y, const unsigned char* picture, const uint16_t color_override = 0x1337);
     void drawXBitmapPartial(const int16_t x, int16_t y, const uint8_t bitmap[], const int16_t sw, const int16_t sh, const int16_t w, const int16_t h, const uint16_t color);
@@ -91,7 +91,7 @@ class PsDisplay {
     void formatCentiNumber(char * buffer, const int16_t value, const row_t row, const bool zero_padding = false);
     void paintFlag(const bool visible, const uint8_t flag, const uint8_t y);
     void paintSmallLogo(const bool visible);
-    void renderHistory(const uint8_t* history_data, const uint16_t history_pos, const uint8_t thickness = 2, const uint16_t color_override = 0x1337);
+    void renderHistory(const uint8_t* history_data, const uint16_t history_pos, const bool force_paint, const uint8_t thickness = 2, const uint16_t color_override = 0x1337);
     constexpr uint8_t getRowYPos(const uint8_t row);
 
     Adafruit_ILI9341& tft;

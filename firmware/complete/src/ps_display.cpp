@@ -263,7 +263,8 @@ constexpr uint8_t PsDisplay::getRowYPos(const uint8_t row) {
 }
 
 void PsDisplay::render() {
-    if (screen_mode != painted_screen_mode) {
+    bool mode_changed = screen_mode != painted_screen_mode;
+    if (mode_changed) {
         // clear screen on mode change
         clear();
     }
@@ -273,22 +274,22 @@ void PsDisplay::render() {
             renderMainscreen();
             break;
         case SCREEN_MODE_VOLTS:
-            renderVolts();
+            renderVolts(mode_changed);
             break;
         case SCREEN_MODE_AMPS:
-            renderAmps();
+            renderAmps(mode_changed);
             break;
         case SCREEN_MODE_WATTS:
-            renderWatts();
+            renderWatts(mode_changed);
             break;
         case SCREEN_MODE_FULL_GRAPH:
-            renderFullGraph();
+            renderFullGraph(mode_changed);
             break;
         case SCREEN_MODE_TEST:
             renderTest();
             break;
         case SCREEN_MODE_LOGO:
-            if (screen_mode != painted_screen_mode) {
+            if (mode_changed) {
                 // no dynamic update
                 renderLogo();
             }
@@ -393,18 +394,23 @@ void PsDisplay::renderTest() {
     tft.endWrite();
 }
 
-void PsDisplay::renderHistory(const uint8_t* history_data, const uint16_t history_pos, const uint8_t thickness, const uint16_t color_override) {
+void PsDisplay::renderHistory(const uint8_t* history_data, const uint16_t history_pos, const bool force_paint, const uint8_t thickness, const uint16_t color_override) {
     tft.startWrite();
-    for (int16_t i = 0; i < HISTORY_LENGTH; i++) {
-        int16_t current_pos = (history_pos+i) % HISTORY_LENGTH;
-        int16_t last_pos = ((current_pos-1) % HISTORY_LENGTH) < 0 ? HISTORY_LENGTH-1 : (current_pos-1) % HISTORY_LENGTH;
-        if (history_data[current_pos] == 0) {
-            continue;
-        }
+    for (uint16_t i = 0; i < HISTORY_LENGTH; i++) {
+        uint16_t current_pos = (history_pos+i) % HISTORY_LENGTH;
+        uint16_t last_pos = ((current_pos-1) % HISTORY_LENGTH) < 0 ? HISTORY_LENGTH-1 : (current_pos-1) % HISTORY_LENGTH;
         if (history_data[current_pos] != history_data[last_pos]) {
             for (uint8_t j=0; j < thickness; j++) {
                 tft.writePixel(i, PS_DISPLAY_HEIGHT-1-history_data[last_pos]+j, DEFAULT_BACKGROUND_COLOR);
             }
+            if (i > 1) { //not the best workaround for the sticky edge due to wrap and missing old data
+                for (uint8_t j=0; j < thickness; j++) {
+                    tft.writePixel(i, PS_DISPLAY_HEIGHT-1-history_data[current_pos]+j, color_override != 0x1337 ? color_override : TOOLBOX_LOGO_LIGHT_RED);
+                }
+            }
+        }
+        if (force_paint) {
+            // paint if nothing is painted yet
             if (i > 1) { //not the best workaround for the sticky edge due to wrap and missing old data
                 for (uint8_t j=0; j < thickness; j++) {
                     tft.writePixel(i, PS_DISPLAY_HEIGHT-1-history_data[current_pos]+j, color_override != 0x1337 ? color_override : TOOLBOX_LOGO_LIGHT_RED);
@@ -421,7 +427,7 @@ void PsDisplay::clearText(char * old_buffer) {
     memset(old_buffer, '\0', PS_DISPLAY_BUFFER_LENGTH);
 }
 
-void PsDisplay::renderSingleGraph(const uint16_t value1, char * old_buffer1, const uint16_t value2, char * old_buffer2, const uint8_t * history, const uint16_t history_pos, const row_t row) {
+void PsDisplay::renderSingleGraph(const uint16_t value1, char * old_buffer1, const uint16_t value2, char * old_buffer2, const uint8_t * history, const uint16_t history_pos, const row_t row, const bool mode_changed) {
     char buffer[PS_DISPLAY_BUFFER_LENGTH];
     tft.setTextSize(2);
     tft.setCursor(60, PT18_IN_PXH*2+4);
@@ -440,23 +446,23 @@ void PsDisplay::renderSingleGraph(const uint16_t value1, char * old_buffer1, con
         formatMilliNumber(buffer, value1, row);
         fastStringPrint(buffer, old_buffer1, PT18_IN_PXW*2, ROW_NULL);
     }
-    renderHistory(history, history_pos);
+    renderHistory(history, history_pos, mode_changed);
     painted_selected_pos = selected_pos;
 }
 
-inline void PsDisplay::renderVolts() {
-    renderSingleGraph(milli_volts, buffer_volts, milli_volts_setpoint, buffer_volts_setp, history_volts, history_volts_pos, ROW_VOLTS);
+inline void PsDisplay::renderVolts(const bool mode_changed) {
+    renderSingleGraph(milli_volts, buffer_volts, milli_volts_setpoint, buffer_volts_setp, history_volts, history_volts_pos, ROW_VOLTS, mode_changed);
 }
 
-inline void PsDisplay::renderAmps() {
-    renderSingleGraph(milli_amps, buffer_amps, milli_amps_limit, buffer_amps_limit, history_amps, history_apms_pos, ROW_AMPS);
+inline void PsDisplay::renderAmps(const bool mode_changed) {
+    renderSingleGraph(milli_amps, buffer_amps, milli_amps_limit, buffer_amps_limit, history_amps, history_apms_pos, ROW_AMPS, mode_changed);
 }
 
-inline void PsDisplay::renderWatts() {
-    renderSingleGraph(centi_watts, buffer_watts, centi_watts_limit, buffer_watts_limit, history_watts, history_watts_pos, ROW_WATTS);
+inline void PsDisplay::renderWatts(const bool mode_changed) {
+    renderSingleGraph(centi_watts, buffer_watts, centi_watts_limit, buffer_watts_limit, history_watts, history_watts_pos, ROW_WATTS, mode_changed);
 }
 
-void PsDisplay::renderFullGraph() {
+void PsDisplay::renderFullGraph(const bool mode_changed) {
     char buffer[PS_DISPLAY_BUFFER_LENGTH];
     tft.setTextSize(1);
     tft.setCursor(10, getRowYPos(1));
@@ -491,9 +497,9 @@ void PsDisplay::renderFullGraph() {
         formatMilliNumber(buffer, milli_amps, ROW_AMPS);
         fastStringPrint(buffer, buffer_amps, PT18_IN_PXW, ROW_NULL, ILI9341_YELLOW);
     }
-    renderHistory(history_watts, history_watts_pos, 2);
-    renderHistory(history_amps, history_apms_pos, 2, ILI9341_YELLOW);
-    renderHistory(history_volts, history_volts_pos, 2, ILI9341_GREENYELLOW);
+    renderHistory(history_watts, history_watts_pos, mode_changed, 2);
+    renderHistory(history_amps, history_apms_pos, mode_changed, 2, ILI9341_YELLOW);
+    renderHistory(history_volts, history_volts_pos, mode_changed, 2, ILI9341_GREENYELLOW);
     painted_selected_pos = selected_pos;
 }
 
