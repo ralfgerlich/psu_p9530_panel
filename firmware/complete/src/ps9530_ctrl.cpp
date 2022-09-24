@@ -262,41 +262,32 @@ bool PS9530_Ctrl::isOvertemp() const {
     return overTempMode != 0;
 }
 
+template <typename InputType,
+          typename OutputType,
+          typename IntermediateType = OutputType>
+OutputType interpolate(InputType value, const OutputType offsetTable[] PROGMEM, unsigned int shift) {
+    const size_t tableIndex = value >> shift;
+    const OutputType rest = value & (~((~0)<<shift));
+    const OutputType start = pgm_read_word(&offsetTable[tableIndex]);
+    const OutputType end = pgm_read_word(&offsetTable[tableIndex+1]);
+    const IntermediateType gradient = end-start;
+    return start + ((rest * gradient)>>shift);
+}
 
 uint16_t PS9530_Ctrl::interpolateADCVoltage(uint16_t adcValue) {
-    const uint16_t tableIndex = adcValue >> PS9530_ADC_VOLTAGE_SHIFT;
-    const uint8_t adcRest = adcValue & (~((~0)<<PS9530_ADC_VOLTAGE_SHIFT));
-    const uint16_t start = pgm_read_word(&adcVoltageOffset[tableIndex]);
-    const uint16_t end = pgm_read_word(&adcVoltageOffset[tableIndex+1]);
-    const uint16_t gradient = end-start;
-    return start + ((adcRest * gradient) >> PS9530_ADC_VOLTAGE_SHIFT);
+    return interpolate(adcValue, adcVoltageOffset, PS9530_ADC_VOLTAGE_SHIFT);
 }
 
 uint16_t PS9530_Ctrl::interpolateADCCurrent(uint16_t adcValue) {
-    const uint16_t tableIndex = adcValue >> PS9530_ADC_CURRENT_SHIFT;
-    const uint8_t adcRest = adcValue & (~((~0)<<PS9530_ADC_CURRENT_SHIFT));
-    const uint16_t start = pgm_read_word(&adcCurrentOffset[tableIndex]);
-    const uint16_t end = pgm_read_word(&adcCurrentOffset[tableIndex+1]);
-    const uint16_t gradient = end-start;
-    return start + ((adcRest * gradient) >> PS9530_ADC_CURRENT_SHIFT);
+    return interpolate(adcValue, adcCurrentOffset, PS9530_ADC_CURRENT_SHIFT);
 }
 
 uint16_t PS9530_Ctrl::interpolateDACVoltage(uint16_t milliVolts) {
-    const uint16_t tableIndex = milliVolts >> PS9530_DAC_VOLTAGE_SHIFT;
-    const uint16_t adcRest = milliVolts & (~((~0)<<PS9530_DAC_VOLTAGE_SHIFT));
-    const uint16_t start = pgm_read_word(&voltageDACOffset[tableIndex]);
-    const uint16_t end = pgm_read_word(&voltageDACOffset[tableIndex+1]);
-    const uint32_t gradient = end-start;
-    return start + ((adcRest * gradient) >> PS9530_DAC_VOLTAGE_SHIFT);
+    return interpolate<uint16_t, uint16_t, uint32_t>(milliVolts, voltageDACOffset, PS9530_DAC_VOLTAGE_SHIFT);
 }
 
 uint16_t PS9530_Ctrl::interpolateDACCurrent(uint16_t milliAmps) {
-    const uint16_t tableIndex = milliAmps >> PS9530_DAC_CURRENT_SHIFT;
-    const uint16_t adcRest = milliAmps & (~((~0)<<PS9530_DAC_CURRENT_SHIFT));
-    const uint16_t start = pgm_read_word(&currentDACOffset[tableIndex]);
-    const uint16_t end = pgm_read_word(&currentDACOffset[tableIndex+1]);
-    const uint32_t gradient = end-start;
-    return start + ((adcRest * gradient) >> PS9530_DAC_CURRENT_SHIFT);
+    return interpolate<uint16_t, uint16_t, uint32_t>(milliAmps, currentDACOffset, PS9530_DAC_CURRENT_SHIFT);
 }
 
 int16_t PS9530_Ctrl::interpolateADCTemp(uint8_t index, uint16_t adcValue, uint8_t shift) {
@@ -308,12 +299,7 @@ int16_t PS9530_Ctrl::interpolateADCTemp(uint8_t index, uint16_t adcValue, uint8_
         adcValue = maxADC;
     }
     const uint16_t adcOffset = adcValue - minADC;
-    const uint8_t tableIndex = adcOffset >> shift;
-    const int16_t adcRest = adcOffset - (tableIndex << shift);
-    const int16_t start = pgm_read_word(&tempOffset[index][tableIndex]);
-    const int16_t end = pgm_read_word(&tempOffset[index][tableIndex+1]);
-    const int16_t gradient = end-start;
-    return start + (int16_t(adcRest * gradient) >> shift);
+    return interpolate(adcOffset, tempOffset[index], shift);
 }
 
 void PS9530_Ctrl::updateOvertemperature() {
