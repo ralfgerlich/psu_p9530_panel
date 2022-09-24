@@ -76,11 +76,13 @@ class PsDisplay {
     void clear(void);
     void renderLogo(void);
     void renderMainscreen(void);
-    void renderVolts(void);
-    void renderAmps(void);
-    void renderWatts(void);
+    inline void renderVolts(void);
+    inline void renderAmps(void);
+    inline void renderWatts(void);
     void renderFullGraph(void);
     void renderTest(void);
+    void renderSingleGraph(uint16_t value1, char * old_buffer1, uint16_t value2, char * old_buffer2, uint8_t * history, uint16_t history_pos, row_t row);
+    void clearText(char * old_buffer);
     void paintLogo(uint8_t x, uint8_t y, uint16_t size_x, uint16_t size_y, const unsigned char* picture, uint16_t color_override = 0x1337);
     void drawXBitmapPartial(int16_t x, int16_t y, const uint8_t bitmap[], int16_t sw, int16_t sh, int16_t w, int16_t h, uint16_t color);
     void fastStringPrint(char * buffer, char * old_buffer, uint8_t font_width, row_t row = ROW_NULL, uint16_t fg_color = DEFAULT_TEXT_COLOR, uint16_t se_color = DEFAULT_HIGHLIGHT_COLOR, uint16_t bg_color = DEFAULT_BACKGROUND_COLOR);

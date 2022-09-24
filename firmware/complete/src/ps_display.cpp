@@ -415,45 +415,86 @@ void PsDisplay::renderHistory(const uint8_t* history_data, uint16_t history_pos,
     tft.endWrite();
 }
 
-void PsDisplay::renderVolts() {
-    char buffer[PS_DISPLAY_BUFFER_LENGTH];
-    tft.setTextSize(2);
-    tft.setCursor(60, PT18_IN_PXH*2+4);
-    formatMilliNumber(buffer, milli_volts, ROW_VOLTS);
-    fastStringPrint(buffer, buffer_volts, PT18_IN_PXW*2, ROW_NULL);
-    renderHistory(history_volts, history_volts_pos);
+void PsDisplay::clearText(char * old_buffer) {
+    tft.setTextColor(ILI9341_BLACK);
+    tft.print(old_buffer);
+    memset(old_buffer, '\0', PS_DISPLAY_BUFFER_LENGTH);
 }
 
-void PsDisplay::renderAmps() {
+void PsDisplay::renderSingleGraph(uint16_t value1, char * old_buffer1, uint16_t value2, char * old_buffer2, uint8_t * history, uint16_t history_pos, row_t row) {
     char buffer[PS_DISPLAY_BUFFER_LENGTH];
     tft.setTextSize(2);
     tft.setCursor(60, PT18_IN_PXH*2+4);
-    formatMilliNumber(buffer, milli_amps, ROW_AMPS);
-    fastStringPrint(buffer, buffer_amps, PT18_IN_PXW*2, ROW_NULL);
-    renderHistory(history_amps, history_apms_pos);
+    if ((selected_pos >> 4) == row) {
+        if ((painted_selected_pos >> 4) != row) {
+            clearText(old_buffer1);
+            tft.setCursor(60, PT18_IN_PXH*2+4);
+        }
+        formatMilliNumber(buffer, value2, row, true);
+        fastStringPrint(buffer, old_buffer2, PT18_IN_PXW*2, row);
+    } else {
+        if ((painted_selected_pos >> 4) == row) {
+            clearText(old_buffer2);
+            tft.setCursor(60, PT18_IN_PXH*2+4);
+        }
+        formatMilliNumber(buffer, value1, row);
+        fastStringPrint(buffer, old_buffer1, PT18_IN_PXW*2, ROW_NULL);
+    }
+    renderHistory(history, history_pos);
+    painted_selected_pos = selected_pos;
 }
 
-void PsDisplay::renderWatts() {
-    char buffer[PS_DISPLAY_BUFFER_LENGTH];
-    tft.setTextSize(2);
-    tft.setCursor(60, PT18_IN_PXH*2+4);
-    formatCentiNumber(buffer, centi_watts, ROW_WATTS);
-    fastStringPrint(buffer, buffer_watts, PT18_IN_PXW*2, ROW_NULL);
-    renderHistory(history_watts, history_watts_pos);
+inline void PsDisplay::renderVolts() {
+    renderSingleGraph(milli_volts, buffer_volts, milli_volts_setpoint, buffer_volts_setp, history_volts, history_volts_pos, ROW_VOLTS);
+}
+
+inline void PsDisplay::renderAmps() {
+    renderSingleGraph(milli_amps, buffer_amps, milli_amps_limit, buffer_amps_limit, history_amps, history_apms_pos, ROW_AMPS);
+}
+
+inline void PsDisplay::renderWatts() {
+    renderSingleGraph(centi_watts, buffer_watts, centi_watts_limit, buffer_watts_limit, history_watts, history_watts_pos, ROW_WATTS);
 }
 
 void PsDisplay::renderFullGraph() {
     char buffer[PS_DISPLAY_BUFFER_LENGTH];
     tft.setTextSize(1);
     tft.setCursor(10, getRowYPos(1));
-    formatMilliNumber(buffer, milli_volts, ROW_VOLTS);
-    fastStringPrint(buffer, buffer_volts, PT18_IN_PXW, ROW_NULL, ILI9341_GREENYELLOW);
+    if ((selected_pos >> 4) == ROW_VOLTS) {
+        if ((painted_selected_pos >> 4) != ROW_VOLTS) {
+            clearText(buffer_volts);
+            tft.setCursor(10, getRowYPos(1));
+        }
+        formatMilliNumber(buffer, milli_volts_setpoint, ROW_VOLTS, true);
+        fastStringPrint(buffer, buffer_volts_setp, PT18_IN_PXW, ROW_VOLTS);
+    } else {
+        if ((painted_selected_pos >> 4) == ROW_VOLTS) {
+            clearText(buffer_volts_setp);
+            tft.setCursor(10, getRowYPos(1));
+        }
+        formatMilliNumber(buffer, milli_volts, ROW_VOLTS);
+        fastStringPrint(buffer, buffer_volts, PT18_IN_PXW, ROW_NULL, ILI9341_GREENYELLOW);
+    }
     tft.setCursor(60+PT18_IN_PXW*6, getRowYPos(1));
-    formatMilliNumber(buffer, milli_amps, ROW_AMPS);
-    fastStringPrint(buffer, buffer_amps, PT18_IN_PXW, ROW_NULL, ILI9341_YELLOW);
+    if ((selected_pos >> 4) == ROW_AMPS) {
+        if ((painted_selected_pos >> 4) != ROW_AMPS) {
+            clearText(buffer_amps);
+            tft.setCursor(60+PT18_IN_PXW*6, getRowYPos(1));
+        }
+        formatMilliNumber(buffer, milli_amps_limit, ROW_AMPS, true);
+        fastStringPrint(buffer, buffer_amps_limit, PT18_IN_PXW, ROW_AMPS);
+    } else {
+        if ((painted_selected_pos >> 4) == ROW_AMPS) {
+            clearText(buffer_amps_limit);
+            tft.setCursor(60+PT18_IN_PXW*6, getRowYPos(1));
+        }
+        formatMilliNumber(buffer, milli_amps, ROW_AMPS);
+        fastStringPrint(buffer, buffer_amps, PT18_IN_PXW, ROW_NULL, ILI9341_YELLOW);
+    }
     renderHistory(history_watts, history_watts_pos, 2);
     renderHistory(history_amps, history_apms_pos, 2, ILI9341_YELLOW);
     renderHistory(history_volts, history_volts_pos, 2, ILI9341_GREENYELLOW);
+    painted_selected_pos = selected_pos;
 }
 
 PsDisplay::screen_mode_t PsDisplay::getScreenMode() {
