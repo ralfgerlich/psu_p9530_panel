@@ -18,14 +18,12 @@ PS9530_UI::PS9530_UI(PS9530_Ctrl& control,
 }
 
 void PS9530_UI::init() {
+    control.init();
     display.init();
-    cli();
     display.clear();
     display.renderLogo();
-    delay(1000);
+    _delay_ms(7000);
     display.clear();
-    sei();
-    control.init();
     setVoltageSetpointMilliVolts(30000);
     setCurrentLimitMilliAmps(10000);
     setPowerLimitCentiWatt(30000);
