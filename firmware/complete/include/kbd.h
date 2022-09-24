@@ -37,6 +37,33 @@ enum KeyCode {
     
     kbd__count_physical, /* Number of physical key codes */
 
+    // long pressed keys
+    // a copy of above keys so we can get them by adding/subtracting kbd__count_physical
+    kbd_p_long,
+    kbd_lock_long,
+    kbd_unused_0_long,
+    kbd_i_long,
+    kbd_memory_long,
+    kbd_unused_1_long,
+    kbd_u_long,
+    kbd_remote_long,
+    kbd_left_long,
+    kbd_standby_long,
+    kbd_enter_long,
+    kbd_right_long,
+    kbd_ce_long,
+    kbd_0_long,
+    kbd_dot_long,
+    kbd_9_long,
+    kbd_8_long,
+    kbd_7_long,
+    kbd_6_long,
+    kbd_5_long,
+    kbd_4_long,
+    kbd_3_long,
+    kbd_2_long,
+    kbd_1_long,
+
     /* These are special key codes for representing rotations on the encoder */
     kbd_enc_cw,
     kbd_enc_ccw,

@@ -2,7 +2,6 @@ bugs:
 * volt/amp rekalibrieren
 
 missing features:
-* switch to graphical modes
 * memory function
 * remote function
 * standby mit aus signal statt dac? (needs hardware change)?

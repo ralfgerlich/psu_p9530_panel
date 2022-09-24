@@ -56,6 +56,10 @@ static uint32_t kbd_state;
 // encoder state
 static int8_t encoderState = 0;
 
+// last pressed key
+static KeyCode lastPressedKey = kbd_none;
+static unsigned char lastPressedCounter = 0;
+
 static inline void kbd_toggle_clk() {
     PORT_SPI &= ~MASK_SCK;
     PORT_SPI |= MASK_SCK;
@@ -184,13 +188,38 @@ void kbd_update() {
     }
 
     /* Process everything else */
+    lastPressedCounter++;
+    if (lastPressedCounter == 250) {
+        // on overflow the long press is not valid anymore
+        lastPressedKey = kbd_none;
+    }
     uint32_t diff_state = kbd_state ^ new_state;
     uint32_t mask = 1;
     for (KeyCode code = (KeyCode)0; code < kbd__count_physical; code = (KeyCode)(code+1), mask<<=1) {
         if (diff_state & mask) {
             // the key state changed
-            if (new_state & mask) {
+            if (kbd_state & mask) {
+                // the key has been pressed
+                lastPressedKey = code;
+                lastPressedCounter = 0;
+            } else {
                 // the key has been released (new state on)
+                if (lastPressedKey != code) {
+                    // not the key that was pressed
+                    lastPressedKey = kbd_none;
+                    lastPressedCounter = 0;
+                } else {
+                    //TODO remove later
+                    Serial.println("counter");
+                    Serial.println(lastPressedCounter);
+                    // key released is the last pressed one
+                    if (lastPressedCounter >= 100) {
+                        // long pressed
+                        kbd_emplace_unsafe((KeyCode)((unsigned int)code + kbd__count_physical + 1));
+                        continue;
+                    }
+                }
+                // a normal key release
                 kbd_emplace_unsafe(code);
             }
         }

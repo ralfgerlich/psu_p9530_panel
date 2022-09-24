@@ -262,6 +262,44 @@ uint8_t PsDisplay::getRowYPos(uint8_t row) {
     return getVirtualRow(row)*PT18_IN_PXH + rowSpacing*row;
 }
 
+void PsDisplay::render() {
+    if (screen_mode != painted_screen_mode) {
+        // clear screen on mode change
+        clear();
+    }
+    switch (screen_mode)
+    {
+        case SCREEN_MODE_MAINSCREEN:
+            renderMainscreen();
+            break;
+        case SCREEN_MODE_VOLTS:
+            renderVolts();
+            break;
+        case SCREEN_MODE_AMPS:
+            renderAmps();
+            break;
+        case SCREEN_MODE_WATTS:
+            renderWatts();
+            break;
+        case SCREEN_MODE_FULL_GRAPH:
+            renderFullGraph();
+            break;
+        case SCREEN_MODE_TEST:
+            renderTest();
+            break;
+        case SCREEN_MODE_LOGO:
+            if (screen_mode != painted_screen_mode) {
+                // no dynamic update
+                renderLogo();
+            }
+            break;
+        case SCREEN_MODE_NONE:
+        default:
+            break;
+    }
+    painted_screen_mode = screen_mode;
+}
+
 void PsDisplay::renderMainscreen() {
     //layout is:
     //---------------------
@@ -416,6 +454,14 @@ void PsDisplay::renderFullGraph() {
     renderHistory(history_watts, history_watts_pos, 2);
     renderHistory(history_amps, history_apms_pos, 2, ILI9341_YELLOW);
     renderHistory(history_volts, history_volts_pos, 2, ILI9341_GREENYELLOW);
+}
+
+PsDisplay::screen_mode_t PsDisplay::getScreenMode() {
+    return screen_mode;
+}
+
+void PsDisplay::setScreenMode(screen_mode_t mode) {
+    screen_mode = mode;
 }
 
 void PsDisplay::setStandby(bool standby) {

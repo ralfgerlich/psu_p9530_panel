@@ -36,18 +36,23 @@ class PsDisplay {
         ROW_AMPS,
         ROW_WATTS
     };
+    enum screen_mode_t {
+        SCREEN_MODE_NONE,
+        SCREEN_MODE_LOGO,
+        SCREEN_MODE_MAINSCREEN,
+        SCREEN_MODE_VOLTS,
+        SCREEN_MODE_AMPS,
+        SCREEN_MODE_WATTS,
+        SCREEN_MODE_FULL_GRAPH,
+        SCREEN_MODE_TEST
+    };
 
     void init(void);
 
-    void clear(void);
-    void renderLogo(void);
-    void renderMainscreen(void);
-    void renderVolts(void);
-    void renderAmps(void);
-    void renderWatts(void);
-    void renderFullGraph(void);
-    void renderTest(void);
+    void render(void);
 
+    void setScreenMode(screen_mode_t mode);
+    screen_mode_t getScreenMode();
     void setStandby(bool standby);
     void setLocked(bool locked);
     void setMemory(bool memory);
@@ -68,6 +73,14 @@ class PsDisplay {
     void setCurser(row_t row, uint8_t pos);
     
     private:
+    void clear(void);
+    void renderLogo(void);
+    void renderMainscreen(void);
+    void renderVolts(void);
+    void renderAmps(void);
+    void renderWatts(void);
+    void renderFullGraph(void);
+    void renderTest(void);
     void paintLogo(uint8_t x, uint8_t y, uint16_t size_x, uint16_t size_y, const unsigned char* picture, uint16_t color_override = 0x1337);
     void drawXBitmapPartial(int16_t x, int16_t y, const uint8_t bitmap[], int16_t sw, int16_t sh, int16_t w, int16_t h, uint16_t color);
     void fastStringPrint(char * buffer, char * old_buffer, uint8_t font_width, row_t row = ROW_NULL, uint16_t fg_color = DEFAULT_TEXT_COLOR, uint16_t se_color = DEFAULT_HIGHLIGHT_COLOR, uint16_t bg_color = DEFAULT_BACKGROUND_COLOR);
@@ -81,6 +94,8 @@ class PsDisplay {
 
     Adafruit_ILI9341& tft;
     bool init_done = 0;
+    screen_mode_t screen_mode = SCREEN_MODE_NONE;
+    screen_mode_t painted_screen_mode = SCREEN_MODE_NONE;
     //temp values from outside world
     uint8_t state = 0;
     int16_t milli_volts_setpoint = 0;

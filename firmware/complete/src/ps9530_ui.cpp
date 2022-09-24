@@ -20,10 +20,10 @@ PS9530_UI::PS9530_UI(PS9530_Ctrl& control,
 void PS9530_UI::init() {
     control.init();
     display.init();
-    display.clear();
-    display.renderLogo();
+    display.setScreenMode(display.SCREEN_MODE_LOGO);
+    display.render();
     _delay_ms(7000);
-    display.clear();
+    display.setScreenMode(display.SCREEN_MODE_MAINSCREEN);
     setVoltageSetpointMilliVolts(30000);
     setCurrentLimitMilliAmps(10000);
     setPowerLimitCentiWatt(30000);
@@ -56,6 +56,33 @@ void PS9530_UI::handleKeyboardEvents() {
                     break;
                 case kbd_p:
                     changeInputMode(InputPower);
+                    break;
+                case kbd_u_long:
+                    if (display.getScreenMode() == display.SCREEN_MODE_FULL_GRAPH) {
+                        display.setScreenMode(display.SCREEN_MODE_MAINSCREEN);
+                    } else if (display.getScreenMode() == display.SCREEN_MODE_VOLTS) {
+                        display.setScreenMode(display.SCREEN_MODE_FULL_GRAPH);
+                    } else {
+                        display.setScreenMode(display.SCREEN_MODE_VOLTS);
+                    }
+                    break;
+                case kbd_i_long:
+                    if (display.getScreenMode() == display.SCREEN_MODE_FULL_GRAPH) {
+                        display.setScreenMode(display.SCREEN_MODE_MAINSCREEN);
+                    } else if (display.getScreenMode() == display.SCREEN_MODE_AMPS) {
+                        display.setScreenMode(display.SCREEN_MODE_FULL_GRAPH);
+                    } else {
+                        display.setScreenMode(display.SCREEN_MODE_AMPS);
+                    }
+                    break;
+                case kbd_p_long:
+                    if (display.getScreenMode() == display.SCREEN_MODE_FULL_GRAPH) {
+                        display.setScreenMode(display.SCREEN_MODE_MAINSCREEN);
+                    } else if (display.getScreenMode() == display.SCREEN_MODE_WATTS) {
+                        display.setScreenMode(display.SCREEN_MODE_FULL_GRAPH);
+                    } else {
+                        display.setScreenMode(display.SCREEN_MODE_WATTS);
+                    }
                     break;
                 case kbd_enc_cw: case kbd_enc_ccw:
                     handleEncoderRotation(keyCode);
@@ -108,7 +135,7 @@ void PS9530_UI::handleKeyboardEvents() {
             }
         }
     }
-    display.renderMainscreen();
+    display.render();
     if (hadEvent) {
         Serial.print(F("standbyMode="));
         Serial.println(control.isStandbyEnabled());
