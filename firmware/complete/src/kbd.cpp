@@ -209,11 +209,8 @@ void kbd_update() {
                     lastPressedKey = kbd_none;
                     lastPressedCounter = 0;
                 } else {
-                    //TODO remove later
-                    Serial.println("counter");
-                    Serial.println(lastPressedCounter);
                     // key released is the last pressed one
-                    if (lastPressedCounter >= 100) {
+                    if (lastPressedCounter >= 55) {
                         // long pressed
                         kbd_emplace_unsafe((KeyCode)((unsigned int)code + kbd__count_physical + 1));
                         continue;
