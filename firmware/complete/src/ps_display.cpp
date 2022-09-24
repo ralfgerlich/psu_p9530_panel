@@ -523,7 +523,7 @@ void PsDisplay::setCentiWattsLimit(int16_t watts_limit) {
 void PsDisplay::setMilliVolts(int16_t voltage) {
     this->milli_volts = voltage;
     history_volts_pos = (history_volts_pos+1) % HISTORY_LENGTH;
-    history_volts[history_volts_pos] = (voltage / 10000.f) *(PS_DISPLAY_HEIGHT-(PT18_IN_PXH*2+6*2)) +1;
+    history_volts[history_volts_pos] = (voltage / 30000.f) *(PS_DISPLAY_HEIGHT-(PT18_IN_PXH*2+6*2)) +1;
 }
 
 void PsDisplay::setMilliAmps(int16_t amps) {
