@@ -70,40 +70,10 @@ KeyCode PS9530_Ctrl::readKeycode() {
 void PS9530_Ctrl::update() {
     kbd_update();
     updateDAC();
-    startADCCycle();
-}
-
-void PS9530_Ctrl::updateADC() {
-    if (currentADCState & 1) {
-        /* We just did the actual measurement */
-        const uint8_t currentADCChannel = currentADCState >> 1;
-        /* Apply a filter with a cut-off-frequency of ca. 20Hz.
-         * We use the filter concept
-         *   y[t+1] = alpha*x[t+1] + (1-alpha)*y[t]
-         * where x[t] is the sequence of measurements,
-         *       y[t] is the sequence of filtered values, and
-         *       alpha is the smoothing factor with
-         *   alpha= dT/(T+dT)
-         * where dT is the sampling time (1/f), and
-         *        T is the filtering time constant.
-         * 
-         * With dT=1/100 s and T = 1/20s we get alpha=1/6, which is about 11/64.
-         * 
-         * We use a scale factor of 64, as the ADC values are in the range [0;1023],
-         * and this multiplied by 64 gives a maximum range of [0;64449], which
-         * still fits into a 16-bit unsigned integer.
-         */
-        const uint16_t newValue = ADC;
-        const uint16_t oldValue = rawADCMeasurements[currentADCChannel];
-        const uint16_t filteredValue = (11U*newValue+53U*oldValue)>>6;
-        rawADCMeasurements[currentADCChannel] = filteredValue;
-    }
-    /* Update the state */
-    currentADCState++;
-    startADCConversion();
-    if (currentADCState>=2*adcChannel__idle) {
-        /* We have a full measurement cycle */
-        updateOvertemperature();
+    /* Every second update cycle, start an ADC cycle */
+    adcCycleFlag ^= 1;
+    if (adcCycleFlag) {
+        startADCCycle();
     }
 }
 
@@ -132,24 +102,6 @@ void PS9530_Ctrl::updateDAC() {
         dac_set_unsafe(isStandbyEnabled() ? 0 : rawDACValue[1]);
         currentMuxChannel = muxChannel_voltage;
         break;
-    }
-}
-
-void PS9530_Ctrl::startADCCycle() {
-    currentADCState = adcChannel_voltage << 1;
-    startADCConversion();
-}
-
-void PS9530_Ctrl::startADCConversion() {
-    const uint8_t currentADCChannel = currentADCState >> 1;
-    if (currentADCChannel < adcChannel__idle) {
-        /* Set reference voltage to AREF and select channel */
-        ADMUX = (0 << REFS1) | (0 << REFS0) | (currentADCChannel << MUX0);
-        /* Start the conversion with a clock of fCPU/64 (ca. 125kHz) */
-        ADCSRA = _BV(ADEN) | _BV(ADSC) | _BV(ADIF) | _BV(ADIE) | (1 << ADPS2) | (1 << ADPS1) | (0 << ADPS0);
-    } else {
-        /* Deactivate ADC */
-        ADCSRA = 0;
     }
 }
 
@@ -364,6 +316,82 @@ PS9530_Ctrl::LimitingMode PS9530_Ctrl::getLimitingMode(bool currentLimiterPin) {
         return LimitingMode_Current;
     } else {
         return LimitingMode_Power;
+    }
+}
+
+void PS9530_Ctrl::startADCCycle() {
+    currentADCState = adcChannel_voltage << 1;
+    startADCConversion();
+}
+
+void PS9530_Ctrl::startADCConversion() {
+    const uint8_t currentADCChannel = currentADCState >> 1;
+    if (currentADCChannel < adcChannel__idle) {
+        /* Set reference voltage to AREF and select channel */
+        ADMUX = (0 << REFS1) | (0 << REFS0) | (currentADCChannel << MUX0);
+        /* Start the conversion with a clock of fCPU/64 (ca. 125kHz) in free-running mode. */
+        ADCSRB = 0;
+        ADCSRA = _BV(ADEN) | _BV(ADSC) | _BV(ADIF) | _BV(ADIE) | _BV(ADATE) | (1 << ADPS2) | (1 << ADPS1) | (0 << ADPS0);
+    } else {
+        /* Deactivate ADC */
+        ADCSRA = 0;
+    }
+}
+
+void PS9530_Ctrl::updateADCChannel(uint8_t channelIndex, uint16_t newValue) {
+    /* Apply a filter with a cut-off-frequency of ca. 20Hz.
+        * We use the filter concept
+        *   y[t+1] = alpha*x[t+1] + (1-alpha)*y[t]
+        * where x[t] is the sequence of measurements,
+        *       y[t] is the sequence of filtered values, and
+        *       alpha is the smoothing factor with
+        *   alpha= dT/(T+dT)
+        * where dT is the sampling time (1/f), and
+        *        T is the filtering time constant.
+        * 
+        * With dT=1/50 s and T = 1/20s we get alpha=2/7, which is about 1/4.
+        * 
+        * We use a scale factor of 4, as the ADC values are in the range [0;8192],
+        * and this multiplied by 4 gives a maximum range of [0;32767], which
+        * still fits into a 16-bit unsigned integer. Also, using factor 8
+        * does not improve the accuracy of alpha, as alpha*8 rounded to the next
+        * integer is 2, so that the factor still remains 1/4.
+        */
+    const uint16_t oldValue = rawADCMeasurements[channelIndex];
+    const uint16_t filteredValue = (1U*newValue+3U*oldValue)>>2;
+    rawADCMeasurements[channelIndex] = filteredValue;
+    /* Advance to the next channel */
+    currentADCState++;
+}
+
+void PS9530_Ctrl::updateADC() {
+    if (currentADCState & 1) {
+        /* We just performed an actual measurement */
+        const uint8_t currentADCChannel = currentADCState >> 1;
+        switch (currentADCChannel) {
+        case adcChannel_voltage:
+        case adcChannel_current:
+            /* Perform oversampling */
+            oversamplingADCSum += ADC;
+            if (++oversamplingADCCount>=64) {
+                /* We have collected all samples */
+                updateADCChannel(currentADCChannel, oversamplingADCSum>>3);
+                oversamplingADCCount = 0;
+                oversamplingADCSum = 0;
+            }
+            break;
+        default:
+            updateADCChannel(currentADCChannel, ADC);
+            break;
+        }
+    } else {
+        /* We just performed the dummy measurement. */
+        currentADCState++;
+    }
+    startADCConversion();
+    if (currentADCState>=2*adcChannel__idle) {
+        /* We have a full measurement cycle */
+        updateOvertemperature();
     }
 }
 

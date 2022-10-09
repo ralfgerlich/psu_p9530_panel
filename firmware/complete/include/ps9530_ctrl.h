@@ -6,12 +6,12 @@
 #include <avr/pgmspace.h>
 #include "kbd.h"
 
-#define PS9530_ADC_VOLTAGE_SMALL 32U
-#define PS9530_ADC_VOLTAGE_SHIFT 5U
-#define PS9530_ADC_VOLTAGE_SHIFT_SMALL 2U
-#define PS9530_ADC_CURRENT_SMALL 32U
-#define PS9530_ADC_CURRENT_SHIFT 5U
-#define PS9530_ADC_CURRENT_SHIFT_SMALL 2U
+#define PS9530_ADC_VOLTAGE_SMALL 256U
+#define PS9530_ADC_VOLTAGE_SHIFT 8U
+#define PS9530_ADC_VOLTAGE_SHIFT_SMALL 5U
+#define PS9530_ADC_CURRENT_SMALL 256U
+#define PS9530_ADC_CURRENT_SHIFT 8U
+#define PS9530_ADC_CURRENT_SHIFT_SMALL 5U
 #define PS9530_DAC_VOLTAGE_SMALL 1024U
 #define PS9530_DAC_VOLTAGE_SHIFT 10U
 #define PS9530_DAC_VOLTAGE_SHIFT_SMALL 7U
@@ -34,11 +34,6 @@ public:
      * This method is intended to be called from an interrupt and
      * aims for low execution time. */
     void update();
-
-    /** Update data from the ADC.
-     * This method is intended to be called from an interrupt and
-     * aims for low execution time. */
-    void updateADC();
 
     /** Toggle standby mode */
     void toggleStandbyMode();
@@ -88,12 +83,6 @@ private:
 
     /** Update one of the DAC channels */
     void updateDAC();
-
-    /** Start the ADC cycle */
-    void startADCCycle();
-
-    /** Start the next conversion in the cycle, as defined by currentADCChannel */
-    void startADCConversion();
 
     static PS9530_Ctrl instance;
 
@@ -209,8 +198,12 @@ protected:
     /** Check for overtemperature and put system in standby in that case */
     void updateOvertemperature();
 public:
-    /** Raw ADC measurements */
+    /** Raw (unconverted) ADC measurements */
     uint16_t rawADCMeasurements[4];
+    /** Sum of ADC measurements for current channel oversampling */
+    uint16_t oversamplingADCSum;
+    /** Number of oversampling measurements performed for current channel */
+    uint8_t oversamplingADCCount;
 
     enum {
         /** ADC channel for measured voltage */
@@ -224,13 +217,30 @@ public:
         adcChannel__idle
     };
 protected:
-
+    
     /** Current ADC state
      * Lowest bit indicates whether this is the dummy measurement (0) or the
      * actual measurement (1).
-     * Upper bits indicate the channel being measured.
-     */
+     * Upper bits indicate the channel being measured. */
     uint8_t currentADCState;
+
+    /** Scaling counter for ADC cycle frequency.
+     * An ADC cycle is started every second hardware update cycle. */
+    uint8_t adcCycleFlag;
+
+    /** Start the ADC cycle */
+    void startADCCycle();
+
+    /** Start the next conversion in the cycle, as defined by currentADCChannel */
+    void startADCConversion();
+
+    /** Update the current ADC channel value */
+    void updateADCChannel(uint8_t channelIndex, uint16_t adcValue);
+public:
+    /** Update data from the ADC.
+     * This method is intended to be called from an interrupt and
+     * aims for low execution time. */
+    void updateADC();
 };
 
 #endif /* PS9530_CTRL_H */

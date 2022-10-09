@@ -39,7 +39,8 @@ R82 = 2.55e3
 vref = 2.5
 
 # Maximum ADC value
-adc_max = 1023
+temp_adc_max = 1023
+vc_adc_max = 8191
 
 # Number of steps to generate for voltage and current ADC tables
 adcSteps = 32
@@ -57,8 +58,8 @@ voltageTemp1 = 5*R82/(R82 + temp_data[column]) * R56 / R54
 voltageTemp2 = 5*R63/(R63 + temp_data[column])
 
 # Calculate ADC values for temperature sensors
-adcTemp1 = voltageTemp1 / vref * adc_max
-adcTemp2 = voltageTemp2 / vref * adc_max
+adcTemp1 = voltageTemp1 / vref * temp_adc_max
+adcTemp2 = voltageTemp2 / vref * temp_adc_max
 
 # Interpolate ADC values to temperatures
 adc2temp1 = interp1d(adcTemp1, temp_data['Temp_C'], fill_value='extrapolate', kind='quadratic')
@@ -88,27 +89,27 @@ voltageCalibrationData = pd.read_csv(os.path.join(datasheets_path, 'voltageCalib
 currentCalibrationData = pd.read_csv(os.path.join(datasheets_path, 'currentCalibrationData.csv'), decimal=',')
 
 # Interpolation functions
-adc2voltage = interp1d(voltageCalibrationData.ADC, voltageCalibrationData.U, fill_value="extrapolate", kind="linear")
+adc2voltage = interp1d(voltageCalibrationData.ADC*8, voltageCalibrationData.U, fill_value="extrapolate", kind="linear")
 voltage2dac = interp1d(voltageCalibrationData.U, voltageCalibrationData.DAC, fill_value="extrapolate", kind="linear")
-adc2current = interp1d(currentCalibrationData.ADC, currentCalibrationData.I, fill_value="extrapolate", kind="linear")
+adc2current = interp1d(currentCalibrationData.ADC*8, currentCalibrationData.I, fill_value="extrapolate", kind="linear")
 current2dac = interp1d(currentCalibrationData.I, currentCalibrationData.DAC, fill_value="extrapolate", kind="linear")
 
 # Measurement calibration tables
 # ADC Values to consider
-adc_values = np.linspace(start=0, stop=adc_max+1, endpoint=True, num=adcSteps+1)
+vc_adc_values = np.linspace(start=0, stop=vc_adc_max+1, endpoint=True, num=adcSteps+1)
 # Voltages [mV] and currents [mA] for the ADC values to consider
-measuredVoltageOffsets = np.round(1000.0*adc2voltage(adc_values)).astype(int)
-measuredCurrentOffsets = np.round(1000.0*adc2current(adc_values)).astype(int)
+measuredVoltageOffsets = np.round(1000.0*adc2voltage(vc_adc_values)).astype(int)
+measuredCurrentOffsets = np.round(1000.0*adc2current(vc_adc_values)).astype(int)
 
 # Small ADC values to consider specifically
-adc_values_small = np.linspace(start=0, stop=adc_values[1], endpoint=True, num=adcSmallSteps+1)
+vc_adc_values_small = np.linspace(start=0, stop=vc_adc_values[1], endpoint=True, num=adcSmallSteps+1)
 # Voltages [mV] and currents [mA] for the small ADC values to consider
-measuredVoltageOffsetsSmall = np.round(1000.0*adc2voltage(adc_values_small)).astype(int)
-measuredCurrentOffsetsSmall = np.round(1000.0*adc2current(adc_values_small)).astype(int)
+measuredVoltageOffsetsSmall = np.round(1000.0*adc2voltage(vc_adc_values_small)).astype(int)
+measuredCurrentOffsetsSmall = np.round(1000.0*adc2current(vc_adc_values_small)).astype(int)
 
-measuredVoltageShift = np.ceil(np.log2((adc_max+1)/adcSteps)).astype(int)
+measuredVoltageShift = np.ceil(np.log2((vc_adc_max+1)/adcSteps)).astype(int)
 measuredCurrentShift = measuredVoltageShift
-measuredVoltageShiftSmall = np.ceil(np.log2((adc_values[1]/adcSmallSteps))).astype(int)
+measuredVoltageShiftSmall = np.ceil(np.log2((vc_adc_values[1]/adcSmallSteps))).astype(int)
 measuredCurrentShiftSmall = measuredVoltageShiftSmall
 
 # Setpoint calibration tables
@@ -136,6 +137,8 @@ setpointVoltageShiftSmall = voltageDACBitsSmall - np.ceil(np.log2(dacSmallSteps)
 
 
 # Current calibration table
+# ADC Values to consider
+temp_adc_values = np.linspace(start=0, stop=temp_adc_max+1, endpoint=True, num=adcSteps+1)
 # Minimum maximum current to consider
 maxCurrentMilliAmps = 10.E3
 # Bits required to express maximum current
@@ -154,10 +157,10 @@ currentValuesSmall = np.linspace(start=0, stop=currentValues[1], endpoint=True, 
 setpointCurrentOffsetsSmall = np.clip(a=np.round(voltage2dac(voltageValuesSmall/1.E3)), a_min=0, a_max=16383).astype(int)
 setpointCurrentShiftSmall = currentDACBitsSmall - np.ceil(np.log2(dacSmallSteps)).astype(int)
 
-print("#define PS9530_ADC_VOLTAGE_SMALL %sU" % adc_values[1].astype(int))
+print("#define PS9530_ADC_VOLTAGE_SMALL %sU" % vc_adc_values[1].astype(int))
 print("#define PS9530_ADC_VOLTAGE_SHIFT %sU" % measuredVoltageShift)
 print("#define PS9530_ADC_VOLTAGE_SHIFT_SMALL %sU" % measuredVoltageShiftSmall)
-print("#define PS9530_ADC_CURRENT_SMALL %sU" % adc_values[1].astype(int))
+print("#define PS9530_ADC_CURRENT_SMALL %sU" % vc_adc_values[1].astype(int))
 print("#define PS9530_ADC_CURRENT_SHIFT %sU" % measuredCurrentShift)
 print("#define PS9530_ADC_CURRENT_SHIFT_SMALL %sU" % measuredCurrentShiftSmall)
 print("#define PS9530_DAC_VOLTAGE_SMALL %sU" % voltageValues[1].astype(int))
@@ -191,12 +194,12 @@ print("};");
 numTestpoints = 10
 
 # Generate random values in the ADC range
-testADCValuesSmall = np.sort(np.random.randint(adc_values[0], adc_values[1], 10))
-testADCValuesLarge = np.sort(np.random.randint(adc_values[1], adc_max, 10))
-testADCVoltagesSmall = np.round(interp1d(adc_values_small, measuredVoltageOffsetsSmall)(testADCValuesSmall)).astype(int)
-testADCVoltagesLarge = np.round(interp1d(adc_values, measuredVoltageOffsets)(testADCValuesLarge)).astype(int)
-testADCCurrentsSmall = np.round(interp1d(adc_values_small, measuredCurrentOffsetsSmall)(testADCValuesSmall)).astype(int)
-testADCCurrentsLarge = np.round(interp1d(adc_values, measuredCurrentOffsets)(testADCValuesLarge)).astype(int)
+testADCValuesSmall = np.sort(np.random.randint(vc_adc_values[0], vc_adc_values[1], 10))
+testADCValuesLarge = np.sort(np.random.randint(vc_adc_values[1], vc_adc_max, 10))
+testADCVoltagesSmall = np.round(interp1d(vc_adc_values_small, measuredVoltageOffsetsSmall)(testADCValuesSmall)).astype(int)
+testADCVoltagesLarge = np.round(interp1d(vc_adc_values, measuredVoltageOffsets)(testADCValuesLarge)).astype(int)
+testADCCurrentsSmall = np.round(interp1d(vc_adc_values_small, measuredCurrentOffsetsSmall)(testADCValuesSmall)).astype(int)
+testADCCurrentsLarge = np.round(interp1d(vc_adc_values, measuredCurrentOffsets)(testADCValuesLarge)).astype(int)
 
 testADCValues = np.concatenate((testADCValuesSmall, testADCValuesLarge))
 testADCVoltages = np.concatenate((testADCVoltagesSmall, testADCVoltagesLarge))
