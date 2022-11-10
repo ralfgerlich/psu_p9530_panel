@@ -19,7 +19,7 @@ def to_c_array(values, formatter=str, colcount=15):
     # assemble components into the complete string
     return '{%s}' % body
 
-datasheets_path = '../../../datasheets'
+datasheets_path = '../../datasheets'
 
 # Temperature sensor
 # Selected sensor
@@ -89,23 +89,23 @@ voltageCalibrationData = pd.read_csv(os.path.join(datasheets_path, 'voltageCalib
 currentCalibrationData = pd.read_csv(os.path.join(datasheets_path, 'currentCalibrationData.csv'), decimal=',')
 
 # Interpolation functions
-adc2voltage = interp1d(voltageCalibrationData.ADC*8, voltageCalibrationData.U, fill_value="extrapolate", kind="linear")
+adc2voltage = interp1d(voltageCalibrationData.ADC, voltageCalibrationData.U, fill_value="extrapolate", kind="linear")
 voltage2dac = interp1d(voltageCalibrationData.U, voltageCalibrationData.DAC, fill_value="extrapolate", kind="linear")
-adc2current = interp1d(currentCalibrationData.ADC*8, currentCalibrationData.I, fill_value="extrapolate", kind="linear")
+adc2current = interp1d(currentCalibrationData.ADC, currentCalibrationData.I, fill_value="extrapolate", kind="linear")
 current2dac = interp1d(currentCalibrationData.I, currentCalibrationData.DAC, fill_value="extrapolate", kind="linear")
 
 # Measurement calibration tables
 # ADC Values to consider
 vc_adc_values = np.linspace(start=0, stop=vc_adc_max+1, endpoint=True, num=adcSteps+1)
 # Voltages [mV] and currents [mA] for the ADC values to consider
-measuredVoltageOffsets = np.round(1000.0*adc2voltage(vc_adc_values)).astype(int)
-measuredCurrentOffsets = np.round(1000.0*adc2current(vc_adc_values)).astype(int)
+measuredVoltageOffsets = np.clip(a=np.round(1000.0*adc2voltage(vc_adc_values)).astype(int), a_min=0, a_max=65535)
+measuredCurrentOffsets = np.clip(a=np.round(1000.0*adc2current(vc_adc_values)).astype(int), a_min=0, a_max=65535)
 
 # Small ADC values to consider specifically
 vc_adc_values_small = np.linspace(start=0, stop=vc_adc_values[1], endpoint=True, num=adcSmallSteps+1)
 # Voltages [mV] and currents [mA] for the small ADC values to consider
-measuredVoltageOffsetsSmall = np.round(1000.0*adc2voltage(vc_adc_values_small)).astype(int)
-measuredCurrentOffsetsSmall = np.round(1000.0*adc2current(vc_adc_values_small)).astype(int)
+measuredVoltageOffsetsSmall = np.clip(a=np.round(1000.0*adc2voltage(vc_adc_values_small)).astype(int), a_min=0, a_max=65535)
+measuredCurrentOffsetsSmall = np.clip(a=np.round(1000.0*adc2current(vc_adc_values_small)).astype(int), a_min=0, a_max=65535)
 
 measuredVoltageShift = np.ceil(np.log2((vc_adc_max+1)/adcSteps)).astype(int)
 measuredCurrentShift = measuredVoltageShift

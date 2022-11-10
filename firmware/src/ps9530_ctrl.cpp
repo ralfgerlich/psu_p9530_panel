@@ -106,33 +106,33 @@ void PS9530_Ctrl::updateDAC() {
 }
 
 const uint16_t PS9530_Ctrl::adcVoltageOffset[33] PROGMEM = 
-{104, 1280, 2312, 3367, 4404, 5504, 6550, 7600, 8680, 9723,
-10779, 11841, 12886, 13982, 15017, 16087, 17149, 18187, 19246, 20273,
-21350, 22431, 23491, 24572, 25578, 26681, 27751, 28795, 29880, 30798,
-31715, 32632, 33550};
+{0, 1269, 2319, 3388, 4448, 5502, 6556, 7608, 8670, 9723,
+10782, 11838, 12896, 13963, 15017, 16064, 17133, 18181, 19246, 20281,
+21340, 22394, 23446, 24512, 25567, 26627, 27691, 28756, 29821, 31060,
+32298, 33537, 34776};
 const uint16_t PS9530_Ctrl::adcVoltageOffsetSmall[9] PROGMEM = 
-{104, 353, 497, 631, 754, 893, 1032, 1156, 1280};
+{0, 350, 472, 604, 738, 869, 1004, 1131, 1269};
 const uint16_t PS9530_Ctrl::adcCurrentOffset[33] PROGMEM = 
-{0, 397, 704, 1012, 1317, 1625, 1933, 2240, 2546, 2850,
-3152, 3460, 3767, 4074, 4379, 4683, 4986, 5296, 5611, 5915,
-6221, 6520, 6835, 7143, 7452, 7764, 8077, 8380, 8689, 9000,
-9315, 9620, 10211};
+{167, 472, 790, 1097, 1404, 1710, 1997, 2305, 2612, 2917,
+3221, 3526, 3833, 4139, 4445, 4753, 5060, 5368, 5674, 5980,
+6285, 6591, 6899, 7207, 7515, 7825, 8138, 8448, 8755, 9030,
+9332, 9646, 9953};
 const uint16_t PS9530_Ctrl::adcCurrentOffsetSmall[9] PROGMEM = 
-{0, 73, 145, 209, 247, 284, 322, 359, 397};
+{167, 209, 242, 280, 318, 357, 395, 433, 472};
 const uint16_t PS9530_Ctrl::voltageDACOffset[33] PROGMEM = 
-{0, 481, 1035, 1589, 2143, 2696, 3250, 3802, 4339, 4886,
-5448, 5990, 6538, 7090, 7641, 8192, 8745, 9299, 9854, 10407,
-10957, 11508, 12059, 12610, 13160, 13709, 14258, 14807, 15357, 15906,
+{0, 485, 1039, 1594, 2148, 2701, 3255, 3850, 4359, 4906,
+5455, 6003, 6554, 7104, 7652, 8203, 8753, 9302, 9850, 10403,
+10957, 11507, 12058, 12609, 13159, 13709, 14257, 14806, 15356, 15905,
 16383, 16383, 16383};
 const uint16_t PS9530_Ctrl::voltageDACOffsetSmall[9] PROGMEM = 
-{0, 0, 56, 134, 203, 273, 343, 412, 481};
+{0, 0, 68, 134, 208, 278, 347, 416, 485};
 const uint16_t PS9530_Ctrl::currentDACOffset[33] PROGMEM = 
-{0, 890, 1640, 2393, 3141, 3892, 4640, 5390, 6140, 6889,
-7656, 8402, 9147, 9895, 10634, 11379, 12120, 12880, 13616, 14352,
-15102, 15854, 16383, 16383, 16383, 16383, 16383, 16383, 16383, 16383,
+{145, 878, 1617, 2366, 3140, 3876, 4625, 5374, 6125, 6874,
+7619, 8365, 9114, 9862, 10606, 11349, 12088, 12834, 13648, 14386,
+15158, 15931, 16383, 16383, 16383, 16383, 16383, 16383, 16383, 16383,
 16383, 16383, 16383};
 const uint16_t PS9530_Ctrl::currentDACOffsetSmall[9] PROGMEM = 
-{0, 0, 56, 134, 203, 273, 343, 412, 481};
+{0, 0, 68, 134, 208, 278, 347, 416, 485};
 const uint16_t PS9530_Ctrl::minTempADC[2] PROGMEM = {550, 484};
 const uint16_t PS9530_Ctrl::maxTempADC[2] PROGMEM = {860, 1195};
 const int16_t PS9530_Ctrl::tempOffset[2][12] PROGMEM = {
@@ -236,17 +236,17 @@ OutputType interpolate(InputType value, const OutputType offsetTable[] PROGMEM, 
 
 uint16_t PS9530_Ctrl::interpolateADCVoltage(uint16_t adcValue) {
     if (adcValue < PS9530_ADC_VOLTAGE_SMALL) {
-        return interpolate(adcValue, adcVoltageOffsetSmall, PS9530_ADC_VOLTAGE_SHIFT_SMALL);
+        return interpolate<uint16_t, uint16_t, uint32_t>(adcValue, adcVoltageOffsetSmall, PS9530_ADC_VOLTAGE_SHIFT_SMALL);
     } else {
-        return interpolate(adcValue, adcVoltageOffset, PS9530_ADC_VOLTAGE_SHIFT);
+        return interpolate<uint16_t, uint16_t, uint32_t>(adcValue, adcVoltageOffset, PS9530_ADC_VOLTAGE_SHIFT);
     }
 }
 
 uint16_t PS9530_Ctrl::interpolateADCCurrent(uint16_t adcValue) {
     if (adcValue < PS9530_ADC_CURRENT_SMALL) {
-        return interpolate(adcValue, adcCurrentOffsetSmall, PS9530_ADC_CURRENT_SHIFT_SMALL);
+        return interpolate<uint16_t, uint16_t, uint32_t>(adcValue, adcCurrentOffsetSmall, PS9530_ADC_CURRENT_SHIFT_SMALL);
     } else {
-        return interpolate(adcValue, adcCurrentOffset, PS9530_ADC_CURRENT_SHIFT);
+        return interpolate<uint16_t, uint16_t, uint32_t>(adcValue, adcCurrentOffset, PS9530_ADC_CURRENT_SHIFT);
     }
 }
 
