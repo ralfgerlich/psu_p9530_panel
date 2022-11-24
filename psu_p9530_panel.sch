@@ -4,9 +4,9 @@ EELAYER END
 $Descr A4 11693 8268
 encoding utf-8
 Sheet 1 1
-Title "ELV PS9530 Ersatz Bedienteil"
-Date "2022-09-04"
-Rev "12"
+Title "ELV PS9530 Replacement User Interface"
+Date "2022-11-24"
+Rev "13"
 Comp "Ralf Gerlich"
 Comment1 ""
 Comment2 ""
@@ -89,7 +89,7 @@ Wire Wire Line
 Text GLabel 5550 7050 0    50   Output ~ 0
 UMess
 Text GLabel 5550 7250 0    50   Output ~ 0
-IMess_Ein
+IMess_In
 Text GLabel 6200 7250 2    50   Output ~ 0
 Regel
 Wire Wire Line
@@ -121,9 +121,9 @@ $EndComp
 Wire Wire Line
 	6100 7150 6550 7150
 Text Notes 4750 6050 0    50   ~ 0
-Konnektor Basisplatine
+Connector to Base PCB
 Text GLabel 3050 6800 2    50   Input ~ 0
-IMess_Ein
+IMess_In
 $Comp
 L Device:C C332
 U 1 1 62EE22F2
@@ -172,8 +172,8 @@ F 3 "http://www.ti.com/lit/ds/symlink/tlc272.pdf" H 1750 6900 50  0001 C CNN
 	1    1750 6900
 	-1   0    0    1   
 $EndComp
-Text Notes 2800 6600 0    50   ~ 0
-Tiefpassfilter\n(fc ca. 160Hz)
+Text Notes 2650 6600 0    50   ~ 0
+Low Pass\n(cut off ca. 160Hz)
 $Comp
 L Device:C C329
 U 1 1 62EE863F
@@ -235,7 +235,7 @@ Connection ~ 2100 6800
 Wire Wire Line
 	2100 6800 2050 6800
 Text Notes 1450 6400 0    50   ~ 0
-Messverstärker\n(k ca. 4,93)
+Amplifier\n(gain ca. 4,93)
 Wire Wire Line
 	1350 6900 1450 6900
 Text GLabel 850  6900 0    50   Output ~ 0
@@ -243,7 +243,7 @@ IMess
 Wire Wire Line
 	850  6900 1000 6900
 Text Notes 600  6050 0    50   ~ 0
-Messkonditionierung Strom
+Conditioning Current Measurement
 Wire Wire Line
 	6200 7400 6200 7350
 Wire Wire Line
@@ -471,7 +471,7 @@ L Amplifier_Operational:TLC272 IC310
 U 1 1 62F59258
 P 8100 4250
 F 0 "IC310" H 8100 4000 50  0000 C CNN
-F 1 "TLC272" H 8100 4500 50  0000 C CNN
+F 1 "TLC272" H 8200 4450 50  0000 C CNN
 F 2 "" H 8100 4250 50  0001 C CNN
 F 3 "http://www.ti.com/lit/ds/symlink/tlc272.pdf" H 8100 4250 50  0001 C CNN
 	1    8100 4250
@@ -530,15 +530,15 @@ Connection ~ 7600 4150
 Wire Wire Line
 	7600 4150 7800 4150
 Text GLabel 6200 4900 2    50   Output ~ 0
-USoll_roh
+USoll_raw
 Wire Wire Line
 	6200 4900 5800 4900
 Text GLabel 6200 5100 2    50   Output ~ 0
-ISoll_roh
+ISoll_raw
 Wire Wire Line
 	6200 5100 5800 5100
 Text GLabel 7150 4150 0    50   Input ~ 0
-USoll_roh
+USoll_raw
 Wire Wire Line
 	7150 4150 7200 4150
 Text GLabel 8600 4250 2    50   Output ~ 0
@@ -551,7 +551,7 @@ L Amplifier_Operational:TLC272 IC310
 U 2 1 62F810D4
 P 8100 5250
 F 0 "IC310" H 8100 5000 50  0000 C CNN
-F 1 "TLC272" H 8100 5500 50  0000 C CNN
+F 1 "TLC272" H 8200 5450 50  0000 C CNN
 F 2 "" H 8100 5250 50  0001 C CNN
 F 3 "http://www.ti.com/lit/ds/symlink/tlc272.pdf" H 8100 5250 50  0001 C CNN
 	2    8100 5250
@@ -610,7 +610,7 @@ Connection ~ 7600 5150
 Wire Wire Line
 	7600 5150 7800 5150
 Text GLabel 7150 5150 0    50   Input ~ 0
-ISoll_roh
+ISoll_raw
 Wire Wire Line
 	7150 5150 7200 5150
 Text GLabel 8600 5250 2    50   Output ~ 0
@@ -626,7 +626,7 @@ Wire Wire Line
 	1850 4100 1850 4200
 Connection ~ 1850 4200
 Text Notes 2850 5450 0    50   ~ 0
-Spannungsreferenz 2,5V
+Voltage Reference 2.5V
 Text Notes 4000 3750 0    50   ~ 0
 DAC Multiplexer
 Text Notes 6750 3750 0    50   ~ 0
@@ -658,7 +658,7 @@ Wire Notes Line
 Wire Notes Line
 	3900 3650 550  3650
 Text Notes 1900 2550 0    50   ~ 0
-Inkrementalgeber
+Encoder
 NoConn ~ 9650 1350
 NoConn ~ 9650 1450
 Text GLabel 9550 2650 0    50   Output ~ 0
@@ -690,7 +690,7 @@ IMess
 Wire Wire Line
 	10750 2050 10650 2050
 Text GLabel 10750 1950 2    50   Input ~ 0
-UMess
+VMess
 Wire Wire Line
 	10650 1950 10750 1950
 $Comp
@@ -965,7 +965,7 @@ Wire Wire Line
 Text GLabel 800  1100 0    50   Output ~ 0
 Col0
 Text Notes 600  650  0    50   ~ 0
-Tastaturmatrix
+Keyboard Matrix
 Text GLabel 9150 1750 0    50   Input ~ 0
 Col0
 Text GLabel 9150 1850 0    50   Input ~ 0
@@ -1069,7 +1069,7 @@ Wire Wire Line
 Text GLabel 10750 2350 2    50   Output ~ 0
 MUXSEL
 Text Notes 5000 650  0    50   ~ 0
-Schieberegister (neu)
+Shift Register
 Wire Wire Line
 	5300 1350 5350 1350
 Wire Wire Line
@@ -1103,7 +1103,7 @@ Regel
 Wire Wire Line
 	9600 1950 9650 1950
 Text Notes 8950 650  0    50   ~ 0
-Arduino (neu)
+Arduino
 Wire Notes Line
 	4950 550  6950 550 
 $Comp
@@ -1260,7 +1260,7 @@ L power:+5V #PWR0401
 U 1 1 6301B6DF
 P 1350 2800
 F 0 "#PWR0401" H 1350 2650 50  0001 C CNN
-F 1 "+5V" H 1365 2973 50  0000 C CNN
+F 1 "+5V" H 1450 2900 50  0000 C CNN
 F 2 "" H 1350 2800 50  0001 C CNN
 F 3 "" H 1350 2800 50  0001 C CNN
 	1    1350 2800
@@ -1338,7 +1338,7 @@ Wire Wire Line
 Wire Wire Line
 	1000 2850 950  2850
 Text Notes 600  2650 0    50   ~ 0
-Tiefpassfilter +5V\nfc ca. 33,8Hz
+Low pass filter +5V\n(cut off ca. 33.8Hz)
 Wire Notes Line
 	1750 2450 550  2450
 $Comp
@@ -1480,7 +1480,7 @@ Wire Notes Line
 Wire Notes Line
 	1750 3600 1750 2450
 Text Notes 7000 7000 0    50   ~ 0
-Rev 12: Filter-Caps für Tastaturmatrix\nRev 11: Entfernte Anbindung +3.3V\nRev 10: Integration Seedstudio Display-Shield\nRev 9: Korrektur FSM & Anschluss Inkrementalgeber, Ersatz R337, Power LED\nRev 8: Korrektur FSM Inkrementalgeber
+Rev 13: English translation\nRev 12: filter-caps for keyboard matrix\nRev 11: Removed +3.3V connection\nRev 10: Integration Seedstudio Display-Shield\nRev 9: Correction FSM & connection encoder, replacement R337, Power LED\n
 $Comp
 L Device:R R402
 U 1 1 639D8EFF
@@ -1718,13 +1718,9 @@ F 3 "" H 4050 4350 50  0001 C CNN
 	1    4050 4350
 	1    0    0    -1  
 $EndComp
-Text Notes 3250 650  3    50   ~ 0
-yellow
-Text Notes 600  1000 0    50   ~ 0
-brown
-Text Notes 4050 2850 0    100  ~ 0
+Text Notes 4050 2950 0    100  ~ 0
 BA\n10
-Text Notes 3550 3450 0    100  ~ 0
+Text Notes 3550 3550 0    100  ~ 0
 BA\n01
 Wire Notes Line
 	1850 2450 4600 2450
@@ -1732,14 +1728,14 @@ Wire Notes Line
 	4600 2450 4600 3600
 Wire Notes Line
 	4600 3600 1850 3600
-Text Notes 3550 2850 0    100  ~ 0
+Text Notes 3550 2950 0    100  ~ 0
 BA\n11
 Wire Notes Line style solid
-	3350 2700 3500 2700
+	3350 2800 3500 2800
 Wire Notes Line style solid
-	3500 2700 3450 2650
+	3500 2800 3450 2750
 Wire Notes Line style solid
-	3500 2700 3450 2750
+	3500 2800 3450 2850
 $Comp
 L power:-5V #PWR0120
 U 1 1 631DA4D4
@@ -1793,8 +1789,8 @@ Text GLabel 9600 1550 0    50   Input ~ 0
 IncA
 Text GLabel 9600 1650 0    50   Input ~ 0
 IncB
-Text Notes 2850 4500 0    50   ~ 0
-R337 durch 8k2 ersetzen\num genug Strom für\nReferenz (100µA),\nDAC (80µA) und\nADC (110µA) zu liefern.
+Text Notes 2750 4200 0    50   ~ 0
+Replace R337 by an 8k2 for\nsufficient current supply for\nvoltage reference (100µA),\nDAC (80µA) and\nADC (110µA)
 Text Notes 1400 7400 0    50   ~ 0
 Dies ist IC312B im\nOriginalplan.
 Wire Notes Line
@@ -1813,76 +1809,76 @@ Connection ~ 4950 6750
 Wire Wire Line
 	4900 7400 5100 7400
 Connection ~ 5100 7400
-Text Notes 4050 3450 0    100  ~ 0
+Text Notes 4050 3550 0    100  ~ 0
 BA\n00
-Text Notes 3950 2650 2    50   ~ 0
+Text Notes 3950 2750 2    50   ~ 0
 CW
 Wire Notes Line style solid
-	4050 2650 4000 2600
+	4050 2750 4000 2700
 Wire Notes Line style solid
-	4050 2650 4000 2700
-Text Notes 3850 2850 0    50   ~ 0
+	4050 2750 4000 2800
+Text Notes 3850 2950 0    50   ~ 0
 CCW
 Wire Notes Line style solid
-	4050 2650 3750 2650
+	4050 2750 3750 2750
 Wire Notes Line style solid
-	3750 2750 3800 2800
+	3750 2850 3800 2900
 Wire Notes Line style solid
-	3750 2750 3800 2700
+	3750 2850 3800 2800
 Wire Notes Line style solid
-	3750 2750 4050 2750
-Text Notes 4200 3050 0    50   ~ 0
+	3750 2850 4050 2850
+Text Notes 4200 3150 0    50   ~ 0
 CW
 Wire Notes Line style solid
-	4200 3150 4250 3100
+	4200 3250 4250 3200
 Wire Notes Line style solid
-	4200 3150 4150 3100
-Text Notes 4100 3050 2    50   ~ 0
+	4200 3250 4150 3200
+Text Notes 4100 3150 2    50   ~ 0
 CCW
 Wire Notes Line style solid
-	4200 3150 4200 2850
+	4200 3250 4200 2950
 Wire Notes Line style solid
-	4100 2850 4050 2900
+	4100 2950 4050 3000
 Wire Notes Line style solid
-	4100 2850 4150 2900
+	4100 2950 4150 3000
 Wire Notes Line style solid
-	4100 2850 4100 3150
-Text Notes 3850 3450 0    50   ~ 0
+	4100 2950 4100 3250
+Text Notes 3850 3550 0    50   ~ 0
 CW
 Wire Notes Line style solid
-	3750 3350 3800 3400
+	3750 3450 3800 3500
 Wire Notes Line style solid
-	3750 3350 3800 3300
-Text Notes 4000 3250 2    50   ~ 0
+	3750 3450 3800 3400
+Text Notes 4000 3350 2    50   ~ 0
 CCW
 Wire Notes Line style solid
-	3750 3350 4050 3350
+	3750 3450 4050 3450
 Wire Notes Line style solid
-	4050 3250 4000 3200
+	4050 3350 4000 3300
 Wire Notes Line style solid
-	4050 3250 4000 3300
+	4050 3350 4000 3400
 Wire Notes Line style solid
-	4050 3250 3750 3250
-Text Notes 3600 3050 2    50   ~ 0
+	4050 3350 3750 3350
+Text Notes 3600 3150 2    50   ~ 0
 CW
 Wire Notes Line style solid
-	3600 2850 3550 2900
+	3600 2950 3550 3000
 Wire Notes Line style solid
-	3600 2850 3650 2900
-Text Notes 3700 3050 0    50   ~ 0
+	3600 2950 3650 3000
+Text Notes 3700 3150 0    50   ~ 0
 CCW
 Wire Notes Line style solid
-	3600 2850 3600 3150
+	3600 2950 3600 3250
 Wire Notes Line style solid
-	3700 3150 3750 3100
+	3700 3250 3750 3200
 Wire Notes Line style solid
-	3700 3150 3650 3100
+	3700 3250 3650 3200
 Wire Notes Line style solid
-	3700 3150 3700 2850
+	3700 3250 3700 2950
 Text Notes 7250 4000 0    50   ~ 0
-Tiefpassfilter\n(fc ca. 4760Hz)
+Low Pass Filter\n(Cut Off Frequency ca. 4760Hz)
 Text Notes 7250 5000 0    50   ~ 0
-Tiefpassfilter\n(fc ca. 4760Hz)
+Low Pass Filter\n(Cut off frequency ca. 4760Hz)
 $Comp
 L power:+5V #PWR0129
 U 1 1 6349AA77
@@ -1906,11 +1902,11 @@ F 3 "~" H 10550 4550 50  0001 C CNN
 	-1   0    0    1   
 $EndComp
 $Comp
-L Device:LED DD306
+L Device:LED D306
 U 1 1 6349C312
 P 10550 4900
-F 0 "DD306" V 10589 4782 50  0000 R CNN
-F 1 "Grün" V 10498 4782 50  0000 R CNN
+F 0 "D306" V 10589 4782 50  0000 R CNN
+F 1 "Green" V 10498 4782 50  0000 R CNN
 F 2 "" H 10550 4900 50  0001 C CNN
 F 3 "~" H 10550 4900 50  0001 C CNN
 	1    10550 4900
@@ -1947,8 +1943,8 @@ $Comp
 L MCU_Module:Arduino_UNO_R3 A402
 U 1 1 6312D27C
 P 7950 1850
-F 0 "A402" H 7950 3031 50  0000 C CNN
-F 1 "Seedstudio TFT Shield" H 7050 3000 50  0000 L CNN
+F 0 "A402" H 7150 3000 50  0000 C CNN
+F 1 "Seedstudio TFT Shield" H 7050 2900 50  0000 L CNN
 F 2 "Module:Arduino_UNO_R3" H 7950 1850 50  0001 C CIN
 F 3 "https://www.arduino.cc/en/Main/arduinoBoardUno" H 7950 1850 50  0001 C CNN
 	1    7950 1850
@@ -2031,8 +2027,8 @@ Text Notes 7050 650  0    50   ~ 0
 Display-Shield
 Wire Notes Line
 	8850 550  7000 550 
-Text Notes 5900 2300 0    50   ~ 0
-UNBEDINGT(!!!) 54LS164\nverwenden. Mit 74LS164\nkönnen Geistertastendrücke\nbeim Key-Scan auftreten!
+Text Notes 6000 2300 0    50   ~ 0
+74LS164 created\nghost keypresses.\n54LS164 seems to work.
 $Comp
 L 74xx:74HCT164 U401
 U 1 1 637BAC19
@@ -2218,8 +2214,6 @@ F 3 "~" H 2050 950 50  0001 C CNN
 	1    2050 950 
 	1    0    0    -1  
 $EndComp
-Text Notes 1250 900  1    50   ~ 0
-brown
 $Comp
 L Switch:SW_SPST TA4
 U 1 1 6309D790
@@ -2500,4 +2494,6 @@ Wire Wire Line
 	4800 1300 4800 1900
 Wire Wire Line
 	4300 1300 4300 1900
+Text Notes 3350 2650 0    50   ~ 0
+State Sequence Chart
 $EndSCHEMATC
