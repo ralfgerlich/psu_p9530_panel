@@ -67,6 +67,13 @@ The respective number will change to white with the cursor position displayed in
 
 The actual value can be set either by the number keys or the rotary knob and must be confirmed by the "Enter" key, just as in standard display mode.
 
+# Repairs to the main PCB
+One of the power Transistors was fried and another one was not soldered in properly so we replaced all of them with new ones.
+
+The three inline diodes at the control circit got also replaced since one or two where damaged as well.
+
+Some (most) of the smaller capacitors got replaced since they were off and affected the controls negatively.
+
 # Design changes
 (For the original schematics, refer to the PS9530 manual, which can be found [here](https://www.mikrocontroller.net/attachment/70639/PS9530_KM_G_071030.pdf), for example).
 
