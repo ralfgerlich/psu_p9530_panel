@@ -27,11 +27,11 @@ The current is limited is to the maximum value that will be at most the current 
 ## Standard Display Mode
 After reset, the display will be in standard mode, displaying the voltage, current and power setpoints (small font) and measurements (large font), as well as the status ("Standby", "Overtemp" and "Limited").
 
-The power supply will start up in standby mode.
+The power supply will start up and set standby mode.
 In standby mode, the power supply will set the voltage and the current to "0".
 To toggle standby mode, press the "Standby" button.
 
-To change any of the numeric settings, press either "U" (voltage), "I" (current) or "P" (power) for at most 500ms.
+To change any of the numeric settings, short press either "U" (voltage), "I" (current) or "P" (power) for at most 500ms.
 
 The currently selected digit will be highlighted in green.
 To change the cursor position, use the arrow keys above the rotary knob.
@@ -40,14 +40,14 @@ To change the value, use either the number keys or the rotary knob.
 Turning the knob counter-clockwise will reduce the number displayed, turning it clock-wise will increase it.
 
 The amount of decrease/increase will depend on the currently selected cursor position.
-If the cursor is on the "ones" position, turning the knob will change the value by 1V/A/W.
+If the cursor is on the "ones" position, turning the knob by one step will change the value by 1V/A/W.
 If the cursor is in the "tenths" position, turning the know will change the value by 0.1V/A/W, and so on.
 
 Pressing a digit key will change the currently selected position to that digit value and advance the cursor to the right.
 If the cursor is already in the last position, it will stay there.
-Pressing "CE" will reset the currently selected value to "0".
+Pressing "CE" will reset the currently selected value to "0" and set the selected position to the fist digit.
 
-Values outside the valid ranges will not be accepted:
+Values outside the valid ranges will be limited to the valid range:
 - 0 to 30V for the voltage,
 - 0 to 10A for the current, and
 - 0 to 300W for the power.
@@ -56,9 +56,9 @@ In order for the new value to become active, "Enter" must be pressed.
 
 ## Graph Display Mode
 The replacement/enhancement also provides a graph display mode.
-A long press of the "U" button (600ms-2s press duration) cycles through standard display mode, voltage graph display mode and voltage/current display mode.
+A long press of the "U" button (600ms-2s press duration) cycles through standard display mode, voltage graph display mode and voltage/current display mode. A long press of "I"/"P" will cycle similarly but the first graph would be a amps/power graph instead.
 
-In the graph display modes, either only the measured voltage or both the measured voltage and current are shown both numerically at the top of the display and graphically at the bottom of the display.
+In the graph display modes, either only one out of the measured voltage/amps/power or both the measured voltage and current are shown. Numerically at the top of the display and graphically at the bottom of the display.
 In combined mode, the voltage graph is green and the current graph is shown in yellow.
 
 To change either of the voltage or current setpoints, press the "U" or "I" buttons for at most 500ms.
@@ -73,7 +73,7 @@ The actual value can be set either by the number keys or the rotary knob and mus
 The schematic for our version can be found in psu_p9530_panel.pdf or by opening the KiCAD-project in the project root.
 The parts kept from the original are numbered in the range 300-399, parts introduced in the modified design are numbered in the range 400-499.
 
-We cut off the part containing the display and the microcontroller to make space for the new display.
+We simply cut off the part containing the display and the microcontroller to make space for the new display.
 
 From the original design we kept
 - the keyboard matrix (TA1-22),
@@ -129,7 +129,7 @@ See "Interpolation" for more details on the interpolation procedure.
 The calibration tables were determined from the resistances of the sensors according to the datasheet.
 
 Neither temperature is displayed.
-However, if any of the sensors is in overtemperature mode, current and voltage setpoints will be internally reduced to zero and the overtemperature warning will be displayed.
+However, if any of the sensors is in overtemperature mode, current and voltage setpoints will be internally set to zero and the overtemperature warning will be displayed.
 
 Overtemperature mode for the heatsink temperature will be entered if the temperature in degrees Celsius exceeds the limit given by TEMP1_UPPER_LIMIT (default: 100C).
 Overtemperature mode will be left only once the temperature has fallen below TEMP1_LOWER_LIMIT (default: 80C).
@@ -156,7 +156,7 @@ The impedance ... of IC310A and IC310B will sample the voltage on C306/C307 with
 
 ## Power Setpoint and Measurement
 The hardware does not provide a direct means for setting the power limit or measuring the current power.
-Instead, the power limit is converted into a current limit by dividing it by the current voltage setpoint, and the measured current is converted into a measured power by multiplying it with the measured voltage.
+Instead, the power limit is converted into a current limit by dividing it by the voltage setpoint, and the measured current is converted into a measured power by multiplying it with the measured voltage.
 
 The current limit communicated to the main PCB is the minimum of the direct current limit and the current limit derived from the power limit.
 The "Limited" flag will be displayed at either the current or the power setpoint, depending on which one is the one currently determining the actual current limit setpoint.
@@ -169,7 +169,7 @@ The integer part is used as an index into the calibration table.
 The output value is determined by linearly interpolating between the values at indices k and k+1 in the calibration table, with a value of f=0 mapped to the value at index k and the maximum value for f mapped to the value at index k+1.
 
 Both for measurement and setpoints of voltage and current, high non-linearity was observed in the lower portion of the respective range.
-For that reason, there are interpolations for fine and coarse interpolation.
+For that reason, there are tables for fine and coarse interpolation.
 Fine interpolation is applied for the range between the first and the second index of the coarse interpolation table.
 
 For more details, see PS9530_Ctrl::interpolateADCVoltage, PS9530_Ctrl::interpolateADCCurrent, PS9530_Ctrl::interpolateDACVoltage, PS9530_Ctrl::interpolateDACCurrent and PS9530_Ctrl::interpolateADCTemp as well as the interpolate template in ps9530_ctrl.cpp.
@@ -198,7 +198,9 @@ In idle state, both outputs are open, and pulled up via the pull-up in the AVR.
 When turned counter-clockwise, the signals BA cycle through 01, 00 and 10.
 For clockwise rotation, the cycle is reversed.
 
-The level changes trigger pin interrupts INT0 and INT1 in the AVR.
+The level change trigger pin interrupts are INT0 and INT1 in the AVR.
+
+Since very fast or very slow rotation was somethings giving wrong results we expect a more then 50% correct cycle to count for a direction.
 
 ## Special SPI handling
 The lines for the SPI bus are shared with the display.
