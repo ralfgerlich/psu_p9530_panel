@@ -215,16 +215,21 @@ As both the keyboard scan and the update of the DAC also use the SPI bus and the
 Before using the SPI bus inside an interrupt, a delay ensures that the current SPI transmission is finished before deactivating the CS pin for the display and storing the current configuration of the SPI bus.
 The status of the TFT CS pin and the SPI bus configuration is restored before leaving the interrupt handler.
 
-## efficient painting on the TFT display
-The display used expects commands beeing sent per pixel to set them. The commands contain the command type, pixel position and color. Due to this very verbose communication and a kind of slow serial bus some optimization was needed to paint the screen content fast enough. The target was at least 15FPS (better 30+FPS) for a good user experience.
+## Efficient Painting on the TFT display
+The display used expects commands to be sent per pixel to set them. The commands contain the command type, pixel position and color. Due to this very verbose communication and a kind of slow serial bus some optimization was needed to paint the screen content fast enough. The target was at least 15FPS (better 30+FPS) for a good user experience.
 
-This faster painting was achived by basically three optimization tricks. Sending as less pixel per frame as possible - basically only the changed pixel. Second by sending them all in one go to reduce command overhead. Third rendering graphics as programatically but efficient as possible.
+This faster painting was achived by basically three optimization tricks:
 
-The most simple implementation would have been to store the display pixel state in memory and transmit only the changed ones. This however is not an option since the RAM of the Arduino is way to tiny.
+- Sending as few pixels per frame as possible - basically only the changed pixel.
+- Sending them all in one go to reduce command overhead.
+- Increasing efficiency by programmatically changing only the pixels necessary.
 
-The logo was stored as black/white X-Bitmap (xbmp) in flash and the color gradient was generated on the fly in code. The Logo text is stored the same way and just painted in the correct color. The colors used are basically the toolbox colours but slightly adjusted to the display representation.
-The font is converted to a binary representation and also stored in flash. To reduce the painting effort we store the rendered strings in RAM and compare them char by char with the string we want to render next. Then we only send the pixel information for the changed characters. The ones to remove in background color and then the ones to paint in text colour. This causes a tiny overdraw but is way more efficient computationaly.
-For the graphs we store the rendered line in a ring-buffer like implenetation with x+1 width and normalized to y hight. So we know where the pixel was rendered last and where it is rendered now and can determine if we need to change this pixel. We then only transmit the changed pixels in a similar way as we send the font changes. Due to the amount of changed pixels the graphs are slower then the text only display. This is why there we also render less text on the graphical diplay variants.
+The simplest implementation would have been to store the display pixel state in memory and transmit only the changed ones. This, however, is not an option since the RAM of the Arduino is way too tiny.
+
+The logo was stored as black/white X-Bitmap (xbm) in flash and the color gradient was generated on the fly in code. The logo text is stored the same way and just painted in the correct color. The colors used are basically the Toolbox colours but slightly adjusted to the display representation.
+The font is converted to a binary representation and also stored in flash. To reduce the painting effort we store the rendered strings in RAM and compare them char by char with the string we want to render next. Then we only send the pixel information for the changed characters, first the ones to remove in background color and then the ones to paint in text colour. This causes a tiny overdraw but is way more efficient computationally.
+
+For the graphs we store the rendered line in a ring-buffer like implemetation with x+1 width and normalized to y height. So we know where the pixel was rendered last and where it is rendered now and can determine if we need to change this pixel. We then only transmit the changed pixels in a similar way as we send the font changes. Due to the amount of changed pixels the graphs are slower than the text only display. This is why there we also render less text on the graphical diplay variants.
 
 The downside of the used approach is the non constant framerate but we use minimal RAM and render on the display comparably fast.
 
